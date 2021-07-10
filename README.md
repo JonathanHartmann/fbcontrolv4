@@ -7,6 +7,8 @@ Durch die Eintragung der Termine wird automatisch die Heizung(natürlich nur in d
 Die API der Heizungssteuerung ist die "AVM Home Automation" über ein HTTP GET Request. 
 Infos hier: https://avm.de/fileadmin/user_upload/Global/Service/Schnittstellen/AHA-HTTP-Interface.pdf
 
+Die Programmierung der Background Steuerung ist komplett in PHP geschrieben.
+
 Die Website dient dabei als UI für den Benutzer. Um Einstellungen einfach tätigen zu können.
 
 
