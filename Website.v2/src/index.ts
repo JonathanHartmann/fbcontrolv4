@@ -1,3 +1,6 @@
+// Firebase wrapped in the global window variable
+import './client-packages/window';
+
 // Styles
 import './styles.scss';
 

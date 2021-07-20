@@ -31,6 +31,7 @@
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
+    "firebase": "^8.7.1",
     "lit-element": "^2.5.1",
     "redux": "^4.1.0"
   }
