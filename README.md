@@ -1,16 +1,22 @@
 # fbcontrolv4
 Heizungssteuerung.v4
 
-Ziel dieses Projektes soll sein, über einen Kalendar der Online über eine Website verfügbar ist, Termine eintragen zu können.
-Durch die Eintragung der Termine wird automatisch die Heizung(natürlich nur in der Heizsaison) auf die Soll temperatur eingestellt. 
+Ziel dieses Projektes soll sein, ï¿½ber einen Kalendar der Online ï¿½ber eine Website verfï¿½gbar ist, Termine eintragen zu kï¿½nnen.
+Durch die Eintragung der Termine wird automatisch die Heizung(natï¿½rlich nur in der Heizsaison) auf die Soll temperatur eingestellt. 
 
-Die API der Heizungssteuerung ist die "AVM Home Automation" über ein HTTP GET Request. 
+Die API der Heizungssteuerung ist die "AVM Home Automation" ï¿½ber ein HTTP GET Request. 
 Infos hier: https://avm.de/fileadmin/user_upload/Global/Service/Schnittstellen/AHA-HTTP-Interface.pdf
 
 Die Programmierung der Background Steuerung ist komplett in PHP geschrieben.
 
-Die Website dient dabei als UI für den Benutzer. Um Einstellungen einfach tätigen zu können.
+Die Website dient dabei als UI fï¿½r den Benutzer. Um Einstellungen einfach tï¿½tigen zu kï¿½nnen.
 
 
 
-
+# Website V2
+## ðŸš€ Setup
+1. Clone this repo
+2. Run `npm install`
+3. Add a .env file which looks like the .env.example file
+4. Start development with `npm start`
+5. Get files for production with `npm run build`. Your files are now in the /public folder.
