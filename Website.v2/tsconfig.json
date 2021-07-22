@@ -15,7 +15,7 @@
     "strictPropertyInitialization": true,
     "noImplicitThis": true,
     "alwaysStrict": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
@@ -27,11 +27,6 @@
     "emitDecoratorMetadata": true,
 
     "plugins": [
-      {
-        "name": "typescript-tslint-plugin",
-        "alwaysShowRuleFailuresAsWarnings": true,
-        "configFile": "./tslint.json"
-      },
       {
         "name": "typescript-lit-html-plugin"
       }

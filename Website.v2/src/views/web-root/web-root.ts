@@ -9,9 +9,9 @@ export default class WebRoot extends PageMixin(LitElement) {
 
   render(): TemplateResult {
     return html`
-            <div class="content">
+            <main class="content">
                 ${this.renderOutlet()}
-            </div>
+            </main>
         `
   }
 
@@ -21,10 +21,14 @@ export default class WebRoot extends PageMixin(LitElement) {
 
   renderOutlet(): TemplateResult {
     switch(router.getPath()) {
-      case 'test-route':
-        return html`` // add here your component
+      case 'events':
+        return html`<web-events></web-events>`
+      case 'login':
+        return html`<web-login></web-login>`
+      case 'register':
+        return html`<web-register></web-register>`
       default:
-        return html`` // add here your component
+        return html`<web-register></web-register>`
     }
   }
 }

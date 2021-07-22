@@ -18,5 +18,7 @@
 	      "warn",
 	      "single"
       ],
-      "require-atomic-updates": "off"  }
+      "require-atomic-updates": "off",
+      "no-unused-labels": "warn"
+    }
 }

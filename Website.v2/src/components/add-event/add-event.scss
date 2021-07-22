@@ -1,0 +1,20 @@
+add-event {
+  app-datepicker-dialog {
+    --app-datepicker-border-top-left-radius: 8px;
+    --app-datepicker-border-top-right-radius: 8px;
+    --app-datepicker-border-bottom-right-radius: 8px;
+    --app-datepicker-border-bottom-left-radius: 8px;
+    --app-datepicker-accent-color: #1a73e8;
+    --app-datepicker-bg-color: #fff;
+    --app-datepicker-color: #000;
+    --app-datepicker-disabled-day-color: rgba(0, 0, 0, .55);
+    --app-datepicker-focused-day-color: #fff;
+    --app-datepicker-focused-year-bg-color: #000;
+    --app-datepicker-selector-color: rgba(0, 0, 0, .55);
+    --app-datepicker-separator-color: #ddd;
+    --app-datepicker-weekday-color: rgba(0, 0, 0, .55);
+    --app-datepicker-dialog-z-index: 24;
+    --app-datepicker-dialog-border-radius: 8px;
+    --app-datepicker-dialog-scrim-bg-color: rgba(0, 0, 0, .55);
+  }
+}
