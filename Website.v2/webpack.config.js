@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebPackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const Dotenv = require('dotenv-webpack');
 const { NONAME } = require('dns');
 
@@ -32,6 +33,13 @@ module.exports = (env) => {
           test: /\.(jpe?g|png|gif|svg)$/i,
           use: ['file-loader?name=app/images/[name].[ext]'],
         },
+        { // This is only for the calendar
+          test: /\.css$/,
+          use: [
+            { loader: MiniCssExtractPlugin.loader },
+            { loader: 'css-loader', options: { importLoaders: 1 } }
+          ]
+        }
       ],
     },
     plugins: [
@@ -39,7 +47,10 @@ module.exports = (env) => {
         template: './src/index.html',
         filename: './index.html',
       }),
-      new Dotenv({safe: true})
+      new Dotenv({safe: true}),
+      new MiniCssExtractPlugin({
+        filename: 'main.css'
+      })
     ],
     output: {
       filename: '[name].js',

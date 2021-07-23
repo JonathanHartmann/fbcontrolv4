@@ -1,34 +1,61 @@
-import { customElement, html, LitElement, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 import { PageMixin } from '../../client-packages/page.mixin';
 import { router } from '../../client-packages/router';
+import { IState } from '../../interfaces/state.interface';
 
 import './web-root.scss';
 
 @customElement('web-root')
 export default class WebRoot extends PageMixin(LitElement) {
 
+  @property({type: Boolean})
+  isLogedIn = false;
+
+  routes = new Map<string, {auth: boolean, template: TemplateResult}>([
+    ['events', {auth: true, template: html`<web-events></web-events>`}],
+    ['login', {auth: false, template: html`<web-login></web-login>`}],
+    ['register', {auth: false, template: html`<web-register></web-register>`}]
+  ]);
+
+  stateChanged(state: IState): void {
+    if(state.user) {
+      this.isLogedIn = true;
+    } else {
+      this.isLogedIn = false;
+    }
+  }
+
   render(): TemplateResult {
     return html`
-            <main class="content">
-                ${this.renderOutlet()}
-            </main>
+        <web-navbar></web-navbar>
+        <main class="content">
+            ${this.renderOutlet()}
+        </main>
         `
   }
 
   firstUpdated(): void {
-    router.subscribe(() => this.requestUpdate());
+    router.subscribe((path) => {
+      console.log(path);
+      this.requestUpdate()
+    });
   }
 
-  renderOutlet(): TemplateResult {
-    switch(router.getPath()) {
-      case 'events':
-        return html`<web-events></web-events>`
-      case 'login':
-        return html`<web-login></web-login>`
-      case 'register':
-        return html`<web-register></web-register>`
-      default:
-        return html`<web-register></web-register>`
+  renderOutlet(): TemplateResult | void {
+    const path = router.getPath();
+
+    if (this.routes.get(path)?.auth && !this.isLogedIn) {
+      // unauthorized
+      router.navigate('login');
+      return this.routes.get('login')?.template;
+
+    } else if ((path === 'login' || path === 'register') && this.isLogedIn) {
+      // authorized but want to login again
+      router.navigate('events');
+      return this.routes.get('events')?.template;
+    } else {
+      // default
+      return this.routes.get(path)?.template;
     }
   }
 }

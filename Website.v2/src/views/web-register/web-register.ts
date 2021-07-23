@@ -1,4 +1,4 @@
-import { customElement, html, LitElement, query, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, property, query, TemplateResult } from 'lit-element';
 import { PageMixin } from '../../client-packages/page.mixin';
 import { router } from '../../client-packages/router';
 import { AuthService } from '../../services/auth.service';
@@ -22,11 +22,13 @@ export default class WebRegister extends PageMixin(LitElement) {
   @query('#password2')
   password2Input!: HTMLInputElement;
 
+  @property({type: Boolean})
+  error = false;
+
   render(): TemplateResult {
     return html`
       <div class="signin-container">
         <form class="form-signin">
-          <img class="mb-4" src="https://cdn3.iconfinder.com/data/icons/planning-3/64/date-time-calendar-event-booking-512.png" alt="" width="72" height="57">
           <h1 class="h3 mb-3 fw-normal">Bitt registriere dich</h1>
   
           <div class="form-floating">
@@ -46,6 +48,14 @@ export default class WebRegister extends PageMixin(LitElement) {
             <label for="floatingPassword">Bestätige dein Passwort</label>
           </div>
 
+          <div class="message-box">
+            ${ this.error ? html`
+            <div  class="text-danger"> 
+              Login fehlgeschlagen! Haben Sie Email und Passwort richtig eingegeben?
+            </div>
+            ` : undefined}
+          </div>
+
           <button class="w-100 btn btn-lg btn-primary" type="button" @click=${this.submit}>Registrieren</button>
 
           <div class="form-text">Du hast bereits einen Account? <button type="button" class="btn btn-link" @click=${() => router.navigate('login')}>Log dich ein</button></div>
@@ -59,9 +69,14 @@ export default class WebRegister extends PageMixin(LitElement) {
     const password1 = this.passwordInput.value;
     const password2 = this.password2Input.value;
     if (this.form.reportValidity() && (password1 === password2)) {
-      const response = await AuthService.register(this.emailInput.value, this.passwordInput.value, this.nameInput.value);
-      console.log(response);
-      router.navigate('events');
+      try {
+        await AuthService.register(this.emailInput.value, this.passwordInput.value, this.nameInput.value);
+        router.navigate('events');
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+        this.requestUpdate();
+      }
     }
   }
 }

@@ -2,7 +2,6 @@ web-register {
   .signin-container {
     display: grid;
     place-items: center;
-    height: 100vh;
 
     .form-signin {
       width: 100%;
@@ -23,17 +22,13 @@ web-register {
         margin-bottom: 10px;
       }
 
-      // input[type="email"] {
-      //   margin-bottom: -1px;
-      //   border-bottom-right-radius: 0;
-      //   border-bottom-left-radius: 0;
-      // }
+      input[type="email"] {
+        margin-bottom: 40px;
+      }
 
-      // input[type="password"] {
-      //   margin-bottom: 10px;
-      //   border-top-left-radius: 0;
-      //   border-top-right-radius: 0;
-      // }
+      .message-box {
+        height: 60px;
+      }
     }
   }
 }

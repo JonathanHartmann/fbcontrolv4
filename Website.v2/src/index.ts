@@ -12,7 +12,9 @@ import './views/web-register/web-register';
 
 // Components
 import './components/add-event/add-event';
+import './components/navbar/navbar';
+import './components/calendar/calendar';
 
 // Interfaces
-import './interfaces/state';
+import './interfaces/state.interface';
 import './interfaces/event.interface';

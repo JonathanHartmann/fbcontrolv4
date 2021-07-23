@@ -6,6 +6,6 @@ export interface IEvent {
   title: string;
   room: string;
   createdFrom: string;
-  begin: Timestamp;
+  start: Timestamp;
   end: Timestamp;
 }

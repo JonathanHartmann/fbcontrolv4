@@ -1,13 +1,17 @@
-import { addDoc, collection, deleteDoc, doc, DocumentData, DocumentReference, getDocs, QueryDocumentSnapshot, QuerySnapshot } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, DocumentData, getDocs, QuerySnapshot } from 'firebase/firestore';
 import { firestore } from '../client-packages/firebase';
 import { IEvent } from '../interfaces/event.interface';
+import { addEvent, setEvents } from '../redux/actions/event.actions';
+import { store } from '../redux/store';
 
 
 export class EventService {
 
-  static createEvent(event: IEvent): Promise<DocumentReference> {
+  static async createEvent(event: IEvent): Promise<void> {
     const eventsColl = collection(firestore, 'events');
-    return addDoc(eventsColl, event);
+    const newEvent = await addDoc(eventsColl, event);
+    console.log({ ...event, id: newEvent.id});
+    store.dispatch(addEvent({ ...event, id: newEvent.id}));
   }
   
   static deleteEvent(eventId: IEvent['id']): Promise<void> {
@@ -15,10 +19,11 @@ export class EventService {
     return deleteDoc(eventRef)
   }
   
-  static async getEvents(): Promise<DocumentData[]> {
+  static async loadEvents(): Promise<void> {
     const eventsRef = collection(firestore, 'events');
     const snapshot = await getDocs(eventsRef);
-    return EventService.getDataFromSnapshot(snapshot);
+    const events = EventService.getDataFromSnapshot(snapshot);
+    store.dispatch(setEvents(events as IEvent[]));
   }
 
   private static getDataFromSnapshot(snapshot: QuerySnapshot<DocumentData>): DocumentData[] {

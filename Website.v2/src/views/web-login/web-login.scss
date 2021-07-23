@@ -2,7 +2,6 @@ web-login {
   .signin-container {
     display: grid;
     place-items: center;
-    height: 100vh;
 
     .form-signin {
       width: 100%;
@@ -26,9 +25,12 @@ web-login {
       }
 
       input[type="password"] {
-        margin-bottom: 10px;
         border-top-left-radius: 0;
         border-top-right-radius: 0;
+      }
+
+      .message-box {
+        height: 60px;
       }
     }
   }
