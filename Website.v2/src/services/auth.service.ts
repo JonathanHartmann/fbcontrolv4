@@ -2,8 +2,9 @@ import { firebaseAuth } from '../client-packages/firebase';
 import { signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { IUser, ROLE } from '../interfaces/user.interface';
 import { UserService } from './user.service';
-import { clearStore, store } from '../redux/store';
+import { clearStore } from '../redux/actions/clear.actions';
 import { userLogin } from '../redux/actions/user.actions';
+import { store } from '../redux/store';
 
 export class AuthService {
 

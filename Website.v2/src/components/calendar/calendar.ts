@@ -16,20 +16,16 @@ export default class WebCalendar extends PageMixin(LitElement) {
   @query('#calendar')
   calendarElement!: HTMLElement
 
+  calendar: Calendar | undefined = undefined;
+
   render(): TemplateResult {
     return html`
         <div id="calendar"></div>
       `
   }
 
-  stateChanged(state: IState): void {
-    if (state.events.length > 0) {
-      this.createCalendar(state.events);
-    }
-  }
-
-  createCalendar(events: IEvent[]): void {
-    const calendar = new Calendar(this.calendarElement, {
+  firstUpdated(): void {
+    this.calendar = new Calendar(this.calendarElement, {
       plugins: [ dayGridPlugin, timeGridPlugin, listPlugin ],
       headerToolbar: {
         left: 'prev,next today',
@@ -41,19 +37,25 @@ export default class WebCalendar extends PageMixin(LitElement) {
       editable: true,
       dayMaxEvents: true, // allow "more" link when too many events
       themeSystem: 'bootstrap',
-      events: events.map((event) => {
-        if (event) {
-          return {
-            title: event.title,
-            start: event.start.seconds * 1000,
-            end: event.end.seconds * 1000,
-            createdFrom: event.createdFrom
-          }
-        }
-        return {};
-      })
     });
+    this.calendar.render();
+  }
 
-    calendar.render();
+  stateChanged(state: IState): void {
+    if (state.events.length > 0) {
+      this.addEvents(state.events);
+    }
+  }
+
+  addEvents(events: IEvent[]): void {
+    this.calendar?.removeAllEvents();
+    events.forEach(event => {
+      this.calendar?.addEvent({
+        title: event.title,
+        start: event.start.seconds * 1000,
+        end: event.end.seconds * 1000,
+        createdFrom: event.createdFrom
+      });
+    });
   }
 }

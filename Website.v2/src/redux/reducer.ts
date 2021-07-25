@@ -1,9 +1,10 @@
 import { IState } from '../interfaces/state.interface';
+import { CLEAR_STORE } from './actions/clear.actions';
 import { ADD_EVENT, LOAD_EVENTS } from './actions/event.actions';
 import { USER_LOGIN } from './actions/user.actions';
-import { CLEAR_STORE, INITIAL_STATE_DEFAULT } from './store';
+import { INITIAL_STATE } from './store';
 
-export const reducer = (state = INITIAL_STATE_DEFAULT, action: any): IState => {
+export const reducer = (state = { ...INITIAL_STATE }, action: any): IState => {
   switch (action.type) {
     case USER_LOGIN:
       state.user = action.user;
@@ -16,7 +17,7 @@ export const reducer = (state = INITIAL_STATE_DEFAULT, action: any): IState => {
       state.events = [ ...state.events, action.event];
       return state;
     case CLEAR_STORE:
-      state = action.state;
+      state = { ...INITIAL_STATE };
       return state;
     default:
       return state;

@@ -16,6 +16,9 @@ export default class WebNavbar extends PageMixin(LitElement) {
   @property({type: Boolean})
   isLogedIn = false;
 
+  @property({type: Boolean})
+  isAdmin = false;
+
   constructor() {
     super();
     this.path = router.getPath();
@@ -23,23 +26,25 @@ export default class WebNavbar extends PageMixin(LitElement) {
   }
 
   stateChanged(state: IState): void {
-    if(state.user) {
-      this.isLogedIn = true;
-    } else {
-      this.isLogedIn = false;
-    }
+    this.isLogedIn = state.loggedIn;
+    this.isAdmin = state.user?.role === 'admin';
   }
 
   render(): TemplateResult {
     return html`
       <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-          <a class="navbar-brand" href="/">Raum buchung</a>
+        <span class="navbar-brand mb-0 h1">Raum Buchung</span>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
+            ${ this.isLogedIn && this.isAdmin ? html `
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="/admin">Admin</a>
+                </li>
+                ` : undefined }
               ${ this.path === 'login' ? html `
                 <li class="nav-item">
                   <a class="nav-link active" aria-current="page" href="/register">Registrieren</a>
@@ -58,7 +63,6 @@ export default class WebNavbar extends PageMixin(LitElement) {
                   <add-event></add-event>
                 </li>
                 ` : undefined }
-
             </ul>
           </div>
         </div>
@@ -68,7 +72,6 @@ export default class WebNavbar extends PageMixin(LitElement) {
 
   async logout(): Promise<void> {
     const successful = await AuthService.logout();
-    console.log('logout: ', successful);
     if (successful) {
       router.navigate('login');
     } else {

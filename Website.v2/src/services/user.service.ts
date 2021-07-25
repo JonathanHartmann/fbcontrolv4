@@ -27,7 +27,6 @@ export class UserService {
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      console.log('Document data:', docSnap.data());
       return docSnap.data() as IUser;
     } else {
       // doc.data() will be undefined in this case

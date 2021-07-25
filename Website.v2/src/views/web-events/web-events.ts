@@ -1,5 +1,4 @@
-import { Timestamp } from 'firebase/firestore';
-import { customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, TemplateResult } from 'lit-element';
 import { PageMixin } from '../../client-packages/page.mixin';
 import { EventService } from '../../services/event.service';
 

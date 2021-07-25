@@ -18,11 +18,7 @@ export default class WebRoot extends PageMixin(LitElement) {
   ]);
 
   stateChanged(state: IState): void {
-    if(state.user) {
-      this.isLogedIn = true;
-    } else {
-      this.isLogedIn = false;
-    }
+    this.isLogedIn = state.loggedIn;
   }
 
   render(): TemplateResult {
@@ -35,8 +31,7 @@ export default class WebRoot extends PageMixin(LitElement) {
   }
 
   firstUpdated(): void {
-    router.subscribe((path) => {
-      console.log(path);
+    router.subscribe(() => {
       this.requestUpdate()
     });
   }
@@ -44,12 +39,12 @@ export default class WebRoot extends PageMixin(LitElement) {
   renderOutlet(): TemplateResult | void {
     const path = router.getPath();
 
-    if (this.routes.get(path)?.auth && !this.isLogedIn) {
+    if ((this.routes.get(path)?.auth || path === '') && !this.isLogedIn) {
       // unauthorized
       router.navigate('login');
       return this.routes.get('login')?.template;
 
-    } else if ((path === 'login' || path === 'register') && this.isLogedIn) {
+    } else if ((path === 'login' || path === 'register' || path === '') && this.isLogedIn) {
       // authorized but want to login again
       router.navigate('events');
       return this.routes.get('events')?.template;

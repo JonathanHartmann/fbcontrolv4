@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase/firestore';
-import { customElement, html, LitElement, query } from 'lit-element';
+import { customElement, html, LitElement, query, TemplateResult } from 'lit-element';
 import { PageMixin } from '../../client-packages/page.mixin';
 import { IEvent } from '../../interfaces/event.interface';
 import { EventService } from '../../services/event.service';
@@ -23,19 +23,22 @@ export default class AddEvent extends PageMixin(LitElement) {
   @query('#end')
   endInput!: HTMLInputElement;
 
-  render() {
+  @query('#createEventModal')
+  createEventModal!: HTMLElement;
+
+  render(): TemplateResult {
     return html`
       <!-- Button trigger modal -->
-      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createEventModal">
         Neuer Termin
       </button>
 
 
-      <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal fade" id="createEventModal" tabindex="-1" role="dialog" aria-labelledby="createEventModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="exampleModalLabel">Neuen Termin hinzufügen</h5>
+              <h5 class="modal-title" id="createEventModalLabel">Neuen Termin hinzufügen</h5>
               <button type="button" class="close btn" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
@@ -67,7 +70,7 @@ export default class AddEvent extends PageMixin(LitElement) {
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
-              <button type="button" class="btn btn-primary" @click="${this.submit}">Speichern</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" @click="${this.submit}">Speichern</button>
             </div>
           </div>
         </div>
@@ -75,11 +78,11 @@ export default class AddEvent extends PageMixin(LitElement) {
       `
   }
 
-  submit(): void {
+  async submit(): Promise<void> {
     if (this.form.reportValidity()) {
       const startDate = new Date(this.startInput.value);
       const endDate = new Date(this.endInput.value);
-      EventService.createEvent({
+      await EventService.createEvent({
         title: this.titleInput.value,
         room: this.roomInput.value,
         start: Timestamp.fromDate(startDate),
