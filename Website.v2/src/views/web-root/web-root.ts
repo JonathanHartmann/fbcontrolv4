@@ -33,7 +33,7 @@ export default class WebRoot extends PageMixin(LitElement) {
         if (firebaseUser) {
           const user = await UserService.getUser(firebaseUser.uid);
           if (user) {
-            store.dispatch(userLogin(user))
+            store.dispatch(userLogin({...user, id: firebaseUser.uid}))
           }
         }
       })

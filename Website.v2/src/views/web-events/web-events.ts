@@ -27,8 +27,16 @@ export default class WebEvents extends PageMixin(LitElement) {
           ${ this.events.map(event => { return html`
               <li class="list-group-item d-flex justify-content-between align-items-start">
                 <div class="ms-2 me-auto">
-                  <div class="fw-bold">${event.title}</div>
-                  Raum: ${event.room} - ${event.start.toDate().getUTCDate()} bis ${event.end.toDate().getUTCDate()}
+                  <h4 class="fw-bold">${event.title}</h4>
+                  <div>
+                    ${event.start.toDate().getUTCDate()} bis ${event.end.toDate().getUTCDate()}
+                  </div>
+                  <div>
+                    Raum: <b>${event.room}</b>
+                  </div>
+                  <div>
+                    Erstellt von: <b>${event.createdFrom}</b>
+                  </div>
                 </div>
                 <button type="button" class="btn btn-danger" @click=${() => this.deleteEvent(event.id)}>löschen</button>
               </li>

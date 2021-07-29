@@ -35,9 +35,8 @@ export class AuthService {
   static async login(email: string, password: string): Promise<IUser | undefined> {
     const cred = await signInWithEmailAndPassword(firebaseAuth, email, password);
     const user = await UserService.getUser(cred.user.uid);
-    console.log(cred);
     if (user) {
-      store.dispatch(userLogin(user));
+      store.dispatch(userLogin({...user, id: cred.user.uid}));
       return user;
     } else {
       return undefined;

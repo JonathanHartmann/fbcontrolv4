@@ -4,6 +4,7 @@ import { PageMixin } from '../../client-packages/page.mixin';
 import { IEvent } from '../../interfaces/event.interface';
 import { IRoom } from '../../interfaces/room.interface';
 import { IState } from '../../interfaces/state.interface';
+import { IUser } from '../../interfaces/user.interface';
 import { EventService } from '../../services/event.service';
 
 import './add-event.scss';
@@ -13,6 +14,9 @@ export default class AddEvent extends PageMixin(LitElement) {
 
   @property()
   rooms: IRoom[] = [];
+  
+  @property()
+  user: IUser | undefined = undefined;
 
   @query('form')
   form!: HTMLFormElement;
@@ -34,6 +38,7 @@ export default class AddEvent extends PageMixin(LitElement) {
 
   stateChanged(state: IState): void {
     this.rooms = state.rooms;
+    this.user = state.user;
   }
 
   render(): TemplateResult {
@@ -62,7 +67,7 @@ export default class AddEvent extends PageMixin(LitElement) {
                 <div class="mb-3">
                   <label for="room">Raum für ihre Veranstaltung</label>
                   <select required class="form-control" id="room">
-                    ${this.rooms.map(room => html`<option value=${room.id}>Raum ${room.title}</option>`)}
+                    ${this.rooms.map(room => html`<option value=${room.title}>Raum ${room.title}</option>`)}
                   </select>
                 </div>
                 <div class="mb-3">
@@ -91,9 +96,10 @@ export default class AddEvent extends PageMixin(LitElement) {
       const endDate = new Date(this.endInput.value);
       await EventService.createEvent({
         title: this.titleInput.value,
-        room: this.roomInput.value,
         start: Timestamp.fromDate(startDate),
-        end: Timestamp.fromDate(endDate)
+        end: Timestamp.fromDate(endDate),
+        room: this.roomInput.value,
+        createdFrom: this.user?.name,
       } as IEvent);
     }
   }
