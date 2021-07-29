@@ -1,13 +1,19 @@
 import { Timestamp } from 'firebase/firestore';
-import { customElement, html, LitElement, query, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, property, query, TemplateResult } from 'lit-element';
 import { PageMixin } from '../../client-packages/page.mixin';
 import { IEvent } from '../../interfaces/event.interface';
+import { IRoom } from '../../interfaces/room.interface';
+import { IState } from '../../interfaces/state.interface';
 import { EventService } from '../../services/event.service';
 
 import './add-event.scss';
 
 @customElement('add-event')
 export default class AddEvent extends PageMixin(LitElement) {
+
+  @property()
+  rooms: IRoom[] = [];
+
   @query('form')
   form!: HTMLFormElement;
 
@@ -25,6 +31,10 @@ export default class AddEvent extends PageMixin(LitElement) {
 
   @query('#createEventModal')
   createEventModal!: HTMLElement;
+
+  stateChanged(state: IState): void {
+    this.rooms = state.rooms;
+  }
 
   render(): TemplateResult {
     return html`
@@ -52,10 +62,7 @@ export default class AddEvent extends PageMixin(LitElement) {
                 <div class="mb-3">
                   <label for="room">Raum für ihre Veranstaltung</label>
                   <select required class="form-control" id="room">
-                    <option>Raum 1</option>
-                    <option>Raum 2</option>
-                    <option>Raum 3</option>
-                    <option>Raum 4</option>
+                    ${this.rooms.map(room => html`<option value=${room.id}>Raum ${room.title}</option>`)}
                   </select>
                 </div>
                 <div class="mb-3">

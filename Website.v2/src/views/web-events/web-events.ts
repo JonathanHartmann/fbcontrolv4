@@ -3,6 +3,7 @@ import { PageMixin } from '../../client-packages/page.mixin';
 import { IEvent } from '../../interfaces/event.interface';
 import { IState } from '../../interfaces/state.interface';
 import { EventService } from '../../services/event.service';
+import { RoomService } from '../../services/room.service';
 
 import './web-events.scss';
 
@@ -40,6 +41,7 @@ export default class WebEvents extends PageMixin(LitElement) {
 
   firstUpdated(): void {
     this.loadEvents();
+    this.loadRooms();
   }
 
   stateChanged(state: IState): void {
@@ -50,6 +52,10 @@ export default class WebEvents extends PageMixin(LitElement) {
   
   loadEvents(): void {
     EventService.loadEvents();
+  }
+
+  async loadRooms(): Promise<void> {
+    await RoomService.loadRooms();
   }
 
   deleteEvent(id: string): void {

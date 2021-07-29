@@ -89,6 +89,6 @@ export default class WebAdmin extends PageMixin(LitElement) {
   }
   
   async loadAllRooms(): Promise<void> {
-    await RoomService.getAllRooms();
+    await RoomService.loadRooms();
   }
 }

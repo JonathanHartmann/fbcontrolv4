@@ -18,7 +18,7 @@ export class RoomService {
     return deleteDoc(roomRef)
   }
   
-  static async getAllRooms(): Promise<void> {
+  static async loadRooms(): Promise<void> {
     const roomsRef = collection(firestore, 'rooms');
     const snapshot = await getDocs(roomsRef);
     const rooms = RoomService.getDataFromSnapshot(snapshot);
