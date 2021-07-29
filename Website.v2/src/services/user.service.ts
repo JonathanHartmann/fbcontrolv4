@@ -1,5 +1,5 @@
 import { firestore } from '../client-packages/firebase';
-import { collection, doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, doc, DocumentData, getDoc, getDocs, QuerySnapshot, setDoc } from 'firebase/firestore';
 import { IUser } from '../interfaces/user.interface';
 
 export class UserService {
@@ -16,7 +16,7 @@ export class UserService {
     try {
       await setDoc(newUserDoc, userData);
       return user;
-    } catch(e) {
+    } catch (e) {
       console.error('Error by creating user in Firestore: ', e);
       throw new Error(e);
     }
@@ -33,5 +33,25 @@ export class UserService {
       console.log('No such document!');
       return undefined;
     }
+  }
+
+  static async getAllUser(): Promise<IUser[] | undefined> {
+    const eventsRef = collection(firestore, 'users');
+    const snapshot = await getDocs(eventsRef);
+    const users = UserService.getDataFromSnapshot(snapshot);
+
+    if (users.length > 0) {
+      return users as IUser[];
+    } else {
+      // doc.data() will be undefined in this case
+      console.log('No users found!');
+      return undefined;
+    }
+  }
+
+  private static getDataFromSnapshot(snapshot: QuerySnapshot<DocumentData>): DocumentData[] {
+    return snapshot.docs.map(value => {
+      return { ...value.data(), id: value.id };
+    });
   }
 }

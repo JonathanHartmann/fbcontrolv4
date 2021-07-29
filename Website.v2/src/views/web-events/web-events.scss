@@ -1,4 +1,10 @@
 web-events {
   display: block;
   margin: 1rem;
+
+  .events-list {
+    .btn {
+      align-self: center;
+    }
+  }
 }

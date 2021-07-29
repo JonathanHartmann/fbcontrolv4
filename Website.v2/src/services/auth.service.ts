@@ -1,5 +1,5 @@
 import { firebaseAuth } from '../client-packages/firebase';
-import { signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, Unsubscribe, User } from 'firebase/auth';
 import { IUser, ROLE } from '../interfaces/user.interface';
 import { UserService } from './user.service';
 import { clearStore } from '../redux/actions/clear.actions';
@@ -35,6 +35,7 @@ export class AuthService {
   static async login(email: string, password: string): Promise<IUser | undefined> {
     const cred = await signInWithEmailAndPassword(firebaseAuth, email, password);
     const user = await UserService.getUser(cred.user.uid);
+    console.log(cred);
     if (user) {
       store.dispatch(userLogin(user));
       return user;
@@ -52,5 +53,9 @@ export class AuthService {
       console.error('Error by log out:', error);
       return false;
     }
+  }
+
+  static onUserChange(cb: (user: User | null) => void): Unsubscribe {
+    return onAuthStateChanged(firebaseAuth, cb);
   }
 }

@@ -1,5 +1,10 @@
 web-navbar {
-  li.nav_item {
+  li.nav-item {
     margin-left: 2rem;
+
+    .nav-icon {
+      font-size: 1.7rem;
+      padding: 0;
+    }
   }
 }

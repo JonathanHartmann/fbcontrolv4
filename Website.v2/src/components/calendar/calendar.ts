@@ -5,6 +5,7 @@ import { Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
+import deLocale from '@fullcalendar/core/locales/de';
 
 import './calendar.scss';
 import { IEvent } from '../../interfaces/event.interface';
@@ -20,6 +21,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   render(): TemplateResult {
     return html`
+        <add-event></add-event>
         <div id="calendar"></div>
       `
   }
@@ -32,6 +34,8 @@ export default class WebCalendar extends PageMixin(LitElement) {
         center: 'title',
         right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
       },
+      locales: [ deLocale ],
+      locale: 'de',
       initialDate: new Date(),
       navLinks: true, // can click day/week names to navigate views
       editable: true,

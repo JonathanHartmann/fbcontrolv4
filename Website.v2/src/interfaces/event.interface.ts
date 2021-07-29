@@ -2,7 +2,7 @@ import { User } from 'firebase/auth';
 import { Timestamp } from 'firebase/firestore';
 
 export interface IEvent {
-  id?: string;
+  id: string;
   title: string;
   room: string;
   createdFrom: string;

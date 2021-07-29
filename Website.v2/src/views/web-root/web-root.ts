@@ -2,6 +2,10 @@ import { customElement, html, LitElement, property, TemplateResult } from 'lit-e
 import { PageMixin } from '../../client-packages/page.mixin';
 import { router } from '../../client-packages/router';
 import { IState } from '../../interfaces/state.interface';
+import { userLogin } from '../../redux/actions/user.actions';
+import { store } from '../../redux/store';
+import { AuthService } from '../../services/auth.service';
+import { UserService } from '../../services/user.service';
 
 import './web-root.scss';
 
@@ -11,14 +15,29 @@ export default class WebRoot extends PageMixin(LitElement) {
   @property({type: Boolean})
   isLogedIn = false;
 
-  routes = new Map<string, {auth: boolean, template: TemplateResult}>([
-    ['events', {auth: true, template: html`<web-events></web-events>`}],
-    ['login', {auth: false, template: html`<web-login></web-login>`}],
-    ['register', {auth: false, template: html`<web-register></web-register>`}]
+  @property({type: Boolean})
+  isAdmin = false;
+
+  routes = new Map<string, {auth: boolean, admin: boolean, template: TemplateResult}>([
+    ['login', {auth: false, admin: false, template: html`<web-login></web-login>`}],
+    ['register', {auth: false, admin: false, template: html`<web-register></web-register>`}],
+    ['events', {auth: true, admin: false, template: html`<web-events></web-events>`}],
+    ['admin', {auth: true, admin: true, template: html`<web-admin></web-admin>`}],
   ]);
 
   stateChanged(state: IState): void {
     this.isLogedIn = state.loggedIn;
+    this.isAdmin = state.user?.role === 'admin';
+    if (!this.isLogedIn) {
+      AuthService.onUserChange(async (firebaseUser) => {
+        if (firebaseUser) {
+          const user = await UserService.getUser(firebaseUser.uid);
+          if (user) {
+            store.dispatch(userLogin(user))
+          }
+        }
+      })
+    }
   }
 
   render(): TemplateResult {
@@ -50,7 +69,9 @@ export default class WebRoot extends PageMixin(LitElement) {
       return this.routes.get('events')?.template;
     } else {
       // default
-      return this.routes.get(path)?.template;
+      if ((this.routes.get(path)?.admin && this.isAdmin) || !this.routes.get(path)?.admin) {
+        return this.routes.get(path)?.template;
+      }
     }
   }
 }

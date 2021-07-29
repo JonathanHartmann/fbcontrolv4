@@ -56,7 +56,7 @@ export default class WebRegister extends PageMixin(LitElement) {
             ` : undefined}
           </div>
 
-          <button class="w-100 btn btn-lg btn-primary" type="button" @click=${this.submit}>Registrieren</button>
+          <button class="w-100 btn btn-lg btn-primary" type="submit" @click=${this.submit}>Registrieren</button>
 
           <div class="form-text">Du hast bereits einen Account? <button type="button" class="btn btn-link" @click=${() => router.navigate('login')}>Log dich ein</button></div>
           <p class="mt-5 mb-3 text-muted">&copy; 2021</p>
@@ -65,7 +65,8 @@ export default class WebRegister extends PageMixin(LitElement) {
         `
   }
 
-  async submit(): Promise<void> {
+  async submit(event: MouseEvent): Promise<void> {
+    event.preventDefault();
     const password1 = this.passwordInput.value;
     const password2 = this.password2Input.value;
     if (this.form.reportValidity() && (password1 === password2)) {

@@ -10,13 +10,13 @@ export class EventService {
   static async createEvent(event: IEvent): Promise<void> {
     const eventsColl = collection(firestore, 'events');
     const newEvent = await addDoc(eventsColl, event);
-    console.log({ ...event, id: newEvent.id});
     store.dispatch(addEvent({ ...event, id: newEvent.id}));
   }
   
-  static deleteEvent(eventId: IEvent['id']): Promise<void> {
+  static async deleteEvent(eventId: IEvent['id']): Promise<void> {
     const eventRef = doc(firestore, 'events/' + eventId);
-    return deleteDoc(eventRef)
+    await deleteDoc(eventRef);
+    store.dispatch(this.deleteEvent(eventId));
   }
   
   static async loadEvents(): Promise<void> {

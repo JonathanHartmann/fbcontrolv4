@@ -32,7 +32,7 @@ export default class WebNavbar extends PageMixin(LitElement) {
 
   render(): TemplateResult {
     return html`
-      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
         <span class="navbar-brand mb-0 h1">Raum Buchung</span>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,25 +42,32 @@ export default class WebNavbar extends PageMixin(LitElement) {
             <ul class="navbar-nav">
             ${ this.isLogedIn && this.isAdmin ? html `
                 <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="/admin">Admin</a>
+                  <a class="nav-link" href="/admin">Admin</a>
                 </li>
                 ` : undefined }
               ${ this.path === 'login' ? html `
                 <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="/register">Registrieren</a>
+                  <a class="nav-link" href="/register">Registrieren</a>
                 </li>
                 ` : undefined }
               ${ this.path === 'register' ? html `
                 <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="/login">Login</a>
+                  <a class="nav-link" href="/login">Login</a>
                 </li>
                 ` : undefined }
               ${ this.isLogedIn ? html `
                 <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="#" @click=${this.logout}>Logout</a>
+                  <a class="nav-link" href="/events">Buchung</a>
                 </li>
-                <li class="nav_item">
-                  <add-event></add-event>
+                <li class="nav-item dropstart">
+                  <a class="nav-link nav-icon" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle"></i>
+                  </a>
+
+                  <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="/profile">Einstellungen</a></li>
+                    <li><a class="dropdown-item" href="#" @click=${this.logout}>Logout</a></li>
+                  </ul>
                 </li>
                 ` : undefined }
             </ul>

@@ -9,9 +9,11 @@ import './views/web-root/web-root';
 import './views/web-events/web-events';
 import './views/web-login/web-login';
 import './views/web-register/web-register';
+import './views/web-admin/web-admin';
 
 // Components
 import './components/add-event/add-event';
+import './components/add-room/add-room';
 import './components/navbar/navbar';
 import './components/calendar/calendar';
 

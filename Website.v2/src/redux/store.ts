@@ -7,7 +7,8 @@ import { IState } from '../interfaces/state.interface';
 export const INITIAL_STATE: IState = {
   loggedIn: false,
   user: undefined,
-  events: []
+  events: [],
+  rooms: []
 };
 
 export const store = createStore(
