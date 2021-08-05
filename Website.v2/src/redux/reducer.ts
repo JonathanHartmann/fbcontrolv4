@@ -1,7 +1,7 @@
 import { IState } from '../interfaces/state.interface';
 import { CLEAR_STORE } from './actions/clear.actions';
 import { ADD_EVENT, DELTE_EVENT, LOAD_EVENTS } from './actions/event.actions';
-import { ADD_ROOM, LOAD_ROOMS } from './actions/room.actions';
+import { ADD_ROOM, DELETE_ROOM, LOAD_ROOMS } from './actions/room.actions';
 import { USER_LOGIN } from './actions/user.actions';
 import { INITIAL_STATE } from './store';
 
@@ -25,6 +25,9 @@ export const reducer = (state = { ...INITIAL_STATE }, action: any): IState => {
       return state;
     case ADD_ROOM:
       state.rooms = [ ...state.rooms, action.room];
+      return state;
+    case DELETE_ROOM:
+      state.rooms = state.rooms.filter(r => r.id !== action.roomId);
       return state;
     case CLEAR_STORE:
       state = { ...INITIAL_STATE };

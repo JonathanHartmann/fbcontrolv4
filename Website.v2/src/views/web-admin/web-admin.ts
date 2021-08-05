@@ -1,5 +1,4 @@
 import { customElement, html, LitElement, property, TemplateResult } from 'lit-element';
-import {ifDefined} from 'lit-html/directives/if-defined';
 import { PageMixin } from '../../client-packages/page.mixin';
 import { IRoom } from '../../interfaces/room.interface';
 import { IState } from '../../interfaces/state.interface';
@@ -40,7 +39,7 @@ export default class WebAdmin extends PageMixin(LitElement) {
                 <li class="list-group-item d-flex justify-content-between align-items-start">
                   <div class="ms-2 me-auto">
                     <div class="fw-bold">${user.name}</div>
-                    Email: ${user.email} ${user.role === 'admin'? ' - Admin' : user.role === 'inactive' ? ' - Inaktiv' : ' - Aktiv'}
+                    Email: ${user.email}
                   </div>
                   </div>
                     <select @input="${() => this.changeRole(user.id)}" class="form-control select" id=${'role-' + user.id}>
@@ -49,7 +48,6 @@ export default class WebAdmin extends PageMixin(LitElement) {
                       <option value=${ROLE.ADMIN} ?selected=${user.role === ROLE.ADMIN}>${ROLE.ADMIN}</option>
                     </select>
                   <button type="button" class="btn btn-secondary">Bearbeiten</button>
-                  <button type="button" class="btn btn-danger">Löschen</button>
                 </li>
               `;
   })}
@@ -70,7 +68,7 @@ export default class WebAdmin extends PageMixin(LitElement) {
                     Komforttemperatur: ${room.comfortTemp}°C - Absenktemperatur: ${room.emptyTemp}°C - Fritzbox ID: ${room.fritzId}
                   </div>
                   <button type="button" class="btn btn-secondary">Bearbeiten</button>
-                  <button type="button" class="btn btn-danger">Löschen</button>
+                  <button type="button" class="btn btn-danger" @click=${() => this.deleteRoom(room.id)}>Löschen</button>
                 </li>
               `;
   })}
@@ -101,10 +99,14 @@ export default class WebAdmin extends PageMixin(LitElement) {
     await RoomService.loadRooms();
   }
 
-  changeRole(userId: string) {
+  changeRole(userId: string): void {
     const select = document.getElementById('role-' + userId) as HTMLSelectElement;
     const value = select.options[select.selectedIndex].value;
     const user = this.users.find((u) => u.id === userId)!;
     UserService.updateUser({ ...user, role: value as ROLE});
+  }
+
+  deleteRoom(roomId: string): void {
+    RoomService.deleteRoom(roomId);
   }
 }

@@ -1,7 +1,7 @@
 import { addDoc, collection, deleteDoc, doc, DocumentData, getDocs, QuerySnapshot } from 'firebase/firestore';
 import { firestore } from '../client-packages/firebase';
 import { IRoom } from '../interfaces/room.interface';
-import { addRoom, setRooms } from '../redux/actions/room.actions';
+import { addRoom, deleteRoom, setRooms } from '../redux/actions/room.actions';
 import { store } from '../redux/store';
 
 
@@ -13,9 +13,14 @@ export class RoomService {
     store.dispatch(addRoom({ ...room, id: newEvent.id} as IRoom));
   }
   
-  static deleteRoom(roomId: IRoom['id']): Promise<void> {
+  static async deleteRoom(roomId: IRoom['id']): Promise<void> {
     const roomRef = doc(firestore, 'rooms/' + roomId);
-    return deleteDoc(roomRef)
+    try {
+      await deleteDoc(roomRef);
+      store.dispatch(deleteRoom(roomId));
+    } catch(e) {
+      throw new Error('Error by deleting Room! ' + e);
+    }
   }
   
   static async loadRooms(): Promise<void> {

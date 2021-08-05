@@ -1,5 +1,5 @@
 import { firebaseAuth } from '../client-packages/firebase';
-import { signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, Unsubscribe, User } from 'firebase/auth';
+import { signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, Unsubscribe, User, deleteUser } from 'firebase/auth';
 import { IUser, ROLE } from '../interfaces/user.interface';
 import { UserService } from './user.service';
 import { clearStore } from '../redux/actions/clear.actions';
@@ -52,5 +52,16 @@ export class AuthService {
 
   static onUserChange(cb: (user: User | null) => void): Unsubscribe {
     return onAuthStateChanged(firebaseAuth, cb);
+  }
+
+  static async deleteUser(): Promise<void> {
+    const user = firebaseAuth.currentUser;
+    if (user) {
+      try {
+        deleteUser(user);
+      } catch(e) {
+        throw new Error('Error by deleting Auth-User: ' + e);
+      }
+    }
   }
 }

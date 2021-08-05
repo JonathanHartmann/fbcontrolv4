@@ -1,6 +1,7 @@
-import { customElement, html, LitElement, query, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, query, state, TemplateResult } from 'lit-element';
 import { PageMixin } from '../../client-packages/page.mixin';
 import { IRoom } from '../../interfaces/room.interface';
+import { store } from '../../redux/store';
 import { RoomService } from '../../services/room.service';
 
 import './add-room.scss';
@@ -71,12 +72,15 @@ export default class AddRoom extends PageMixin(LitElement) {
   }
 
   async submit(): Promise<void> {
+    const user = store.getState().user;
     if (this.form.reportValidity()) {
       await RoomService.createRoom({
         title: this.titleInput.value,
         comfortTemp: Number(this.comfortTempInput.value),
         emptyTemp: Number(this.emptyTempInput.value),
-        fritzId: this.fritzIdInput.value
+        fritzId: this.fritzIdInput.value,
+        createdFrom: user?.name,
+        createdFromId: user?.id
       } as Partial<IRoom>);
     }
   }

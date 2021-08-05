@@ -1,6 +1,7 @@
 import { firestore } from '../client-packages/firebase';
-import { collection, doc, DocumentData, getDoc, getDocs, QuerySnapshot, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, DocumentData, getDoc, getDocs, QuerySnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { IUser } from '../interfaces/user.interface';
+import { AuthService } from './auth.service';
 
 export class UserService {
 
@@ -52,6 +53,16 @@ export class UserService {
   static async updateUser(user: IUser): Promise<void> {
     const docRef = doc(firestore, 'users', user.id);
     await updateDoc(docRef, user);
+  }
+
+  static async deleteUser(userId: IUser['id']): Promise<void> {
+    const userRef = doc(firestore, 'users/' + userId);
+    try {
+      await AuthService.deleteUser()
+      deleteDoc(userRef);
+    } catch(e) {
+      throw new Error(e);
+    }
   }
 
   private static getDataFromSnapshot(snapshot: QuerySnapshot<DocumentData>): DocumentData[] {
