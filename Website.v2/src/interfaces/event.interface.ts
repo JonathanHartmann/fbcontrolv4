@@ -6,5 +6,7 @@ export interface IEvent {
   start: Timestamp;
   end: Timestamp;
   room: string;
+  roomId: string;
   createdFrom: string;
+  createdFromId: string;
 }

@@ -12,6 +12,9 @@ export default class WebNavbar extends PageMixin(LitElement) {
 
   @property()
   path = '';
+
+  @property({type: Boolean})
+  smallScreen = true;
   
   @property({type: Boolean})
   isLogedIn = false;
@@ -23,6 +26,11 @@ export default class WebNavbar extends PageMixin(LitElement) {
     super();
     this.path = router.getPath();
     router.subscribe((path) => this.path = path)
+
+    this.smallScreen = window.innerWidth < 992;
+    window.addEventListener('resize', () => {
+      this.smallScreen = window.innerWidth < 992;
+    });
   }
 
   stateChanged(state: IState): void {
@@ -59,16 +67,26 @@ export default class WebNavbar extends PageMixin(LitElement) {
                 <li class="nav-item">
                   <a class="nav-link" href="/events">Buchung</a>
                 </li>
-                <li class="nav-item dropstart">
-                  <a class="nav-link nav-icon" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-person-circle"></i>
-                  </a>
 
-                  <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <li><a class="dropdown-item" href="/profile">Einstellungen</a></li>
-                    <li><a class="dropdown-item" href="#" @click=${this.logout}>Logout</a></li>
-                  </ul>
-                </li>
+                ${ this.smallScreen? html`
+                  <li class="nav-item">
+                    <a class="nav-link" href="/profile">Einstellungen</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="#" @click=${this.logout}>Logout</a>
+                  </li>
+                  `: html`
+                  <li class="nav-item dropstart">
+                    <a class="nav-link nav-icon" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="bi bi-person-circle"></i>
+                    </a>
+
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                      <li><a class="dropdown-item" href="/profile">Einstellungen</a></li>
+                      <li><a class="dropdown-item" href="#" @click=${this.logout}>Logout</a></li>
+                    </ul>
+                  </li>
+                  `}
                 ` : undefined }
             </ul>
           </div>

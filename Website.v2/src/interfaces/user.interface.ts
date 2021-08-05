@@ -6,4 +6,4 @@ export interface IUser {
   createdAt?: string;
 }
 
-export enum ROLE { ADMIN = 'admin', USER = 'user' }
+export enum ROLE { ADMIN = 'admin', ACTIVATED = 'activated', INACTIVE = 'inactive' }

@@ -4,4 +4,6 @@ export interface IRoom {
   comfortTemp: number;
   emptyTemp: number;
   fritzId: string;
+  createdFrom: string;
+  createdFromId: string;
 }

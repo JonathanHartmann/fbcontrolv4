@@ -1,8 +1,9 @@
 import { customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import {ifDefined} from 'lit-html/directives/if-defined';
 import { PageMixin } from '../../client-packages/page.mixin';
 import { IRoom } from '../../interfaces/room.interface';
 import { IState } from '../../interfaces/state.interface';
-import { IUser } from '../../interfaces/user.interface';
+import { IUser, ROLE } from '../../interfaces/user.interface';
 import { RoomService } from '../../services/room.service';
 import { UserService } from '../../services/user.service';
 
@@ -39,9 +40,16 @@ export default class WebAdmin extends PageMixin(LitElement) {
                 <li class="list-group-item d-flex justify-content-between align-items-start">
                   <div class="ms-2 me-auto">
                     <div class="fw-bold">${user.name}</div>
-                    Email: ${user.email} ${user.role === 'admin'? ' - Admin' : ''}
+                    Email: ${user.email} ${user.role === 'admin'? ' - Admin' : user.role === 'inactive' ? ' - Inaktiv' : ' - Aktiv'}
                   </div>
-                  <button type="button" class="btn btn-danger">löschen</button>
+                  </div>
+                    <select @input="${() => this.changeRole(user.id)}" class="form-control select" id=${'role-' + user.id}>
+                      <option value=${ROLE.ACTIVATED} ?selected=${user.role === ROLE.ACTIVATED}>${ROLE.ACTIVATED}</option>
+                      <option value=${ROLE.INACTIVE} ?selected=${user.role === ROLE.INACTIVE}>${ROLE.INACTIVE}</option>
+                      <option value=${ROLE.ADMIN} ?selected=${user.role === ROLE.ADMIN}>${ROLE.ADMIN}</option>
+                    </select>
+                  <button type="button" class="btn btn-secondary">Bearbeiten</button>
+                  <button type="button" class="btn btn-danger">Löschen</button>
                 </li>
               `;
   })}
@@ -61,7 +69,8 @@ export default class WebAdmin extends PageMixin(LitElement) {
                     <div class="fw-bold">${room.title}</div>
                     Komforttemperatur: ${room.comfortTemp}°C - Absenktemperatur: ${room.emptyTemp}°C - Fritzbox ID: ${room.fritzId}
                   </div>
-                  <button type="button" class="btn">bearbeiten</button>
+                  <button type="button" class="btn btn-secondary">Bearbeiten</button>
+                  <button type="button" class="btn btn-danger">Löschen</button>
                 </li>
               `;
   })}
@@ -90,5 +99,12 @@ export default class WebAdmin extends PageMixin(LitElement) {
   
   async loadAllRooms(): Promise<void> {
     await RoomService.loadRooms();
+  }
+
+  changeRole(userId: string) {
+    const select = document.getElementById('role-' + userId) as HTMLSelectElement;
+    const value = select.options[select.selectedIndex].value;
+    const user = this.users.find((u) => u.id === userId)!;
+    UserService.updateUser({ ...user, role: value as ROLE});
   }
 }

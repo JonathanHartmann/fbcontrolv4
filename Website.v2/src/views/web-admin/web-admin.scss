@@ -2,7 +2,9 @@ web-admin {
   display: block;
   padding-top: 6rem;
   
-  .btn {
+  .btn, .select {
     align-self: center;
+    width: auto;
+    margin-left: 2rem;
   }
 }

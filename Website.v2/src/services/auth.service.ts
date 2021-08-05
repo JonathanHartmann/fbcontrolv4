@@ -8,7 +8,7 @@ import { store } from '../redux/store';
 
 export class AuthService {
 
-  static async register(email: string, password: string, name: string): Promise<IUser | undefined> {
+  static async register(email: string, password: string, name: string): Promise<void> {
     let userCred = undefined;
     try {
       userCred = await createUserWithEmailAndPassword(firebaseAuth, email, password);
@@ -22,13 +22,9 @@ export class AuthService {
         name,
         email: userCred.user.email,
         createdAt: userCred.user.metadata.creationTime,
-        role: ROLE.USER
+        role: ROLE.INACTIVE
       }
-      const user = await UserService.create(userData);
-      store.dispatch(userLogin(user))
-      return user;
-    } else {
-      return undefined;
+      await UserService.create(userData);
     }
   }
   

@@ -1,5 +1,5 @@
 import { firestore } from '../client-packages/firebase';
-import { collection, doc, DocumentData, getDoc, getDocs, QuerySnapshot, setDoc } from 'firebase/firestore';
+import { collection, doc, DocumentData, getDoc, getDocs, QuerySnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { IUser } from '../interfaces/user.interface';
 
 export class UserService {
@@ -36,8 +36,8 @@ export class UserService {
   }
 
   static async getAllUser(): Promise<IUser[] | undefined> {
-    const eventsRef = collection(firestore, 'users');
-    const snapshot = await getDocs(eventsRef);
+    const usersRef = collection(firestore, 'users');
+    const snapshot = await getDocs(usersRef);
     const users = UserService.getDataFromSnapshot(snapshot);
 
     if (users.length > 0) {
@@ -47,6 +47,11 @@ export class UserService {
       console.log('No users found!');
       return undefined;
     }
+  }
+
+  static async updateUser(user: IUser): Promise<void> {
+    const docRef = doc(firestore, 'users', user.id);
+    await updateDoc(docRef, user);
   }
 
   private static getDataFromSnapshot(snapshot: QuerySnapshot<DocumentData>): DocumentData[] {

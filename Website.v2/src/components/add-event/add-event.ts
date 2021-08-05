@@ -67,7 +67,7 @@ export default class AddEvent extends PageMixin(LitElement) {
                 <div class="mb-3">
                   <label for="room">Raum für ihre Veranstaltung</label>
                   <select required class="form-control" id="room">
-                    ${this.rooms.map(room => html`<option value=${room.title}>Raum ${room.title}</option>`)}
+                    ${this.rooms.map(room => html`<option value=${room.id}>Raum ${room.title}</option>`)}
                   </select>
                 </div>
                 <div class="mb-3">
@@ -92,14 +92,17 @@ export default class AddEvent extends PageMixin(LitElement) {
 
   async submit(): Promise<void> {
     if (this.form.reportValidity()) {
+      const room = this.rooms.find((r) => r.id === this.roomInput.value)
       const startDate = new Date(this.startInput.value);
       const endDate = new Date(this.endInput.value);
       await EventService.createEvent({
         title: this.titleInput.value,
         start: Timestamp.fromDate(startDate),
         end: Timestamp.fromDate(endDate),
-        room: this.roomInput.value,
+        room: room?.title,
+        roomId: room?.id,
         createdFrom: this.user?.name,
+        createdFromId: this.user?.id,
       } as IEvent);
     }
   }

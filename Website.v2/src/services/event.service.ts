@@ -12,7 +12,9 @@ const eventConverter = {
       start: event.start,
       end: event.end,
       room: event.room,
-      createdFrom: event.createdFrom
+      roomId: event.roomId,
+      createdFrom: event.createdFrom,
+      createdFromId: event.createdFromId
     };
   },
   fromFirestore(
@@ -26,7 +28,9 @@ const eventConverter = {
       start: data.start,
       end: data.end,
       room: data.room,
-      createdFrom: data.createdFrom
+      roomId: data.roomId,
+      createdFrom: data.createdFrom,
+      createdFromId: data.createdFromId
     };
   }
 };

@@ -72,7 +72,7 @@ export default class WebRegister extends PageMixin(LitElement) {
     if (this.form.reportValidity() && (password1 === password2)) {
       try {
         await AuthService.register(this.emailInput.value, this.passwordInput.value, this.nameInput.value);
-        router.navigate('events');
+        alert('Bitte benachrichtigen Sie einen Admin, um ihren Account zu aktivieren. (z.B. Jonathan Hartmann)')
       } catch (error) {
         console.error(error);
         this.error = true;

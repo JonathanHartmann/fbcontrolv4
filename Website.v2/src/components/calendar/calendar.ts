@@ -19,6 +19,21 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   calendar: Calendar | undefined = undefined;
 
+  smallScreen = false;
+
+  constructor() {
+    super();
+    this.smallScreen = window.innerWidth < 768;
+    window.addEventListener('resize', () => {
+      if (window.innerWidth < 768) {
+        this.smallScreen = true;
+        this.renderSmallCalendar();
+      } else {
+        this.renderCalendar();
+      }
+    });
+  }
+
   render(): TemplateResult {
     return html`
         <add-event></add-event>
@@ -27,22 +42,11 @@ export default class WebCalendar extends PageMixin(LitElement) {
   }
 
   firstUpdated(): void {
-    this.calendar = new Calendar(this.calendarElement, {
-      plugins: [ dayGridPlugin, timeGridPlugin, listPlugin ],
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-      },
-      locales: [ deLocale ],
-      locale: 'de',
-      initialDate: new Date(),
-      navLinks: true, // can click day/week names to navigate views
-      editable: true,
-      dayMaxEvents: true, // allow "more" link when too many events
-      themeSystem: 'bootstrap',
-    });
-    this.calendar.render();
+    if (this.smallScreen) {
+      this.renderSmallCalendar()
+    } else {
+      this.renderCalendar();
+    }
   }
 
   stateChanged(state: IState): void {
@@ -61,5 +65,45 @@ export default class WebCalendar extends PageMixin(LitElement) {
         createdFrom: event.createdFrom
       });
     });
+  }
+
+  renderSmallCalendar(): void {
+    this.calendar = new Calendar(this.calendarElement, {
+      plugins: [ dayGridPlugin, timeGridPlugin, listPlugin ],
+      headerToolbar: {
+        left: 'prev,next',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek'
+      },
+      locales: [ deLocale ],
+      locale: 'de',
+      initialDate: new Date(),
+      navLinks: true, // can click day/week names to navigate views
+      editable: true,
+      dayMaxEvents: true, // allow "more" link when too many events
+      themeSystem: 'bootstrap',
+    });
+    this.calendar.render();
+    this.calendar.updateSize();
+  }
+
+  renderCalendar(): void {
+    this.calendar = new Calendar(this.calendarElement, {
+      plugins: [ dayGridPlugin, timeGridPlugin, listPlugin ],
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+      },
+      locales: [ deLocale ],
+      locale: 'de',
+      initialDate: new Date(),
+      navLinks: true, // can click day/week names to navigate views
+      editable: true,
+      dayMaxEvents: true, // allow "more" link when too many events
+      themeSystem: 'bootstrap',
+    });
+    this.calendar.render();
+    this.calendar.updateSize();
   }
 }
