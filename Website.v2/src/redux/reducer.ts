@@ -1,6 +1,6 @@
 import { IState } from '../interfaces/state.interface';
 import { CLEAR_STORE } from './actions/clear.actions';
-import { ADD_EVENT, DELTE_EVENT, LOAD_EVENTS } from './actions/event.actions';
+import { ADD_EVENT, DELTE_EVENT, LOAD_EVENTS, EDIT_EVENT } from './actions/event.actions';
 import { ADD_ROOM, DELETE_ROOM, LOAD_ROOMS } from './actions/room.actions';
 import { USER_LOGIN } from './actions/user.actions';
 import { INITIAL_STATE } from './store';
@@ -16,6 +16,9 @@ export const reducer = (state = { ...INITIAL_STATE }, action: any): IState => {
       return state;
     case ADD_EVENT:
       state.events = [ ...state.events, action.event];
+      return state;
+    case EDIT_EVENT:
+      state.events = state.events.map(event => event.id === action.event.id? action.event : event);
       return state;
     case DELTE_EVENT:
       state.events = state.events.filter(e => e.id !== action.eventId);

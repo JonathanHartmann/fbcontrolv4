@@ -1,16 +1,18 @@
 import { customElement, html, LitElement, property, query, TemplateResult } from 'lit-element';
 import { PageMixin } from '../../client-packages/page.mixin';
-
-import { Calendar } from '@fullcalendar/core';
+import { BASE_OPTION_REFINERS, Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
+import resourceTimeGridPlugin from '@fullcalendar/resource-timegrid';
 import deLocale from '@fullcalendar/core/locales/de';
 import { IEvent } from '../../interfaces/event.interface';
 import { IState } from '../../interfaces/state.interface';
 import { IRoom } from '../../interfaces/room.interface';
 
 import './calendar.scss';
+
+(BASE_OPTION_REFINERS as any).schedulerLicenseKey = 'CC-Attribution-NonCommercial-NoDerivatives';
 
 @customElement('web-calendar')
 export default class WebCalendar extends PageMixin(LitElement) {
@@ -81,7 +83,8 @@ export default class WebCalendar extends PageMixin(LitElement) {
       state.rooms.forEach(room => {
         this.rooms.set(room.id, {room, checked: this.rooms.get(room.id) ? !!this.rooms.get(room.id)?.checked : true});
       });
-      this.filerEvents();
+      this.filterEvents();
+      this.setResources();
       this.requestUpdate();
     }
   }
@@ -90,10 +93,11 @@ export default class WebCalendar extends PageMixin(LitElement) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const roomObj = this.rooms.get(roomId)!;
     this.rooms.set(roomId, {room: roomObj.room, checked: !roomObj.checked});
-    this.filerEvents();
+    this.setResources();
+    this.filterEvents();
   }
 
-  filerEvents(): void {
+  filterEvents(): void {
     const filteredEvents = this.events.filter(event => this.rooms.get(event.roomId)?.checked);
     this.setEvents(filteredEvents);
   }
@@ -105,18 +109,27 @@ export default class WebCalendar extends PageMixin(LitElement) {
         title: event.title,
         start: event.start.seconds * 1000,
         end: event.end.seconds * 1000,
-        createdFrom: event.createdFrom
+        createdFrom: event.createdFrom,
+        resourceId: event.roomId
       });
     });
   }
 
+  setResources(): void {
+    const rooms = [...this.rooms.values()].filter(r => r.checked).map(r => r.room);
+    this.calendar?.getResources().forEach(r => r.remove());
+    rooms.forEach(room => {
+      this.calendar?.addResource(room);
+    })
+  }
+
   renderSmallCalendar(): void {
     this.calendar = new Calendar(this.calendarElement, {
-      plugins: [ dayGridPlugin, timeGridPlugin, listPlugin ],
+      plugins: [ dayGridPlugin, listPlugin ],
       headerToolbar: {
         left: 'prev,next',
         center: 'title',
-        right: 'dayGridMonth,timeGridWeek'
+        right: 'dayGridMonth,listWeek'
       },
       locales: [ deLocale ],
       locale: 'de',
@@ -132,12 +145,13 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   renderCalendar(): void {
     this.calendar = new Calendar(this.calendarElement, {
-      plugins: [ dayGridPlugin, timeGridPlugin, listPlugin ],
+      plugins: [ dayGridPlugin, timeGridPlugin, resourceTimeGridPlugin ],
       headerToolbar: {
         left: 'prev,next today',
         center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        right: 'dayGridMonth,timeGridWeek,resourceTimeGridDay'
       },
+      initialView: 'resourceTimeGridDay',
       locales: [ deLocale ],
       locale: 'de',
       initialDate: new Date(),
@@ -145,6 +159,9 @@ export default class WebCalendar extends PageMixin(LitElement) {
       editable: true,
       dayMaxEvents: true, // allow "more" link when too many events
       themeSystem: 'bootstrap',
+      eventClick: function(info) {
+        alert('Event: ' + info.event.title);
+      }    
     });
     this.calendar.render();
     this.calendar.updateSize();

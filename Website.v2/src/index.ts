@@ -13,6 +13,7 @@ import './views/web-admin/web-admin';
 
 // Components
 import './components/add-event/add-event';
+import './components/edit-event/edit-event';
 import './components/add-room/add-room';
 import './components/navbar/navbar';
 import './components/calendar/calendar';

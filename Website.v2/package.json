@@ -32,10 +32,14 @@
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
-    "@fullcalendar/core": "^5.8.0",
-    "@fullcalendar/daygrid": "^5.8.0",
-    "@fullcalendar/list": "^5.8.0",
-    "@fullcalendar/timegrid": "^5.8.0",
+    "@fullcalendar/core": "^5.9.0",
+    "@fullcalendar/daygrid": "^5.9.0",
+    "@fullcalendar/list": "^5.9.0",
+    "@fullcalendar/resource-common": "^5.9.0",
+    "@fullcalendar/resource-daygrid": "^5.9.0",
+    "@fullcalendar/resource-timegrid": "^5.9.0",
+    "@fullcalendar/resource-timeline": "^5.9.0",
+    "@fullcalendar/timegrid": "^5.9.0",
     "firebase": "^9.0.0-beta.6",
     "lit-element": "^2.5.1",
     "nanoid": "^3.1.23",
