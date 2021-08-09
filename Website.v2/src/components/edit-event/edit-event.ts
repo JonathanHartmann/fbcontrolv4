@@ -59,6 +59,10 @@ export default class EditEvent extends PageMixin(LitElement) {
                     <label for=${'title' + this.event.id}>Titel ihrer Veranstaltung</label>
                     <input required type="text" class="form-control" value=${this.event.title} id=${'title' + this.event.id}>
                   </div>
+                <div class="mb-3">
+                  <label for=${'description' + this.event.id}>Beschreibung ihrer Veranstaltung</label>
+                  <textarea class="form-control" aria-label="description" id=${'description' + this.event.id} value=${this.event.description} placeholder="Nähere Beschreibung ihrer Veranstaltung..."></textarea>
+                </div>
                   <div class="mb-3">
                     <label for=${'room' + this.event.id}>Raum für ihre Veranstaltung</label>
                     <select required class="form-control" id=${'room' + this.event.id}>
@@ -105,6 +109,7 @@ export default class EditEvent extends PageMixin(LitElement) {
   async submit(): Promise<void> {
     if (this.form.reportValidity() && this.event) {
       const titleInput = document.getElementById('title' + this.event.id) as HTMLInputElement;
+      const descriptionInput = document.getElementById('description' + this.event.id) as HTMLInputElement;
       const roomInput = document.getElementById('room' + this.event.id) as HTMLInputElement;
       const startInput = document.getElementById('start' + this.event.id) as HTMLInputElement;
       const endInput = document.getElementById('end' + this.event.id) as HTMLInputElement;
@@ -117,6 +122,7 @@ export default class EditEvent extends PageMixin(LitElement) {
         await EventService.updateEvent({
           id: this.event.id,
           title: titleInput.value,
+          description: descriptionInput.value,
           start: Timestamp.fromDate(startDate),
           end: Timestamp.fromDate(endDate),
           room: room?.title,

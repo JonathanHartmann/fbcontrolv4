@@ -3,8 +3,8 @@ web-events {
   margin: 1rem;
 
   .events-list {
-    .btn {
-      align-self: center;
+    .event-actions {
+      min-width: 15rem;
     }
   }
 }

@@ -3,6 +3,7 @@ import { Timestamp } from 'firebase/firestore';
 export interface IEvent {
   id: string;
   title: string;
+  description: string;
   start: Timestamp;
   end: Timestamp;
   room: string;

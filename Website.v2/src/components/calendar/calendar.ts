@@ -37,7 +37,6 @@ export default class WebCalendar extends PageMixin(LitElement) {
     window.addEventListener('resize', () => {
       if (window.innerWidth < 768) {
         this.smallScreen = true;
-        this.renderSmallCalendar();
       } else {
         this.renderCalendar();
       }
@@ -60,16 +59,14 @@ export default class WebCalendar extends PageMixin(LitElement) {
       <div class="action-section my-3">
         <add-event></add-event>
       </div>
-      <div id="calendar"></div>
+      ${!this.smallScreen? html`
+        <div id="calendar"></div>
+      `: undefined}
       `
   }
 
   firstUpdated(): void {
-    if (this.smallScreen) {
-      this.renderSmallCalendar()
-    } else {
-      this.renderCalendar();
-    }
+    this.renderCalendar();
   }
 
   
@@ -121,26 +118,6 @@ export default class WebCalendar extends PageMixin(LitElement) {
     rooms.forEach(room => {
       this.calendar?.addResource(room);
     })
-  }
-
-  renderSmallCalendar(): void {
-    this.calendar = new Calendar(this.calendarElement, {
-      plugins: [ dayGridPlugin, listPlugin ],
-      headerToolbar: {
-        left: 'prev,next',
-        center: 'title',
-        right: 'dayGridMonth,listWeek'
-      },
-      locales: [ deLocale ],
-      locale: 'de',
-      initialDate: new Date(),
-      navLinks: true, // can click day/week names to navigate views
-      editable: true,
-      dayMaxEvents: true, // allow "more" link when too many events
-      themeSystem: 'bootstrap',
-    });
-    this.calendar.render();
-    this.calendar.updateSize();
   }
 
   renderCalendar(): void {

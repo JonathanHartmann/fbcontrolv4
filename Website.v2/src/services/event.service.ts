@@ -9,6 +9,7 @@ const eventConverter = {
   toFirestore(event: IEvent): DocumentData {
     return {
       title: event.title,
+      description: event.description,
       start: event.start,
       end: event.end,
       room: event.room,
@@ -21,10 +22,11 @@ const eventConverter = {
     snapshot: QueryDocumentSnapshot,
     options: SnapshotOptions
   ): IEvent {
-    const data = snapshot.data(options)!;
+    const data = snapshot.data(options);
     return {
       id: snapshot.id,
       title: data.title,
+      description: data.description,
       start: data.start,
       end: data.end,
       room: data.room,

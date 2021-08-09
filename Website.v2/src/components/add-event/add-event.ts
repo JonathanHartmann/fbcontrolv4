@@ -12,10 +12,10 @@ import './add-event.scss';
 @customElement('add-event')
 export default class AddEvent extends PageMixin(LitElement) {
 
-  @property()
+  @property({ attribute: false })
   rooms: IRoom[] = [];
   
-  @property()
+  @property({ attribute: false })
   user: IUser | undefined = undefined;
 
   @query('form')
@@ -23,6 +23,9 @@ export default class AddEvent extends PageMixin(LitElement) {
 
   @query('#title')
   titleInput!: HTMLInputElement;
+  
+  @query('#description')
+  descriptionInput!: HTMLInputElement;
 
   @query('#room')
   roomInput!: HTMLInputElement;
@@ -65,6 +68,10 @@ export default class AddEvent extends PageMixin(LitElement) {
                   <input required type="text" class="form-control" placeholder="Musikunterricht" id="title">
                 </div>
                 <div class="mb-3">
+                  <label for="description">Beschreibung ihrer Veranstaltung</label>
+                  <textarea class="form-control" aria-label="description" id="description" placeholder="description"></textarea>
+                </div>
+                <div class="mb-3">
                   <label for="room">Raum für ihre Veranstaltung</label>
                   <select required class="form-control" id="room">
                     ${this.rooms.map(room => html`<option value=${room.id}>Raum ${room.title}</option>`)}
@@ -97,6 +104,7 @@ export default class AddEvent extends PageMixin(LitElement) {
       const endDate = new Date(this.endInput.value);
       await EventService.createEvent({
         title: this.titleInput.value,
+        description: this.descriptionInput.value,
         start: Timestamp.fromDate(startDate),
         end: Timestamp.fromDate(endDate),
         room: room?.title,
