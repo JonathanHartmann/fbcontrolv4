@@ -61,7 +61,7 @@ export default class EditEvent extends PageMixin(LitElement) {
                   </div>
                 <div class="mb-3">
                   <label for=${'description' + this.event.id}>Beschreibung ihrer Veranstaltung</label>
-                  <textarea class="form-control" aria-label="description" id=${'description' + this.event.id} value=${this.event.description} placeholder="Nähere Beschreibung ihrer Veranstaltung..."></textarea>
+                  <textarea class="form-control" aria-label="description" id=${'description' + this.event.id} placeholder="Nähere Beschreibung ihrer Veranstaltung..."></textarea>
                 </div>
                   <div class="mb-3">
                     <label for=${'room' + this.event.id}>Raum für ihre Veranstaltung</label>
@@ -101,8 +101,10 @@ export default class EditEvent extends PageMixin(LitElement) {
     if (this.event) {
       const startInput = document.getElementById('start' + this.event.id) as HTMLInputElement;
       const endInput = document.getElementById('end' + this.event.id) as HTMLInputElement;
+      const descriptionInput = document.getElementById('description' + this.event.id) as HTMLInputElement;
       startInput.setAttribute('value', this.event.start.toDate().toISOString().slice(0, -1));
       endInput.setAttribute('value', this.event.end.toDate().toISOString().slice(0, -1));
+      descriptionInput.value = this.event.description;
     }
   }
 
