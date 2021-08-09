@@ -1,4 +1,4 @@
-import { customElement, html, LitElement, query, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, property, query, TemplateResult } from 'lit-element';
 import { PageMixin } from '../../client-packages/page.mixin';
 
 import { Calendar } from '@fullcalendar/core';
@@ -6,20 +6,28 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import deLocale from '@fullcalendar/core/locales/de';
-
-import './calendar.scss';
 import { IEvent } from '../../interfaces/event.interface';
 import { IState } from '../../interfaces/state.interface';
+import { IRoom } from '../../interfaces/room.interface';
+
+import './calendar.scss';
 
 @customElement('web-calendar')
 export default class WebCalendar extends PageMixin(LitElement) {
 
   @query('#calendar')
-  calendarElement!: HTMLElement
+  calendarElement!: HTMLElement;
 
   calendar: Calendar | undefined = undefined;
 
+  @property({ type: Boolean })
   smallScreen = false;
+
+  @property({ attribute: false })
+  rooms: Map<string, {room: IRoom, checked: boolean}> = new Map();
+
+  @property({ attribute: false })
+  events: IEvent[] = [];
 
   constructor() {
     super();
@@ -36,8 +44,21 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   render(): TemplateResult {
     return html`
+      <div class="room-filter my-3">
+        <h4>Zeige Buchungen für folgende Räume an:</h4>
+        ${[...this.rooms.values()].map(roomObj => {
+    const room = roomObj.room;
+    return html`
+        <div class="form-check form-check-inline user-select-none">
+          <input class="form-check-input" type="checkbox" id=${'room-' + room.id} value=${room.id} ?checked=${roomObj.checked} @input=${() => this.roomFilter(room.id)}>
+          <label class="form-check-label" for=${'room-' + room.id}>${room.title}</label>
+        </div>`;
+  })}
+      </div>
+      <div class="action-section my-3">
         <add-event></add-event>
-        <div id="calendar"></div>
+      </div>
+      <div id="calendar"></div>
       `
   }
 
@@ -49,13 +70,35 @@ export default class WebCalendar extends PageMixin(LitElement) {
     }
   }
 
+  
+
   stateChanged(state: IState): void {
     if (state.events.length > 0) {
-      this.addEvents(state.events);
+      this.events = state.events;
+      this.setEvents(this.events);
+    }
+    if (state.rooms.length > 0) {
+      state.rooms.forEach(room => {
+        this.rooms.set(room.id, {room, checked: this.rooms.get(room.id) ? !!this.rooms.get(room.id)?.checked : true});
+      });
+      this.filerEvents();
+      this.requestUpdate();
     }
   }
 
-  addEvents(events: IEvent[]): void {
+  roomFilter(roomId: string): void {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const roomObj = this.rooms.get(roomId)!;
+    this.rooms.set(roomId, {room: roomObj.room, checked: !roomObj.checked});
+    this.filerEvents();
+  }
+
+  filerEvents(): void {
+    const filteredEvents = this.events.filter(event => this.rooms.get(event.roomId)?.checked);
+    this.setEvents(filteredEvents);
+  }
+
+  setEvents(events: IEvent[]): void {
     this.calendar?.removeAllEvents();
     events.forEach(event => {
       this.calendar?.addEvent({
