@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { customElement, html, LitElement, property, query, TemplateResult } from 'lit-element';
 import { PageMixin } from '../../client-packages/page.mixin';
-import { BASE_OPTION_REFINERS, Calendar } from '@fullcalendar/core';
+import { BASE_OPTION_REFINERS, Calendar, EventApi } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import listPlugin from '@fullcalendar/list';
 import resourceTimeGridPlugin from '@fullcalendar/resource-timegrid';
 import deLocale from '@fullcalendar/core/locales/de';
 import { IEvent } from '../../interfaces/event.interface';
@@ -30,6 +30,9 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   @property({ attribute: false })
   events: IEvent[] = [];
+
+  @property({ attribute: false })
+  selectedEvent: EventApi | undefined = undefined;
 
   constructor() {
     super();
@@ -62,11 +65,67 @@ export default class WebCalendar extends PageMixin(LitElement) {
       ${!this.smallScreen? html`
         <div id="calendar"></div>
       `: undefined}
+      
+      
+      <div class="modal fade" id="eventDetails" tabindex="-1" aria-labelledby="exampleModalLabel" aria-modal="true"
+          role="dialog">
+          <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h5 class="modal-title" id="exampleModalLabel">Details zu der Veranstaltung: ${this.selectedEvent? this.selectedEvent.title: ''}</h5>
+                      <button type="button" class="close btn" data-dismiss="modal" aria-label="Close" @click=${this.closeModal}>
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                  </div>
+                  <div class="modal-body">
+                  <form class="form">
+                    <div class="mb-3">
+                      <label for="details-title">Titel der Veranstaltung</label>
+                      <input readonly type="text" class="form-control" value=${this.selectedEvent? this.selectedEvent.title: ''} id="details-title">
+                    </div>
+                    <div class="mb-3">
+                      <label for="details-description">Beschreibung der Veranstaltung</label>
+                      <textarea readonly class="form-control" aria-label="description" id="details-description"></textarea>
+                    </div>
+                    <div class="mb-3">
+                      <label for="details-room">Raum für der Veranstaltung</label>
+                      <input readonly type="text" class="form-control" value=${this.selectedEvent? this.selectedEvent.extendedProps.room:''} id="details-room">
+                    </div>
+                    <div class="mb-3">
+                      <label for="details-created">Erstellt von</label>
+                      <input readonly type="text" class="form-control" value=${this.selectedEvent? this.selectedEvent.extendedProps.createdFrom:''} id="details-created">
+                    </div>
+                    <div class="mb-3">
+                      <label for="details-start" class="form-label">Start-Zeitpunkt</label>
+                      <input id="details-start" readonly class="form-control" type="datetime-local">  
+                    </div>
+                    <div class="mb-3">
+                      <label for="details-end" class="form-label">End-Zeitpunkt</label>
+                      <input id="details-end" readonly class="form-control" type="datetime-local">  
+                    </div>
+                  </form>
+                  </div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-primary" @click=${this.closeModal}>Ok</button>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div class="modal-backdrop fade show" id="backdrop" @click=${this.closeModal} style="display: none;"></div>
       `
   }
 
   firstUpdated(): void {
     this.renderCalendar();
+
+    // Get the modal
+    const modal = document.getElementById('eventDetails');
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = (event) => {
+      if (event.target == modal) {
+        this.closeModal();
+      }
+    }
   }
 
   
@@ -107,7 +166,9 @@ export default class WebCalendar extends PageMixin(LitElement) {
         start: event.start.seconds * 1000,
         end: event.end.seconds * 1000,
         createdFrom: event.createdFrom,
-        resourceId: event.roomId
+        resourceId: event.roomId,
+        description: event.description,
+        room: event.room
       });
     });
   }
@@ -136,11 +197,32 @@ export default class WebCalendar extends PageMixin(LitElement) {
       editable: true,
       dayMaxEvents: true, // allow "more" link when too many events
       themeSystem: 'bootstrap',
-      eventClick: function(info) {
-        alert('Event: ' + info.event.title);
+      eventClick: (info) => {
+        this.openModal(info.event);
       }    
     });
     this.calendar.render();
     this.calendar.updateSize();
+  }
+
+
+
+  openModal(event: EventApi): void {
+    this.selectedEvent = event;
+    const startInput = document.getElementById('details-start') as HTMLInputElement;
+    const endInput = document.getElementById('details-end') as HTMLInputElement;
+    const descriptionInput = document.getElementById('details-description') as HTMLInputElement;
+    startInput.setAttribute('value', this.selectedEvent.start? this.selectedEvent.start.toISOString().slice(0, -1) : '');
+    endInput.setAttribute('value', this.selectedEvent.end? this.selectedEvent.end.toISOString().slice(0, -1) :  '');
+    const desc = this.selectedEvent.extendedProps.description;
+    descriptionInput.value = desc ? desc : '';
+    document.getElementById('backdrop')!.style.display = 'block';
+    document.getElementById('eventDetails')!.style.display = 'block';
+    document.getElementById('eventDetails')!.classList.add('show');
+  }
+  closeModal(): void {
+    document.getElementById('backdrop')!.style.display = 'none';
+    document.getElementById('eventDetails')!.style.display = 'none';
+    document.getElementById('eventDetails')!.classList.remove('show');
   }
 }
