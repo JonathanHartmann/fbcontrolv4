@@ -1,4 +1,4 @@
-import { customElement, html, LitElement, query, state, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, query, TemplateResult } from 'lit-element';
 import { PageMixin } from '../../client-packages/page.mixin';
 import { IRoom } from '../../interfaces/room.interface';
 import { store } from '../../redux/store';

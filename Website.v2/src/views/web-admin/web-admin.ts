@@ -11,10 +11,10 @@ import './web-admin.scss';
 @customElement('web-admin')
 export default class WebAdmin extends PageMixin(LitElement) {
 
-  @property()
+  @property({ attribute: false })
   users: IUser[] = [];
 
-  @property()
+  @property({ attribute: false })
   rooms: IRoom[] = [];
 
   render(): TemplateResult {
@@ -101,8 +101,10 @@ export default class WebAdmin extends PageMixin(LitElement) {
   changeRole(userId: string): void {
     const select = document.getElementById('role-' + userId) as HTMLSelectElement;
     const value = select.options[select.selectedIndex].value;
-    const user = this.users.find((u) => u.id === userId)!;
-    UserService.updateUser({ ...user, role: value as ROLE});
+    const user = this.users.find((u) => u.id === userId);
+    if (user) {
+      UserService.updateUser({ ...user, role: value as ROLE});
+    }
   }
 
   deleteRoom(roomId: string): void {

@@ -1,4 +1,4 @@
-import { addDoc, collection, CollectionReference, deleteDoc, doc, DocumentData, getDoc, getDocs, getDocsFromCache, QueryDocumentSnapshot, QuerySnapshot, SnapshotOptions, Timestamp, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, DocumentData, getDocs, QueryDocumentSnapshot, QuerySnapshot, SnapshotOptions, Timestamp, updateDoc } from 'firebase/firestore';
 import { nanoid } from 'nanoid';
 import { firestore } from '../client-packages/firebase';
 import { IEvent } from '../interfaces/event.interface';

@@ -5,6 +5,7 @@ import { ADD_ROOM, DELETE_ROOM, LOAD_ROOMS } from './actions/room.actions';
 import { USER_LOGIN } from './actions/user.actions';
 import { INITIAL_STATE } from './store';
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
 export const reducer = (state = { ...INITIAL_STATE }, action: any): IState => {
   switch (action.type) {
     case USER_LOGIN:

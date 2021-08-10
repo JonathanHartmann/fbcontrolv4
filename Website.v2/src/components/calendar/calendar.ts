@@ -15,6 +15,7 @@ import { EventService } from '../../services/event.service';
 import { store } from '../../redux/store';
 import { IUser } from '../../interfaces/user.interface';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (BASE_OPTION_REFINERS as any).schedulerLicenseKey = 'CC-Attribution-NonCommercial-NoDerivatives';
 
 @customElement('web-calendar')
