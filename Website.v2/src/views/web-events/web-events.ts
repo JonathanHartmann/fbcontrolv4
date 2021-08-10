@@ -71,7 +71,7 @@ export default class WebEvents extends PageMixin(LitElement) {
 
   stateChanged(state: IState): void {
     this.user = state.user;
-    if (state.events.length > 0) {
+    if (state.events.length >= 0) {
       this.events = state.events.sort((a, b) => {
         if (a.start > b.start) {
           return 1;
@@ -93,8 +93,15 @@ export default class WebEvents extends PageMixin(LitElement) {
   }
 
   deleteEvent(id: string): void {
-    const r = confirm('Soll die Buchung wirklich gelöscht werden?');
-    if (r == true) {
+    const deleteSingle = confirm('Soll diese Buchung wirklich gelöscht werden?');
+    if (id) {
+      const deleteFuture = confirm('Sollen ebenfalls alle Zukünftigen Buchungen gelöscht werden?');
+      if (deleteFuture) {
+        EventService.deleteEvent(id, true);
+        return;
+      }
+    }
+    if (deleteSingle == true) {
       EventService.deleteEvent(id);
     }
   }

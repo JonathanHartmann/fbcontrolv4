@@ -18,6 +18,9 @@ export default class AddEvent extends PageMixin(LitElement) {
   @property({ attribute: false })
   user: IUser | undefined = undefined;
 
+  @property({ attribute: false })
+  seriesEvent = false;
+
   @query('form')
   form!: HTMLFormElement;
 
@@ -35,6 +38,9 @@ export default class AddEvent extends PageMixin(LitElement) {
 
   @query('#end')
   endInput!: HTMLInputElement;
+
+  @query('#seriesNr')
+  seriesNrInput!: HTMLInputElement;
 
   @query('#createEventModal')
   createEventModal!: HTMLElement;
@@ -85,6 +91,18 @@ export default class AddEvent extends PageMixin(LitElement) {
                   <label for="end" class="form-label">End-Zeitpunkt</label>
                   <input id="end" required class="form-control" type="datetime-local">  
                 </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value=${this.seriesEvent} id="seriesEvent" @input=${() => this.seriesEvent = !this.seriesEvent}>
+                  <label class="form-check-label" for="seriesEvent">
+                    Serien Termin
+                  </label>
+                </div>
+                ${this.seriesEvent? html`
+                  <div class="mb-3">
+                    <label for="seriesNr" class="form-label">Anzahl der Wiederholungen (Abstand: eine Woche, maximal 52 Wochen, minimal 1 Woche) </label>
+                    <input id="seriesNr" class="form-control" type="number" max="52" min="1">  
+                  </div>
+                `:undefined}
               </form>
             </div>
             <div class="modal-footer">
@@ -99,6 +117,11 @@ export default class AddEvent extends PageMixin(LitElement) {
 
   async submit(): Promise<void> {
     if (this.form.reportValidity()) {
+      console.log('Series event: ', this.seriesEvent);
+      const seriesNrRaw = this.seriesNrInput ? Number(this.seriesNrInput.value) : 0
+      const seriesNr = this.seriesEvent && seriesNrRaw > 0 && seriesNrRaw <= 52? seriesNrRaw : 0;
+      console.log('Nr serier: ', seriesNr);
+
       const room = this.rooms.find((r) => r.id === this.roomInput.value)
       const startDate = new Date(this.startInput.value);
       const endDate = new Date(this.endInput.value);
@@ -111,7 +134,7 @@ export default class AddEvent extends PageMixin(LitElement) {
         roomId: room?.id,
         createdFrom: this.user?.name,
         createdFromId: this.user?.id,
-      } as IEvent);
+      } as IEvent, seriesNr);
     }
   }
 }

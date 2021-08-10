@@ -10,4 +10,6 @@ export interface IEvent {
   roomId: string;
   createdFrom: string;
   createdFromId: string;
+  seriesId?: string;
+  seriesNr?: number;
 }

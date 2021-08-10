@@ -11,6 +11,9 @@ import { IState } from '../../interfaces/state.interface';
 import { IRoom } from '../../interfaces/room.interface';
 
 import './calendar.scss';
+import { EventService } from '../../services/event.service';
+import { store } from '../../redux/store';
+import { IUser } from '../../interfaces/user.interface';
 
 (BASE_OPTION_REFINERS as any).schedulerLicenseKey = 'CC-Attribution-NonCommercial-NoDerivatives';
 
@@ -19,11 +22,14 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   @query('#calendar')
   calendarElement!: HTMLElement;
-
+  
   calendar: Calendar | undefined = undefined;
 
   @property({ type: Boolean })
   smallScreen = false;
+
+  @property({ attribute: false })
+  user: IUser | undefined = undefined;
 
   @property({ attribute: false })
   rooms: Map<string, {room: IRoom, checked: boolean}> = new Map();
@@ -106,7 +112,13 @@ export default class WebCalendar extends PageMixin(LitElement) {
                   </form>
                   </div>
                   <div class="modal-footer">
-                      <button type="button" class="btn btn-primary" @click=${this.closeModal}>Ok</button>
+                    ${this.user?.role === 'admin' || this.user?.id === this.selectedEvent?.extendedProps.createdFromId? html`
+                    <td class="event-actions">
+                      <!-- <edit-event .event=${event} class="align-self-center me-3"></edit-event> -->
+                      <button type="button" class="btn btn-danger" @click=${this.deleteEvent}>Löschen</button>
+                    </td>
+                    `: undefined}
+                    <button type="button" class="btn btn-primary" @click=${this.closeModal}>Ok</button>
                   </div>
               </div>
           </div>
@@ -117,6 +129,8 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   firstUpdated(): void {
     this.renderCalendar();
+
+    this.user = store.getState().user;
 
     // Get the modal
     const modal = document.getElementById('eventDetails');
@@ -131,7 +145,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
   
 
   stateChanged(state: IState): void {
-    if (state.events.length > 0) {
+    if (state.events.length >= 0) {
       this.events = state.events;
       this.setEvents(this.events);
     }
@@ -168,7 +182,10 @@ export default class WebCalendar extends PageMixin(LitElement) {
         createdFrom: event.createdFrom,
         resourceId: event.roomId,
         description: event.description,
-        room: event.room
+        room: event.room,
+        createdFromId: event.createdFromId,
+        id: event.id,
+        seriesId: event.seriesId
       });
     });
   }
@@ -179,6 +196,24 @@ export default class WebCalendar extends PageMixin(LitElement) {
     rooms.forEach(room => {
       this.calendar?.addResource(room);
     })
+  }
+
+  deleteEvent(): void {
+    if (this.selectedEvent) {
+      const deleteSingle = confirm('Soll diese Buchung wirklich gelöscht werden?');
+      if (this.selectedEvent.extendedProps.seriesId) {
+        const deleteFuture = confirm('Sollen zusätzlich alle Zukünftigen Buchungen gelöscht werden?');
+        if (deleteFuture) {
+          EventService.deleteEvent(this.selectedEvent.id, true);
+          this.closeModal();
+          return;
+        }
+      }
+      if (deleteSingle == true) {
+        EventService.deleteEvent(this.selectedEvent.id);
+        this.closeModal();
+      }
+    }
   }
 
   renderCalendar(): void {
