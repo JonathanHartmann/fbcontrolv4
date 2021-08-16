@@ -100,7 +100,7 @@ export default class AddEvent extends PageMixin(LitElement) {
                 ${this.seriesEvent? html`
                   <div class="mb-3">
                     <label for="seriesNr" class="form-label">Anzahl der Wiederholungen (Abstand: eine Woche, maximal 52 Wochen, minimal 1 Woche) </label>
-                    <input id="seriesNr" class="form-control" type="number" max="52" min="1">  
+                    <input id="seriesNr" class="form-control" type="number" min="1">  
                   </div>
                 `:undefined}
               </form>
@@ -119,7 +119,7 @@ export default class AddEvent extends PageMixin(LitElement) {
     if (this.form.reportValidity()) {
       console.log('Series event: ', this.seriesEvent);
       const seriesNrRaw = this.seriesNrInput ? Number(this.seriesNrInput.value) : 0
-      const seriesNr = this.seriesEvent && seriesNrRaw > 0 && seriesNrRaw <= 52? seriesNrRaw : 0;
+      const seriesNr = this.seriesEvent && seriesNrRaw > 0? seriesNrRaw : 0;
       console.log('Nr serier: ', seriesNr);
 
       const room = this.rooms.find((r) => r.id === this.roomInput.value)

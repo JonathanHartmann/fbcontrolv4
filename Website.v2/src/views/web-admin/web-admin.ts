@@ -66,7 +66,7 @@ export default class WebAdmin extends PageMixin(LitElement) {
                     <div class="fw-bold">${room.title}</div>
                     Komforttemperatur: ${room.comfortTemp}°C - Absenktemperatur: ${room.emptyTemp}°C - Fritzbox ID: ${room.fritzId}
                   </div>
-                  <button type="button" class="btn btn-light">Bearbeiten</button>
+                  <edit-room .room=${room}></edit-room>
                   <button type="button" class="btn btn-danger" @click=${() => this.deleteRoom(room.id)}>Löschen</button>
                 </li>
               `;
