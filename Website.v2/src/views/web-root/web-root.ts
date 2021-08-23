@@ -22,6 +22,7 @@ export default class WebRoot extends PageMixin(LitElement) {
     ['login', {auth: false, admin: false, template: html`<web-login></web-login>`}],
     ['register', {auth: false, admin: false, template: html`<web-register></web-register>`}],
     ['events', {auth: true, admin: false, template: html`<web-events></web-events>`}],
+    ['settings', {auth: true, admin: false, template: html`<web-settings></web-settings>`}],
     ['admin', {auth: true, admin: true, template: html`<web-admin></web-admin>`}],
   ]);
 

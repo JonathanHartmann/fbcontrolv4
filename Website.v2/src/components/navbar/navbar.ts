@@ -70,7 +70,7 @@ export default class WebNavbar extends PageMixin(LitElement) {
 
                 ${ this.smallScreen? html`
                   <li class="nav-item">
-                    <a class="nav-link" href="/profile">Einstellungen</a>
+                    <a class="nav-link" href="/settings">Einstellungen</a>
                   </li>
                   <li class="nav-item">
                     <a class="nav-link" href="#" @click=${this.logout}>Logout</a>
@@ -82,7 +82,7 @@ export default class WebNavbar extends PageMixin(LitElement) {
                     </a>
 
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                      <li><a class="dropdown-item" href="/profile">Einstellungen</a></li>
+                      <li><a class="dropdown-item" href="/settings">Einstellungen</a></li>
                       <li><a class="dropdown-item" href="#" @click=${this.logout}>Logout</a></li>
                     </ul>
                   </li>

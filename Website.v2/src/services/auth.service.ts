@@ -1,5 +1,5 @@
 import { firebaseAuth } from '../client-packages/firebase';
-import { signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, Unsubscribe, User, deleteUser } from 'firebase/auth';
+import { signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, Unsubscribe, User, deleteUser, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { IUser, ROLE } from '../interfaces/user.interface';
 import { UserService } from './user.service';
 import { clearStore } from '../redux/actions/clear.actions';
@@ -58,10 +58,30 @@ export class AuthService {
     const user = firebaseAuth.currentUser;
     if (user) {
       try {
-        deleteUser(user);
+        await deleteUser(user);
+        AuthService.logout();
       } catch(e) {
         throw new Error('Error by deleting Auth-User: ' + e);
       }
     }
+  }
+
+  static async updatePasswort(newPassword: string, oldPassword: string): Promise<boolean> {
+    const user = firebaseAuth.currentUser;
+    if (user && user.email) {
+      try {
+        await signInWithEmailAndPassword(firebaseAuth, user.email, oldPassword);
+        const newUserCred = await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, oldPassword));
+        try {
+          await updatePassword(newUserCred.user, newPassword);
+          return true
+        } catch(e) {
+          throw new Error('Error by changing user password: ' + e);
+        }
+      } catch(e) {
+        throw new Error('Error by changing user password. Wrong old password. ' + e);
+      }
+    }
+    return false;
   }
 }

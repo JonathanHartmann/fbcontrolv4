@@ -31,7 +31,7 @@ export class UserService {
       return docSnap.data() as IUser;
     } else {
       // doc.data() will be undefined in this case
-      console.log('No such document!');
+      console.error('No such document!');
       return undefined;
     }
   }
@@ -45,7 +45,7 @@ export class UserService {
       return users as IUser[];
     } else {
       // doc.data() will be undefined in this case
-      console.log('No users found!');
+      console.error('No users found!');
       return undefined;
     }
   }
@@ -58,8 +58,8 @@ export class UserService {
   static async deleteUser(userId: IUser['id']): Promise<void> {
     const userRef = doc(firestore, 'users/' + userId);
     try {
+      await deleteDoc(userRef);
       await AuthService.deleteUser()
-      deleteDoc(userRef);
     } catch(e) {
       throw new Error(e);
     }

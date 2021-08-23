@@ -117,10 +117,8 @@ export default class AddEvent extends PageMixin(LitElement) {
 
   async submit(): Promise<void> {
     if (this.form.reportValidity()) {
-      console.log('Series event: ', this.seriesEvent);
       const seriesNrRaw = this.seriesNrInput ? Number(this.seriesNrInput.value) : 0
       const seriesNr = this.seriesEvent && seriesNrRaw > 0? seriesNrRaw : 0;
-      console.log('Nr serier: ', seriesNr);
 
       const room = this.rooms.find((r) => r.id === this.roomInput.value)
       const startDate = new Date(this.startInput.value);
@@ -134,6 +132,7 @@ export default class AddEvent extends PageMixin(LitElement) {
         roomId: room?.id,
         createdFrom: this.user?.name,
         createdFromId: this.user?.id,
+        createdAt: Timestamp.now(),
       } as IEvent, seriesNr);
     }
   }

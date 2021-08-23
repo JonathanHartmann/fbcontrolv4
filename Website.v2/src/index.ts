@@ -10,6 +10,7 @@ import './views/web-events/web-events';
 import './views/web-login/web-login';
 import './views/web-register/web-register';
 import './views/web-admin/web-admin';
+import './views/web-settings/web-settings';
 
 // Components
 import './components/add-event/add-event';

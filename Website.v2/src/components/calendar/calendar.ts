@@ -103,6 +103,10 @@ export default class WebCalendar extends PageMixin(LitElement) {
                       <input readonly type="text" class="form-control" value=${this.selectedEvent? this.selectedEvent.extendedProps.createdFrom:''} id="details-created">
                     </div>
                     <div class="mb-3">
+                      <label for="details-created-at" class="form-label">Erstellt am</label>
+                      <input id="details-created-at" readonly class="form-control" type="datetime-local">  
+                    </div>
+                    <div class="mb-3">
                       <label for="details-start" class="form-label">Start-Zeitpunkt</label>
                       <input id="details-start" readonly class="form-control" type="datetime-local">  
                     </div>
@@ -186,9 +190,11 @@ export default class WebCalendar extends PageMixin(LitElement) {
         room: event.room,
         createdFromId: event.createdFromId,
         id: event.id,
-        seriesId: event.seriesId
+        seriesId: event.seriesId,
+        createdAt: event.createdAt?.toDate()
       });
     });
+
   }
 
   setResources(): void {
@@ -225,7 +231,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
         center: 'title',
         right: 'dayGridMonth,timeGridWeek,resourceTimeGridDay'
       },
-      initialView: 'resourceTimeGridDay',
+      initialView: 'dayGridMonth',
       locales: [ deLocale ],
       locale: 'de',
       initialDate: new Date(),
@@ -245,9 +251,12 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   openModal(event: EventApi): void {
     this.selectedEvent = event;
+    const createdInput = document.getElementById('details-created-at') as HTMLInputElement;
     const startInput = document.getElementById('details-start') as HTMLInputElement;
     const endInput = document.getElementById('details-end') as HTMLInputElement;
     const descriptionInput = document.getElementById('details-description') as HTMLInputElement;
+    const createdAt = this.selectedEvent.extendedProps.createdAt;
+    createdInput.setAttribute('value', createdAt? new Date(createdAt.setHours(createdAt.getHours() + 2)).toISOString().slice(0, -8) : '');
     startInput.setAttribute('value', this.selectedEvent.start? this.selectedEvent.start.toISOString().slice(0, -1) : '');
     endInput.setAttribute('value', this.selectedEvent.end? this.selectedEvent.end.toISOString().slice(0, -1) :  '');
     const desc = this.selectedEvent.extendedProps.description;

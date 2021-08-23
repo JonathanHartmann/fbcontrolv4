@@ -16,7 +16,8 @@ const eventConverter = {
       room: event.room,
       roomId: event.roomId,
       createdFrom: event.createdFrom,
-      createdFromId: event.createdFromId
+      createdFromId: event.createdFromId,
+      createdAt: event.createdAt
     };
     if (event.seriesId) {
       return {
@@ -41,7 +42,8 @@ const eventConverter = {
       room: data.room,
       roomId: data.roomId,
       createdFrom: data.createdFrom,
-      createdFromId: data.createdFromId
+      createdFromId: data.createdFromId,
+      createdAt: data.createdAt
     };
     if (data.seriesId) {
       return {
