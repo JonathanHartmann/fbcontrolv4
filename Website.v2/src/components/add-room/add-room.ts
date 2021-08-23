@@ -23,6 +23,9 @@ export default class AddRoom extends PageMixin(LitElement) {
   @query('#fritzId')
   fritzIdInput!: HTMLInputElement;
 
+  @query('#color')
+  colorInput!: HTMLInputElement;
+
 
   render(): TemplateResult {
     return html`
@@ -59,6 +62,10 @@ export default class AddRoom extends PageMixin(LitElement) {
                   <label for="fritzId" class="form-label">Fritzbox ID</label>
                   <input id="fritzId" required class="form-control" type="text">  
                 </div>
+                <div class="mb-3">
+                  <label for="color">Farbe im Kalender</label>
+                  <input type="color" id="color" name="color" value="">
+                </div>
               </form>
             </div>
             <div class="modal-footer">
@@ -80,7 +87,8 @@ export default class AddRoom extends PageMixin(LitElement) {
         emptyTemp: Number(this.emptyTempInput.value),
         fritzId: this.fritzIdInput.value,
         createdFrom: user?.name,
-        createdFromId: user?.id
+        createdFromId: user?.id,
+        eventColor: this.colorInput.value
       } as Partial<IRoom>);
     }
   }

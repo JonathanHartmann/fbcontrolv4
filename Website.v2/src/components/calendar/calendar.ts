@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { customElement, html, LitElement, property, query, TemplateResult } from 'lit-element';
+import { styleMap, StyleInfo } from 'lit-html/directives/style-map';
 import { PageMixin } from '../../client-packages/page.mixin';
 import { BASE_OPTION_REFINERS, Calendar, EventApi } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import resourceTimeGridPlugin from '@fullcalendar/resource-timegrid';
 import deLocale from '@fullcalendar/core/locales/de';
+import adaptivePlugin from '@fullcalendar/adaptive'
 import { IEvent } from '../../interfaces/event.interface';
 import { IState } from '../../interfaces/state.interface';
 import { IRoom } from '../../interfaces/room.interface';
@@ -61,7 +63,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
     const room = roomObj.room;
     return html`
         <div class="form-check form-check-inline user-select-none">
-          <input class="form-check-input" type="checkbox" id=${'room-' + room.id} value=${room.id} ?checked=${roomObj.checked} @input=${() => this.roomFilter(room.id)}>
+          <input class="form-check-input" type="checkbox" id=${'room-' + room.id} value=${room.id} ?checked=${roomObj.checked} @input=${() => this.roomFilter(room.id)} style=${styleMap(this.getRoomColor(room.eventColor))}>
           <label class="form-check-label" for=${'room-' + room.id}>${room.title}</label>
         </div>`;
   })}
@@ -147,8 +149,6 @@ export default class WebCalendar extends PageMixin(LitElement) {
     }
   }
 
-  
-
   stateChanged(state: IState): void {
     if (state.events.length >= 0) {
       this.events = state.events;
@@ -165,11 +165,16 @@ export default class WebCalendar extends PageMixin(LitElement) {
   }
 
   roomFilter(roomId: string): void {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const roomObj = this.rooms.get(roomId)!;
-    this.rooms.set(roomId, {room: roomObj.room, checked: !roomObj.checked});
-    this.setResources();
-    this.filterEvents();
+    const roomObj = this.rooms.get(roomId);
+    if (roomObj) {
+      this.rooms.set(roomId, {room: roomObj.room, checked: !roomObj.checked});
+      this.setResources();
+      this.filterEvents();
+    }
+  }
+  
+  getRoomColor(color: string): StyleInfo {
+    return { borderColor: color, backgroundColor: color};
   }
 
   filterEvents(): void {
@@ -188,6 +193,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
         resourceId: event.roomId,
         description: event.description,
         room: event.room,
+        color: this.rooms.get(event.roomId)?.room.eventColor,
         createdFromId: event.createdFromId,
         id: event.id,
         seriesId: event.seriesId,
@@ -201,7 +207,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
     const rooms = [...this.rooms.values()].filter(r => r.checked).map(r => r.room);
     this.calendar?.getResources().forEach(r => r.remove());
     rooms.forEach(room => {
-      this.calendar?.addResource(room);
+      this.calendar?.addResource({...room});
     })
   }
 
@@ -225,7 +231,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   renderCalendar(): void {
     this.calendar = new Calendar(this.calendarElement, {
-      plugins: [ dayGridPlugin, timeGridPlugin, resourceTimeGridPlugin ],
+      plugins: [ dayGridPlugin, timeGridPlugin, resourceTimeGridPlugin, adaptivePlugin ],
       headerToolbar: {
         left: 'prev,next today',
         center: 'title',

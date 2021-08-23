@@ -6,4 +6,5 @@ export interface IRoom {
   fritzId: string;
   createdFrom: string;
   createdFromId: string;
+  eventColor: string;
 }

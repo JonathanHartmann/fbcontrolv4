@@ -43,7 +43,7 @@ export default class EditRoom extends PageMixin(LitElement) {
             <div class="modal-content">
               <div class="modal-header">
                 <h5 class="modal-title" id=${'editRoomLabel' + this.room.id}>Raum bearbeiten</h5>
-                <button type="button" class="close btn" data-dismiss="modal" aria-label="Close" id="close-button">
+                <button type="button" class="close btn" data-dismiss="modal" aria-label="Close" id=${'close' + this.room.id}>
                   <span aria-hidden="true">&times;</span>
                 </button>
               </div>
@@ -64,6 +64,10 @@ export default class EditRoom extends PageMixin(LitElement) {
                   <div class="mb-3">
                     <label for=${'fritzId' + this.room.id}>Fritzbox ID</label>
                     <input id=${'fritzId' + this.room.id} required class="form-control" type="text" value=${this.room.fritzId}> 
+                  </div>
+                  <div class="mb-3">
+                    <label for=${'color' + this.room.id}>Farbe im Kalender</label>
+                    <input type="color" id=${'color' + this.room.id} name="color" value=${this.room.eventColor}>
                   </div>
                 </form>
               </div>
@@ -91,6 +95,7 @@ export default class EditRoom extends PageMixin(LitElement) {
       const comfortTempInput = document.getElementById('comfortTemp' + this.room.id) as HTMLInputElement;
       const emptyTempInput = document.getElementById('emptyTemp' + this.room.id) as HTMLInputElement;
       const fritzIdInput = document.getElementById('fritzId' + this.room.id) as HTMLInputElement;
+      const colorInput = document.getElementById('color' + this.room.id) as HTMLInputElement;
 
       await RoomService.updateRoom({
         id: this.room.id,
@@ -99,9 +104,10 @@ export default class EditRoom extends PageMixin(LitElement) {
         emptyTemp: Number(emptyTempInput.value),
         fritzId: fritzIdInput.value,
         createdFrom: this.user?.name,
-        createdFromId: this.user?.id
+        createdFromId: this.user?.id,
+        eventColor: colorInput.value
       } as IRoom);
-      document.getElementById('close-button')?.click();
+      document.getElementById('close' + this.room.id)?.click();
     } else {
       this.error = 'Die Eingaben sind nicht korrekt.';
     }
