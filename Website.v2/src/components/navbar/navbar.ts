@@ -1,3 +1,4 @@
+import { Dropdown } from 'bootstrap';
 import { customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 import { PageMixin } from '../../client-packages/page.mixin';
 import { router } from '../../client-packages/router';
@@ -21,6 +22,9 @@ export default class WebNavbar extends PageMixin(LitElement) {
 
   @property({type: Boolean})
   isAdmin = false;
+
+  @property({attribute: false})
+  dropdown: Dropdown | undefined = undefined;
 
   constructor() {
     super();
@@ -76,15 +80,15 @@ export default class WebNavbar extends PageMixin(LitElement) {
                     <a class="nav-link" href="#" @click=${this.logout}>Logout</a>
                   </li>
                   `: html`
-                  <li class="nav-item dropstart">
-                    <a class="nav-link nav-icon" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <li class="nav-item dropstart dropdown">
+                    <a class="nav-link" href="#" @click=${this.logout}>
+                      Logout
+                    </a>
+                  </li>
+                  <li class="nav-item dropstart dropdown">
+                    <a class="nav-link nav-icon" href="/settings">
                       <i class="bi bi-person-circle"></i>
                     </a>
-
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                      <li><a class="dropdown-item" href="/settings">Einstellungen</a></li>
-                      <li><a class="dropdown-item" href="#" @click=${this.logout}>Logout</a></li>
-                    </ul>
                   </li>
                   `}
                 ` : undefined }

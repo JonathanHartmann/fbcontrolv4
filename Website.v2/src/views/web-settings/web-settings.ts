@@ -46,6 +46,24 @@ export default class WebSettings extends PageMixin(LitElement) {
   render(): TemplateResult {
     return html`
     <div class="container">
+      <h1>Account Daten</h1>
+      <form>
+        <div class="mb-3">
+          <label for="name" class="form-label">Name</label>
+          <input type="email" class="form-control" id="name" aria-describedby="emailHelp" readonly .value=${this.user?.name}>
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">Email-Adresse</label>
+          <input type="email" class="form-control" id="email" aria-describedby="emailHelp" readonly .value=${this.user?.email}>
+        </div>
+        <div class="mb-3">
+          <label for="role" class="form-label">Berechtigungen</label>
+          <input type="text" class="form-control" id="role" .value=${this.user?.role} readonly>
+        </div>
+      </form>
+
+
+      <hr/>
       <h1>Passwort ändern</h1>
       <form class="w-50">
         <div class="mb-3">
@@ -87,6 +105,9 @@ export default class WebSettings extends PageMixin(LitElement) {
 
         <button type="submit" class="btn btn-primary" @click=${this.updatePassword}>Speichern</button>
       </form>
+
+
+
       <hr/>
       <h1>Nutzer Account unwiederruflich löschen</h1>
       <button type="button" class="btn btn-danger" @click=${this.deleteUser}>Account löschen</button>
