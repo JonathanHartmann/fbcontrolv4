@@ -66,8 +66,8 @@ export default class EditRoom extends PageMixin(LitElement) {
                     <input id=${'fritzId' + this.room.id} required class="form-control" type="text" value=${this.room.fritzId}> 
                   </div>
                   <div class="mb-3">
-                    <label for=${'color' + this.room.id}>Farbe im Kalender</label>
-                    <input type="color" id=${'color' + this.room.id} name="color" value=${this.room.eventColor}>
+                    <label for=${'color' + this.room.id} class="form-label">Farbe im Kalender</label>
+                    <input type="color" id=${'color' + this.room.id} class="form-control form-control-color" name="color" value=${this.room.eventColor}>
                   </div>
                 </form>
               </div>

@@ -63,8 +63,8 @@ export default class AddRoom extends PageMixin(LitElement) {
                   <input id="fritzId" required class="form-control" type="text">  
                 </div>
                 <div class="mb-3">
-                  <label for="color">Farbe im Kalender</label>
-                  <input type="color" id="color" name="color" value="">
+                  <label for="color" class="form-label">Farbe im Kalender</label>
+                  <input type="color" id="color" class="form-control form-control-color" name="color" value="">
                 </div>
               </form>
             </div>

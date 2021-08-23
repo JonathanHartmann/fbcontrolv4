@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { customElement, html, LitElement, property, query, TemplateResult } from 'lit-element';
 import { styleMap, StyleInfo } from 'lit-html/directives/style-map';
+import { Modal, Tooltip } from 'bootstrap';
 import { PageMixin } from '../../client-packages/page.mixin';
-import { BASE_OPTION_REFINERS, Calendar, EventApi } from '@fullcalendar/core';
+import { addDays, BASE_OPTION_REFINERS, Calendar, EventApi, getEventClassNames } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import resourceTimeGridPlugin from '@fullcalendar/resource-timegrid';
@@ -41,7 +42,13 @@ export default class WebCalendar extends PageMixin(LitElement) {
   events: IEvent[] = [];
 
   @property({ attribute: false })
-  selectedEvent: EventApi | undefined = undefined;
+  selectedCalendarEvent: EventApi | undefined = undefined;
+
+  @property({ attribute: false })
+  selectedEvent: IEvent | undefined = undefined;
+
+  @property({ attribute: false })
+  detailsModal: Modal | undefined = undefined;
 
   constructor() {
     super();
@@ -57,32 +64,38 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   render(): TemplateResult {
     return html`
-      <div class="room-filter my-3">
-        <h4>Zeige Buchungen für folgende Räume an:</h4>
-        ${[...this.rooms.values()].map(roomObj => {
+        <div class="row">
+          <div class="col">
+            <div class="room-filter d-flex flex-column bd-highlight">
+              <div class="action-section mb-3">
+                <add-event></add-event>
+              </div>
+              <h4>Angezeigete Räume</h4>
+              ${[...this.rooms.values()].map(roomObj => {
     const room = roomObj.room;
     return html`
-        <div class="form-check form-check-inline user-select-none">
-          <input class="form-check-input" type="checkbox" id=${'room-' + room.id} value=${room.id} ?checked=${roomObj.checked} @input=${() => this.roomFilter(room.id)} style=${styleMap(this.getRoomColor(room.eventColor))}>
-          <label class="form-check-label" for=${'room-' + room.id}>${room.title}</label>
-        </div>`;
+              <div class="form-check form-check-inline user-select-none">
+                <input class="form-check-input" type="checkbox" id=${'room-' + room.id} value=${room.id} ?checked=${roomObj.checked} @input=${() => this.roomFilter(room.id)} style=${styleMap({ borderColor: room.eventColor, backgroundColor: room.eventColor})}>
+                <label class="form-check-label" for=${'room-' + room.id}>${room.title}</label>
+              </div>`;
   })}
-      </div>
-      <div class="action-section my-3">
-        <add-event></add-event>
-      </div>
-      ${!this.smallScreen? html`
-        <div id="calendar"></div>
-      `: undefined}
+            </div>
+          </div>
+
+          <div class="col-9 calendar-section">
+            <div id="calendar"></div>
+          </div>
+
+        </div>
+
+
       
-      
-      <div class="modal fade" id="eventDetails" tabindex="-1" aria-labelledby="exampleModalLabel" aria-modal="true"
-          role="dialog">
+      <div class="modal" id="eventDetails" tabindex="-1" aria-labelledby="exampleModalLabel" aria-modal="true" role="dialog">
           <div class="modal-dialog" role="document">
               <div class="modal-content">
                   <div class="modal-header">
-                      <h5 class="modal-title" id="exampleModalLabel">Details zu der Veranstaltung: ${this.selectedEvent? this.selectedEvent.title: ''}</h5>
-                      <button type="button" class="close btn" data-dismiss="modal" aria-label="Close" @click=${this.closeModal}>
+                      <h5 class="modal-title" id="exampleModalLabel">Details zu der Veranstaltung: ${this.selectedCalendarEvent? this.selectedCalendarEvent.title: ''}</h5>
+                      <button type="button" class="close btn" aria-label="Close" @click=${this.closeModal}>
                         <span aria-hidden="true">&times;</span>
                       </button>
                   </div>
@@ -90,7 +103,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
                   <form class="form">
                     <div class="mb-3">
                       <label for="details-title">Titel der Veranstaltung</label>
-                      <input readonly type="text" class="form-control" value=${this.selectedEvent? this.selectedEvent.title: ''} id="details-title">
+                      <input readonly type="text" class="form-control" value=${this.selectedCalendarEvent? this.selectedCalendarEvent.title: ''} id="details-title">
                     </div>
                     <div class="mb-3">
                       <label for="details-description">Beschreibung der Veranstaltung</label>
@@ -98,11 +111,11 @@ export default class WebCalendar extends PageMixin(LitElement) {
                     </div>
                     <div class="mb-3">
                       <label for="details-room">Raum für der Veranstaltung</label>
-                      <input readonly type="text" class="form-control" value=${this.selectedEvent? this.selectedEvent.extendedProps.room:''} id="details-room">
+                      <input readonly type="text" class="form-control" value=${this.selectedCalendarEvent? this.selectedCalendarEvent.extendedProps.room:''} id="details-room">
                     </div>
                     <div class="mb-3">
                       <label for="details-created">Erstellt von</label>
-                      <input readonly type="text" class="form-control" value=${this.selectedEvent? this.selectedEvent.extendedProps.createdFrom:''} id="details-created">
+                      <input readonly type="text" class="form-control" value=${this.selectedCalendarEvent? this.selectedCalendarEvent.extendedProps.createdFrom:''} id="details-created">
                     </div>
                     <div class="mb-3">
                       <label for="details-created-at" class="form-label">Erstellt am</label>
@@ -119,10 +132,10 @@ export default class WebCalendar extends PageMixin(LitElement) {
                   </form>
                   </div>
                   <div class="modal-footer">
-                    ${this.user?.role === 'admin' || this.user?.id === this.selectedEvent?.extendedProps.createdFromId? html`
+                    ${(this.user?.role === 'admin' || this.user?.id === this.selectedCalendarEvent?.extendedProps.createdFromId) && this.selectedEvent !== undefined? html`
                     <td class="event-actions">
-                      <!-- <edit-event .event=${event} class="align-self-center me-3"></edit-event> -->
                       <button type="button" class="btn btn-danger" @click=${this.deleteEvent}>Löschen</button>
+                      <edit-event .event=${this.selectedEvent} class="align-self-center me-3"></edit-event>
                     </td>
                     `: undefined}
                     <button type="button" class="btn btn-primary" @click=${this.closeModal}>Ok</button>
@@ -130,15 +143,13 @@ export default class WebCalendar extends PageMixin(LitElement) {
               </div>
           </div>
       </div>
-      <div class="modal-backdrop fade show" id="backdrop" @click=${this.closeModal} style="display: none;"></div>
       `
   }
 
   firstUpdated(): void {
     this.renderCalendar();
-
+    this.detailsModal = new Modal(document.getElementById('eventDetails')!);
     this.user = store.getState().user;
-
     // Get the modal
     const modal = document.getElementById('eventDetails');
     // When the user clicks anywhere outside of the modal, close it
@@ -152,7 +163,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
   stateChanged(state: IState): void {
     if (state.events.length >= 0) {
       this.events = state.events;
-      this.setEvents(this.events);
+      this.setEvents(state.events);
     }
     if (state.rooms.length > 0) {
       state.rooms.forEach(room => {
@@ -172,58 +183,61 @@ export default class WebCalendar extends PageMixin(LitElement) {
       this.filterEvents();
     }
   }
-  
-  getRoomColor(color: string): StyleInfo {
-    return { borderColor: color, backgroundColor: color};
-  }
 
   filterEvents(): void {
-    const filteredEvents = this.events.filter(event => this.rooms.get(event.roomId)?.checked);
+    const filteredEvents = this.events.filter(event => event.background || this.rooms.get(event.roomId)?.checked);
     this.setEvents(filteredEvents);
   }
 
   setEvents(events: IEvent[]): void {
     this.calendar?.removeAllEvents();
     events.forEach(event => {
+      const start = new Date(event.start.seconds * 1000);
+      const end = new Date(event.end.seconds * 1000);
       this.calendar?.addEvent({
         title: event.title,
-        start: event.start.seconds * 1000,
-        end: event.end.seconds * 1000,
+        start: event.background? this.getDate(start) : start,
+        end: event.background? this.getDate(end, 1) : end,
         createdFrom: event.createdFrom,
         resourceId: event.roomId,
+        display: event.background ? 'background' : undefined,
         description: event.description,
         room: event.room,
-        color: this.rooms.get(event.roomId)?.room.eventColor,
+        color: this.rooms.get(event.roomId) ? this.rooms.get(event.roomId)!.room.eventColor : '#b1b1b1',
         createdFromId: event.createdFromId,
         id: event.id,
         seriesId: event.seriesId,
         createdAt: event.createdAt?.toDate()
       });
     });
-
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new Tooltip(tooltipTriggerEl);
+    });
   }
+
 
   setResources(): void {
     const rooms = [...this.rooms.values()].filter(r => r.checked).map(r => r.room);
     this.calendar?.getResources().forEach(r => r.remove());
     rooms.forEach(room => {
       this.calendar?.addResource({...room});
-    })
+    });
   }
 
   deleteEvent(): void {
-    if (this.selectedEvent) {
+    if (this.selectedCalendarEvent) {
       const deleteSingle = confirm('Soll diese Buchung wirklich gelöscht werden?');
-      if (this.selectedEvent.extendedProps.seriesId) {
+      if (this.selectedCalendarEvent.extendedProps.seriesId) {
         const deleteFuture = confirm('Sollen zusätzlich alle Zukünftigen Buchungen gelöscht werden?');
         if (deleteFuture) {
-          EventService.deleteEvent(this.selectedEvent.id, true);
+          EventService.deleteEvent(this.selectedCalendarEvent.id, true);
           this.closeModal();
           return;
         }
       }
       if (deleteSingle == true) {
-        EventService.deleteEvent(this.selectedEvent.id);
+        EventService.deleteEvent(this.selectedCalendarEvent.id);
         this.closeModal();
       }
     }
@@ -237,10 +251,18 @@ export default class WebCalendar extends PageMixin(LitElement) {
         center: 'title',
         right: 'dayGridMonth,timeGridWeek,resourceTimeGridDay'
       },
+      eventDidMount: (info) => {
+        info.el.setAttribute('data-bs-toggle', 'tooltip');
+        info.el.setAttribute('data-bs-placement', 'bottom');
+        info.el.title = info.event.display === 'background' ? 'Aufgrund der Ferien findet hier nichts statt.' : `
+          ${this.getTime(info.event.start!)} - ${this.getTime(info.event.end!)} - ${info.event.extendedProps.room}
+        `;
+      },
       initialView: 'dayGridMonth',
       locales: [ deLocale ],
       locale: 'de',
       initialDate: new Date(),
+      weekNumbers: true,
       navLinks: true, // can click day/week names to navigate views
       editable: true,
       dayMaxEvents: true, // allow "more" link when too many events
@@ -256,24 +278,63 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
 
   openModal(event: EventApi): void {
-    this.selectedEvent = event;
+    this.selectedCalendarEvent = event;
+    this.selectedEvent = this.events.find(e => e.id === event.id);
+
+    this.detailsModal = new Modal(document.getElementById('eventDetails')!);
+
     const createdInput = document.getElementById('details-created-at') as HTMLInputElement;
     const startInput = document.getElementById('details-start') as HTMLInputElement;
     const endInput = document.getElementById('details-end') as HTMLInputElement;
     const descriptionInput = document.getElementById('details-description') as HTMLInputElement;
-    const createdAt = this.selectedEvent.extendedProps.createdAt;
+    const createdAt = this.selectedCalendarEvent.extendedProps.createdAt;
+    const start = this.selectedCalendarEvent.start;
+    const end = this.selectedCalendarEvent.end;
     createdInput.setAttribute('value', createdAt? new Date(createdAt.setHours(createdAt.getHours() + 2)).toISOString().slice(0, -8) : '');
-    startInput.setAttribute('value', this.selectedEvent.start? this.selectedEvent.start.toISOString().slice(0, -1) : '');
-    endInput.setAttribute('value', this.selectedEvent.end? this.selectedEvent.end.toISOString().slice(0, -1) :  '');
-    const desc = this.selectedEvent.extendedProps.description;
+    startInput.setAttribute('value', start? new Date(start.setHours(start.getHours() + 2)).toISOString().slice(0, -8) : '');
+    endInput.setAttribute('value', end? new Date(end.setHours(end.getHours() + 2)).toISOString().slice(0, -8) : '');
+    const desc = this.selectedCalendarEvent.extendedProps.description;
     descriptionInput.value = desc ? desc : '';
-    document.getElementById('backdrop')!.style.display = 'block';
-    document.getElementById('eventDetails')!.style.display = 'block';
-    document.getElementById('eventDetails')!.classList.add('show');
+    this.detailsModal.toggle();
   }
+
   closeModal(): void {
-    document.getElementById('backdrop')!.style.display = 'none';
-    document.getElementById('eventDetails')!.style.display = 'none';
-    document.getElementById('eventDetails')!.classList.remove('show');
+    this.detailsModal?.toggle();
+  }
+
+  getTime(date: Date): string {
+    if (date) {
+      let hours = date.getHours().toString();
+      let min = date.getMinutes().toString();
+      if (hours.length === 1) {
+        hours = '0' + hours;
+      }
+      if (min.length === 1) {
+        min = '0' + min;
+      }
+      return `${hours}:${min}`;
+    } else {
+      return '';
+    }
+  }
+
+  getDate(date: Date, addDays = 0): string {
+    if (date) {
+      const year = date.getFullYear();
+      let month = (date.getMonth() + 1).toString();
+      date.setDate(date.getDate() + addDays);
+      let day = date.getDate().toString();
+  
+      if (month.length === 1) {
+        month = '0' + month;
+      }
+      if (day.length === 1) {
+        day = '0' + day;
+      }
+  
+      return `${year}-${month}-${day}`;
+    } else {
+      return '';
+    }
   }
 }

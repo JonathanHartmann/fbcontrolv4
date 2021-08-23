@@ -2,6 +2,7 @@ import { addDoc, collection, deleteDoc, doc, DocumentData, getDocs, QueryDocumen
 import { nanoid } from 'nanoid';
 import { firestore } from '../client-packages/firebase';
 import { IEvent } from '../interfaces/event.interface';
+import { IUser } from '../interfaces/user.interface';
 import { addEvent, deleteEvent, setEvents, updateEvent } from '../redux/actions/event.actions';
 import { store } from '../redux/store';
 
@@ -17,7 +18,8 @@ const eventConverter = {
       roomId: event.roomId,
       createdFrom: event.createdFrom,
       createdFromId: event.createdFromId,
-      createdAt: event.createdAt
+      createdAt: event.createdAt,
+      background: event.background
     };
     if (event.seriesId) {
       return {
@@ -43,7 +45,8 @@ const eventConverter = {
       roomId: data.roomId,
       createdFrom: data.createdFrom,
       createdFromId: data.createdFromId,
-      createdAt: data.createdAt
+      createdAt: data.createdAt,
+      background: data.background
     };
     if (data.seriesId) {
       return {
@@ -61,21 +64,34 @@ export class EventService {
 
   static async createEvent(event: IEvent, seriesNr = 0): Promise<void> {
     if (seriesNr === 0) {
-      EventService.saveEvent(event)
+      const valid = EventService.checkValidity(event);
+      if (valid) {
+        EventService.saveEvent(event);
+      } else {
+        throw new Error('Event is during a background event or an event has already been created in the same room and time');
+      }
     } else if (seriesNr > 0) {
       const seriesId = nanoid();
       let nextEvent: IEvent = {...event, seriesNr, seriesId};
       for (let i=seriesNr-1; i >= 0; i--) {
-        EventService.saveEvent(nextEvent);
+        const valid = EventService.checkValidity(nextEvent);
+        if (valid) {
+          EventService.saveEvent(nextEvent);
+        }
         nextEvent = EventService.eventNextWeek(nextEvent, i, seriesId);
       }
     }
   }
 
   static async updateEvent(event: IEvent): Promise<void> {
-    const eventRef = doc(firestore, 'events/', event.id).withConverter(eventConverter);
-    await updateDoc(eventRef, event);
-    store.dispatch(updateEvent(event));
+    const valid = EventService.checkValidity(event);
+    if(valid) {
+      const eventRef = doc(firestore, 'events/', event.id).withConverter(eventConverter);
+      await updateDoc(eventRef, event);
+      store.dispatch(updateEvent(event));
+    } else {
+      throw new Error('Event is during a background event or an event has already been created in the same room and time');
+    }
   }
   
   static async deleteEvent(eventId: IEvent['id'], allSeries = false): Promise<void> {
@@ -99,6 +115,42 @@ export class EventService {
     const snapshot = await getDocs(eventsRef);
     const events = await EventService.getDataFromSnapshot(snapshot);
     store.dispatch(setEvents(events as IEvent[]));
+  }
+
+  static async createBackgroundEvent(title: string, start: Date, end: Date, user: IUser): Promise<void> {
+    await EventService.createEvent({
+      title: title,
+      description: 'An diesem Tag können keine Buchungen vorgenommen werden.',
+      start: Timestamp.fromDate(start),
+      end: Timestamp.fromDate(end),
+      room: '',
+      roomId: '',
+      createdFrom: user.name,
+      createdFromId: user.id,
+      createdAt: Timestamp.now(),
+      background: true
+    } as IEvent);
+  }
+
+  static checkValidity(event: IEvent): boolean {
+    let validity = true;
+    const backgroundEvents = store.getState().events.filter(e => e.background);
+    const sameRoomEvents = store.getState().events.filter(e => e.roomId === event.roomId);
+
+    backgroundEvents.forEach(backEvent => {
+      if (event.start.toDate() >= backEvent.start.toDate() && event.start.toDate() <= backEvent.end.toDate() ||
+      event.end.toDate() >= backEvent.start.toDate() && event.end.toDate() <= backEvent.end.toDate()) {
+        validity = false;
+      }
+    });
+    sameRoomEvents.forEach(roomEvent => {
+      if (event.start.toDate() >= roomEvent.start.toDate() && event.start.toDate() <= roomEvent.end.toDate() ||
+      event.end.toDate() >= roomEvent.start.toDate() && event.end.toDate() <= roomEvent.end.toDate()) {
+        validity = false;
+      }
+    });
+    console.log('Validity: ', validity);
+    return validity;
   }
 
   private static getDataFromSnapshot(snapshot: QuerySnapshot<DocumentData>): DocumentData[] {

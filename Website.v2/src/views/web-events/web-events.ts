@@ -20,11 +20,8 @@ export default class WebEvents extends PageMixin(LitElement) {
   render(): TemplateResult {
     return html`
       <div class="container">
-        <div class="mb-3">
-          <h1>Kalendar Übersicht</h1>
-          <web-calendar></web-calendar>
-        </div>
-        <hr class="my-5"/>
+        <web-calendar></web-calendar>
+        <!-- <hr class="my-5"/>
         <div class="mb-3 events-list">
           <h1>Alle Buchungen</h1>
 
@@ -59,7 +56,7 @@ export default class WebEvents extends PageMixin(LitElement) {
               </tbody>
             </table>
           </div>
-        </div>
+        </div> -->
       </div>
         `
   }

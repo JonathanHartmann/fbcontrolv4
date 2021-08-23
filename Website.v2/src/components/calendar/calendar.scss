@@ -1,12 +1,28 @@
 web-calendar {
   margin: 0 auto;
   display: block;
+  height: 100%;
 
   .form-check-input, .form-check-label, .form-check {
     cursor: pointer;
   }
 
-  #calendar {
-    margin-top: 1rem;
+  .row {
+    height: 100%;
+    
+    .calendar-section {
+      height: 100%;
+  
+      #calendar {
+        height: 100%;
+      }
+    }
+  }
+
+
+
+  .tooltip-inner {
+    white-space: pre !important;
+    max-width: none !important;
   }
 }

@@ -1,5 +1,6 @@
 web-root {
-  div.content {
+  main.content {
     width: 100%;
+    height: calc(100% - 5rem);
   }
 }

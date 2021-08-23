@@ -1,4 +1,5 @@
-import { customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, property, query, TemplateResult } from 'lit-element';
+import * as ICAL from 'ical.js'
 import { PageMixin } from '../../client-packages/page.mixin';
 import { IRoom } from '../../interfaces/room.interface';
 import { IState } from '../../interfaces/state.interface';
@@ -7,6 +8,9 @@ import { RoomService } from '../../services/room.service';
 import { UserService } from '../../services/user.service';
 
 import './web-admin.scss';
+import { EventService } from '../../services/event.service';
+
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 @customElement('web-admin')
 export default class WebAdmin extends PageMixin(LitElement) {
@@ -17,6 +21,12 @@ export default class WebAdmin extends PageMixin(LitElement) {
   @property({ attribute: false })
   rooms: IRoom[] = [];
 
+  @property({ attribute: false })
+  user: IUser | undefined = undefined;
+
+  @query('#events')
+  eventsInput!: HTMLInputElement;
+
   render(): TemplateResult {
     return html`
     <div class="container">
@@ -26,6 +36,9 @@ export default class WebAdmin extends PageMixin(LitElement) {
         </li>
         <li class="nav-item" role="presentation">
           <button class="nav-link" id="rooms-tab" data-bs-toggle="tab" data-bs-target="#rooms" type="button" role="tab" aria-controls="rooms" aria-selected="false">Räume</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="background-events-tab" data-bs-toggle="tab" data-bs-target="#backgroundEvents" type="button" role="tab" aria-controls="backgroundEvents" aria-selected="false">Ferien</button>
         </li>
 
       </ul>
@@ -73,6 +86,20 @@ export default class WebAdmin extends PageMixin(LitElement) {
   })}
           </ol>
         </div>
+
+        <!-- Background Events Tab -->
+        <div class="tab-pane fade" id="backgroundEvents" role="tabpanel" aria-labelledby="background-events-tab">
+          <h1>Ferien hochladen</h1>
+          <form>
+            <div class="mb-3">
+              <label for="events" class="form-label">Lade eine iCal Datei hoch, welche die Tage enthält, an denen keine Termine erstellt werden können.</label>
+              <input class="form-control" type="file" id="events" name="events" accept="ical">
+            </div>
+            <button type="submit" class="btn btn-primary" @click=${this.upload}>Hochladen</button>
+          </form>
+        </div>
+
+
       </div>
     </div>
         `
@@ -86,6 +113,38 @@ export default class WebAdmin extends PageMixin(LitElement) {
   stateChanged(state: IState): void {
     if (state.rooms.length > 0) {
       this.rooms = state.rooms;
+    }
+    this.user = state.user;
+  }
+
+  async upload(event: MouseEvent): Promise<void> {
+    event.preventDefault();
+    const files = this.eventsInput.files;
+    if (files && files.length > 0 && this.user?.role === 'admin') {
+      for (let index = 0; index < files.length; index++) {
+        const file = files.item(index);
+        if (file) {
+          const content = await file.text();
+          const jcalData = ICAL.parse(content);
+          const comp = new ICAL.Component(jcalData);
+          const vevents = comp.getAllSubcomponents('vevent') as any[];
+
+          console.log(vevents);
+          vevents.forEach(vevent => {
+            // start of holiday; format: yyyy-mm-dd
+            const start: string = vevent.jCal[1][4][3];
+            const startDate = new Date(Number(start.slice(0,4)), Number(start.slice(5, 7)) - 1, Number(start.slice(8, 10)));
+            // end of holiday; format: yyyy-mm-dd
+            const end: string = vevent.jCal[1][5][3];
+            const endDate = new Date(Number(end.slice(0,4)), Number(end.slice(5, 7)) - 1, Number(end.slice(8, 10)));
+            // name of holiday
+            const name: string = vevent.jCal[1][3][3];
+            if (this.user) {
+              EventService.createBackgroundEvent(name, startDate, endDate, this.user);
+            }
+          });
+        }
+      }
     }
   }
 

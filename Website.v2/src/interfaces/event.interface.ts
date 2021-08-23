@@ -11,6 +11,7 @@ export interface IEvent {
   createdFrom: string;
   createdFromId: string;
   createdAt: Timestamp;
+  background: boolean;
   seriesId?: string;
   seriesNr?: number;
 }
