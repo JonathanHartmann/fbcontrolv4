@@ -36,11 +36,17 @@ export default class AddEvent extends PageMixin(LitElement) {
   @query('#room')
   roomInput!: HTMLInputElement;
 
-  @query('#start')
-  startInput!: HTMLInputElement;
+  @query('#start-date')
+  startDateInput!: HTMLInputElement;
 
-  @query('#end')
-  endInput!: HTMLInputElement;
+  @query('#start-time')
+  startTimeInput!: HTMLInputElement;
+
+  @query('#end-date')
+  endDateInput!: HTMLInputElement;
+
+  @query('#end-time')
+  endTimeInput!: HTMLInputElement;
 
   @query('#seriesNr')
   seriesNrInput!: HTMLInputElement;
@@ -87,12 +93,20 @@ export default class AddEvent extends PageMixin(LitElement) {
                   </select>
                 </div>
                 <div class="mb-3">
-                  <label for="start" class="form-label">Start-Zeitpunkt*</label>
-                  <input id="start" required class="form-control" type="datetime-local">  
+                  <label for="start-date" class="form-label">Start-Datum*</label>
+                  <input id="start-date" required class="form-control" type="date" @input=${() => this.endDateInput.value = this.startDateInput.value}>  
                 </div>
                 <div class="mb-3">
-                  <label for="end" class="form-label">End-Zeitpunkt*</label>
-                  <input id="end" required class="form-control" type="datetime-local">  
+                  <label for="start-time" class="form-label">Start-Uhrzeit*</label>
+                  <input id="start-time" required class="form-control" type="time" @input=${() => this.endTimeInput.value = this.addHoursToTime(this.startTimeInput.value)}>  
+                </div>
+                <div class="mb-3">
+                  <label for="end-date" class="form-label">End-Datum*</label>
+                  <input id="end-date" required class="form-control" type="date">  
+                </div>
+                <div class="mb-3">
+                  <label for="end-time" class="form-label">End-Uhrzeit*</label>
+                  <input id="end-time" required class="form-control" type="time">  
                 </div>
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" value=${this.seriesEvent} id="seriesEvent" @input=${() => this.seriesEvent = !this.seriesEvent}>
@@ -133,14 +147,20 @@ export default class AddEvent extends PageMixin(LitElement) {
       const seriesNr = this.seriesEvent && seriesNrRaw > 0? seriesNrRaw : 0;
 
       const room = this.rooms.find((r) => r.id === this.roomInput.value)
-      const startDate = new Date(this.startInput.value);
-      const endDate = new Date(this.endInput.value);
+      const startDate = this.startDateInput.value;
+      const startTime = this.startTimeInput.value;
+      const endDate = this.endDateInput.value;
+      const endTime = this.endTimeInput.value;
+      
+      const start = new Date(startDate + 'T' + startTime);
+      const end = new Date(endDate + 'T' + endTime);
+
       try {
         await EventService.createEvent({
           title: this.titleInput.value,
           description: this.descriptionInput.value,
-          start: Timestamp.fromDate(startDate),
-          end: Timestamp.fromDate(endDate),
+          start: Timestamp.fromDate(start),
+          end: Timestamp.fromDate(end),
           room: room?.title,
           roomId: room?.id,
           createdFrom: this.user?.name,
@@ -161,5 +181,10 @@ export default class AddEvent extends PageMixin(LitElement) {
 
   resetForm(): void {
     this.form.reset();
+  }
+
+  addHoursToTime(time: string): string {
+    const nextHour = Number(time.slice(0,2)) + 1;
+    return nextHour + ':' + time.slice(3,5);
   }
 }
