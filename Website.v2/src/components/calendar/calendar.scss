@@ -9,9 +9,15 @@ web-calendar {
 
   .row {
     height: 100%;
+    display: flex;
+
+    .room-filter {
+      width: auto;
+    }
     
     .calendar-section {
       height: 100%;
+      flex: 1;
   
       #calendar {
         height: 100%;

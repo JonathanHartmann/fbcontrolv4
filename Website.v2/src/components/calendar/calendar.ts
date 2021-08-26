@@ -54,10 +54,9 @@ export default class WebCalendar extends PageMixin(LitElement) {
     super();
     this.smallScreen = window.innerWidth < 768;
     window.addEventListener('resize', () => {
-      if (window.innerWidth < 768) {
-        this.smallScreen = true;
-      } else {
-        this.renderCalendar();
+      console.log(window.innerHeight);
+      if (this.calendar) {
+        this.calendar.render();
       }
     });
   }
@@ -65,24 +64,19 @@ export default class WebCalendar extends PageMixin(LitElement) {
   render(): TemplateResult {
     return html`
         <div class="row">
-          <div class="col">
             <div class="room-filter d-flex flex-column bd-highlight">
               <div class="action-section mb-3">
                 <add-event></add-event>
               </div>
               <h4>Angezeigete Räume</h4>
-              ${[...this.rooms.values()].map(roomObj => {
-    const room = roomObj.room;
-    return html`
+              ${[...this.rooms.values()].map(roomObj => {const room = roomObj.room; return html`
               <div class="form-check form-check-inline user-select-none">
                 <input class="form-check-input" type="checkbox" id=${'room-' + room.id} value=${room.id} ?checked=${roomObj.checked} @input=${() => this.roomFilter(room.id)} style=${styleMap({ borderColor: room.eventColor, backgroundColor: room.eventColor})}>
                 <label class="form-check-label" for=${'room-' + room.id}>${room.title}</label>
-              </div>`;
-  })}
+              </div>`;})}
             </div>
-          </div>
 
-          <div class="col-9 calendar-section">
+          <div class="calendar-section">
             <div id="calendar"></div>
           </div>
 
@@ -244,6 +238,8 @@ export default class WebCalendar extends PageMixin(LitElement) {
   }
 
   renderCalendar(): void {
+    const navEle = document.getElementsByTagName('nav');
+    const oneRem = parseFloat(getComputedStyle(document.documentElement).fontSize)
     this.calendar = new Calendar(this.calendarElement, {
       plugins: [ dayGridPlugin, timeGridPlugin, resourceTimeGridPlugin, adaptivePlugin ],
       headerToolbar: {
@@ -267,6 +263,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
       editable: true,
       dayMaxEvents: true, // allow "more" link when too many events
       themeSystem: 'bootstrap',
+      height: window.innerHeight - (navEle? navEle[0].offsetHeight : 0) - 2 * oneRem,
       eventClick: (info) => {
         this.openModal(info.event);
       }    

@@ -143,13 +143,14 @@ export class EventService {
         validity = false;
       }
     });
+
+    // TODO auslagern!
     sameRoomEvents.forEach(roomEvent => {
       if (event.start.toDate() >= roomEvent.start.toDate() && event.start.toDate() <= roomEvent.end.toDate() ||
       event.end.toDate() >= roomEvent.start.toDate() && event.end.toDate() <= roomEvent.end.toDate()) {
         validity = false;
       }
     });
-    console.log('Validity: ', validity);
     return validity;
   }
 
