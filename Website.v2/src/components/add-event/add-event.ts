@@ -22,6 +22,9 @@ export default class AddEvent extends PageMixin(LitElement) {
   seriesEvent = false;
 
   @property({ attribute: false })
+  allDay = false;
+
+  @property({ attribute: false })
   error = '';
 
   @query('form')
@@ -96,17 +99,27 @@ export default class AddEvent extends PageMixin(LitElement) {
                   <label for="start-date" class="form-label">Start-Datum*</label>
                   <input id="start-date" required class="form-control" type="date" @input=${() => this.endDateInput.value = this.startDateInput.value}>  
                 </div>
+                ${!this.allDay? html`
                 <div class="mb-3">
                   <label for="start-time" class="form-label">Start-Uhrzeit*</label>
                   <input id="start-time" required class="form-control" type="time" @input=${() => this.endTimeInput.value = this.addHoursToTime(this.startTimeInput.value)}>  
                 </div>
+                `:undefined}
                 <div class="mb-3">
                   <label for="end-date" class="form-label">End-Datum*</label>
                   <input id="end-date" required class="form-control" type="date">  
                 </div>
+                ${!this.allDay? html`
                 <div class="mb-3">
                   <label for="end-time" class="form-label">End-Uhrzeit*</label>
                   <input id="end-time" required class="form-control" type="time">  
+                </div>
+                `:undefined}
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value=${this.allDay} id="allDay" @input=${() => this.allDay = !this.allDay}>
+                  <label class="form-check-label" for="allDay">
+                    Ganztägiger Termin
+                  </label>
                 </div>
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" value=${this.seriesEvent} id="seriesEvent" @input=${() => this.seriesEvent = !this.seriesEvent}>
@@ -148,12 +161,12 @@ export default class AddEvent extends PageMixin(LitElement) {
 
       const room = this.rooms.find((r) => r.id === this.roomInput.value)
       const startDate = this.startDateInput.value;
-      const startTime = this.startTimeInput.value;
+      const startTime = !this.allDay? this.startTimeInput.value : undefined;
       const endDate = this.endDateInput.value;
-      const endTime = this.endTimeInput.value;
+      const endTime = !this.allDay? this.endTimeInput.value : undefined;
       
-      const start = new Date(startDate + 'T' + startTime);
-      const end = new Date(endDate + 'T' + endTime);
+      const start = !this.allDay? new Date(startDate + 'T' + startTime) : new Date(startDate);
+      const end = !this.allDay? new Date(endDate + 'T' + endTime) : new Date(endDate);
 
       try {
         await EventService.createEvent({
@@ -166,7 +179,8 @@ export default class AddEvent extends PageMixin(LitElement) {
           createdFrom: this.user?.name,
           createdFromId: this.user?.id,
           createdAt: Timestamp.now(),
-          background: false
+          background: false,
+          allDay: this.allDay
         } as IEvent, seriesNr);
         this.resetForm();
         document.getElementById('close-button')?.click();

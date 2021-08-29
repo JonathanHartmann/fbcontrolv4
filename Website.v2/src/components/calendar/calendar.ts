@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { customElement, html, LitElement, property, query, TemplateResult } from 'lit-element';
-import { styleMap, StyleInfo } from 'lit-html/directives/style-map';
+import { styleMap } from 'lit-html/directives/style-map';
 import { Modal, Tooltip } from 'bootstrap';
 import { PageMixin } from '../../client-packages/page.mixin';
-import { addDays, BASE_OPTION_REFINERS, Calendar, EventApi, getEventClassNames } from '@fullcalendar/core';
+import { BASE_OPTION_REFINERS, Calendar, EventApi } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import resourceTimeGridPlugin from '@fullcalendar/resource-timegrid';
@@ -197,6 +197,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
         display: event.background ? 'background' : undefined,
         description: event.description,
         room: event.room,
+        allDay: event.allDay,
         color: this.rooms.get(event.roomId) ? this.rooms.get(event.roomId)!.room.eventColor : '#b1b1b1',
         createdFromId: event.createdFromId,
         id: event.id,
@@ -250,9 +251,8 @@ export default class WebCalendar extends PageMixin(LitElement) {
       eventDidMount: (info) => {
         info.el.setAttribute('data-bs-toggle', 'tooltip');
         info.el.setAttribute('data-bs-placement', 'bottom');
-        info.el.title = info.event.display === 'background' ? 'Aufgrund der Ferien findet hier nichts statt.' : `
-          ${this.getTime(info.event.start!)} - ${this.getTime(info.event.end!)} - ${info.event.extendedProps.room}
-        `;
+        const time = info.event.allDay? 'Ganztägiger Termin - ' + info.event.extendedProps.room : this.getTime(info.event.start!) + '-' + this.getTime(info.event.end!) + '-' + info.event.extendedProps.room;
+        info.el.title = info.event.display === 'background' ? 'Aufgrund der Ferien findet hier nichts statt.' : time;
       },
       initialView: 'dayGridMonth',
       locales: [ deLocale ],

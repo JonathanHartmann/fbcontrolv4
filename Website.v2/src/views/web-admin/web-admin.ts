@@ -10,8 +10,6 @@ import { UserService } from '../../services/user.service';
 import './web-admin.scss';
 import { EventService } from '../../services/event.service';
 
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 @customElement('web-admin')
 export default class WebAdmin extends PageMixin(LitElement) {
 
@@ -127,10 +125,10 @@ export default class WebAdmin extends PageMixin(LitElement) {
           const content = await file.text();
           const jcalData = ICAL.parse(content);
           const comp = new ICAL.Component(jcalData);
-          const vevents = comp.getAllSubcomponents('vevent') as any[];
+          const vevents = comp.getAllSubcomponents('vevent');
 
-          console.log(vevents);
-          vevents.forEach(vevent => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          vevents.forEach((vevent: { jCal: any[] }) => {
             // start of holiday; format: yyyy-mm-dd
             const start: string = vevent.jCal[1][4][3];
             const startDate = new Date(Number(start.slice(0,4)), Number(start.slice(5, 7)) - 1, Number(start.slice(8, 10)));

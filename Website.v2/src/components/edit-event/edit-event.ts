@@ -26,6 +26,9 @@ export default class EditEvent extends PageMixin(LitElement) {
   error: string | undefined = undefined;
   
   @property({ attribute: false })
+  allDay = false;
+  
+  @property({ attribute: false })
   editModal: Modal | undefined = undefined;
 
   @query('form')
@@ -72,14 +75,35 @@ export default class EditEvent extends PageMixin(LitElement) {
                       ${this.rooms.map(room => html`<option value=${room.id} ?selected=${this.event?.roomId == room.id}>${room.title === 'Ferien' ? '-': room.title}</option>`)}
                     </select>
                   </div>
+
                   <div class="mb-3">
-                    <label for=${'start' + this.event.id} class="form-label">Start-Zeitpunkt</label>
-                    <input id=${'start' + this.event.id} required class="form-control" type="datetime-local">  
+                    <label for=${'start-date-' + this.event.id} class="form-label">Start-Datum*</label>
+                    <input id=${'start-date-' + this.event.id} required class="form-control" type="date">  
                   </div>
+                  ${!this.allDay? html`
                   <div class="mb-3">
-                    <label for=${'end' + this.event.id} class="form-label">End-Zeitpunkt</label>
-                    <input id=${'end' + this.event.id} required class="form-control" type="datetime-local">  
+                    <label for=${'start-time-' + this.event.id} class="form-label">Start-Uhrzeit*</label>
+                    <input id=${'start-time-' + this.event.id} required class="form-control" type="time">  
                   </div>
+                  `:undefined}
+                  <div class="mb-3">
+                    <label for=${'end-date-' + this.event.id} class="form-label">End-Datum*</label>
+                    <input id=${'end-date-' + this.event.id} required class="form-control" type="date">  
+                  </div>
+                  ${!this.allDay? html`
+                  <div class="mb-3">
+                    <label for=${'end-time-' + this.event.id} class="form-label">End-Uhrzeit*</label>
+                    <input id=${'end-time-' + this.event.id} required class="form-control" type="time">  
+                  </div>
+                  `:undefined}
+
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value=${this.allDay} id="allDay" @input=${() => this.allDay = !this.allDay}>
+                    <label class="form-check-label" for="allDay">
+                      Ganztägiger Termin
+                    </label>
+                  </div>
+
                   <div class="form-check" data-bs-toggle="tooltip" data-bs-placement="top" title="An Ferien können im gesamten Gebäude Keine Räume gebucht werden!">
                   <input class="form-check-input" type="checkbox" value=${this.event.background} id=${'background' + this.event.id}>
                   <label class="form-check-label" for=${'background' + this.event.id}>
@@ -108,43 +132,62 @@ export default class EditEvent extends PageMixin(LitElement) {
 
   firstUpdated(): void {
     if (this.event) {
-      const startInput = document.getElementById('start' + this.event.id) as HTMLInputElement;
-      const endInput = document.getElementById('end' + this.event.id) as HTMLInputElement;
+      const startDateInput = document.getElementById('start-date-' + this.event.id) as HTMLInputElement;
+      const startTimeInput = document.getElementById('start-time-' + this.event.id) as HTMLInputElement;
+      const endDateInput = document.getElementById('end-date-' + this.event.id) as HTMLInputElement;
+      const endTimeInput = document.getElementById('end-time-' + this.event.id) as HTMLInputElement;
       const descriptionInput = document.getElementById('description' + this.event.id) as HTMLInputElement;
       const backgroundInput = document.getElementById('background' + this.event.id) as HTMLInputElement;
-      startInput.setAttribute('value', this.event.start.toDate().toISOString().slice(0, -1));
-      endInput.setAttribute('value', this.event.end.toDate().toISOString().slice(0, -1));
+      startDateInput.setAttribute('value', this.getDate(this.event.start.toDate()));
+      startTimeInput.setAttribute('value', this.getTime(this.event.start.toDate()));
+      endDateInput.setAttribute('value', this.getDate(this.event.end.toDate()));
+      endTimeInput.setAttribute('value', this.getTime(this.event.end.toDate()));
       descriptionInput.value = this.event.description;
       backgroundInput.checked = this.event.background;
+      this.allDay = this.event.allDay;
     }
   }
 
   async submit(): Promise<void> {
     if (this.form.reportValidity() && this.event) {
+      let startTime = undefined;
+      let endTime = undefined;
+      if (!this.allDay) {
+        const startTimeInput = document.getElementById('start-time-' + this.event.id) as HTMLInputElement;
+        const endTimeInput = document.getElementById('end-time-' + this.event.id) as HTMLInputElement;
+        startTime = startTimeInput.value;
+        endTime = endTimeInput.value;
+      }
+      
       const titleInput = document.getElementById('title' + this.event.id) as HTMLInputElement;
       const descriptionInput = document.getElementById('description' + this.event.id) as HTMLInputElement;
       const roomInput = document.getElementById('room' + this.event.id) as HTMLInputElement;
-      const startInput = document.getElementById('start' + this.event.id) as HTMLInputElement;
-      const endInput = document.getElementById('end' + this.event.id) as HTMLInputElement;
+      const startDateInput = document.getElementById('start-date-' + this.event.id) as HTMLInputElement;
+      const endDateInput = document.getElementById('end-date-' + this.event.id) as HTMLInputElement;
       const backgroundInput = document.getElementById('background' + this.event.id) as HTMLInputElement;
-
+      
       const room = this.rooms.find((r) => r.id === roomInput.value)
-      const startDate = new Date(startInput.value);
-      const endDate = new Date(endInput.value);
+      
+      const startDate = startDateInput.value;
+      const endDate = endDateInput.value;
+      const start = !this.allDay? new Date(startDate + 'T' + startTime) : new Date(startDate);
+      const end = !this.allDay? new Date(endDate + 'T' + endTime) : new Date(endDate);
 
-      if (startDate < endDate) {
+      console.log(startDate, ' - ', endDate);
+      if (startDate <= endDate) {
         try {
           await EventService.updateEvent({
             id: this.event.id,
             title: titleInput.value,
             description: descriptionInput.value,
-            start: Timestamp.fromDate(startDate),
-            end: Timestamp.fromDate(endDate),
+            start: Timestamp.fromDate(start),
+            end: Timestamp.fromDate(end),
             room: room?.title === HOLIDAY_MOCK_ROOM.title? '' : room?.title,
             roomId: room?.id === HOLIDAY_MOCK_ROOM.id? '' : room?.id,
             createdFrom: this.user?.name,
             createdFromId: this.user?.id,
-            background: backgroundInput.checked
+            background: backgroundInput.checked,
+            allDay: this.allDay
           } as IEvent);
           this.closeModal();
         } catch(e) {
@@ -175,5 +218,41 @@ export default class EditEvent extends PageMixin(LitElement) {
       }
     }
     this.editModal?.hide();
+  }
+
+  getTime(date: Date): string {
+    if (date) {
+      let hours = date.getHours().toString();
+      let min = date.getMinutes().toString();
+      if (hours.length === 1) {
+        hours = '0' + hours;
+      }
+      if (min.length === 1) {
+        min = '0' + min;
+      }
+      return `${hours}:${min}`;
+    } else {
+      return '';
+    }
+  }
+
+  getDate(date: Date, addDays = 0): string {
+    if (date) {
+      const year = date.getFullYear();
+      let month = (date.getMonth() + 1).toString();
+      date.setDate(date.getDate() + addDays);
+      let day = date.getDate().toString();
+  
+      if (month.length === 1) {
+        month = '0' + month;
+      }
+      if (day.length === 1) {
+        day = '0' + day;
+      }
+  
+      return `${year}-${month}-${day}`;
+    } else {
+      return '';
+    }
   }
 }

@@ -19,7 +19,8 @@ const eventConverter = {
       createdFrom: event.createdFrom,
       createdFromId: event.createdFromId,
       createdAt: event.createdAt,
-      background: event.background
+      background: event.background,
+      allDay: event.allDay
     };
     if (event.seriesId) {
       return {
@@ -46,7 +47,8 @@ const eventConverter = {
       createdFrom: data.createdFrom,
       createdFromId: data.createdFromId,
       createdAt: data.createdAt,
-      background: data.background
+      background: data.background,
+      allDay: data.allDay
     };
     if (data.seriesId) {
       return {
@@ -64,8 +66,8 @@ export class EventService {
 
   static async createEvent(event: IEvent, seriesNr = 0): Promise<void> {
     if (seriesNr === 0) {
-      const valid = EventService.checkValidity(event);
-      if (valid) {
+      const validRoom = EventService.checkRoomValidity(event);
+      if (validRoom) {
         EventService.saveEvent(event);
       } else {
         throw new Error('Event is during a background event or an event has already been created in the same room and time');
@@ -74,8 +76,9 @@ export class EventService {
       const seriesId = nanoid();
       let nextEvent: IEvent = {...event, seriesNr, seriesId};
       for (let i=seriesNr-1; i >= 0; i--) {
+        const validRoom = EventService.checkRoomValidity(event);
         const valid = EventService.checkValidity(nextEvent);
-        if (valid) {
+        if (valid && validRoom) {
           EventService.saveEvent(nextEvent);
         }
         nextEvent = EventService.eventNextWeek(nextEvent, i, seriesId);
@@ -84,7 +87,7 @@ export class EventService {
   }
 
   static async updateEvent(event: IEvent): Promise<void> {
-    const valid = EventService.checkValidity(event);
+    const valid = EventService.checkRoomValidity(event);
     if(valid) {
       const eventRef = doc(firestore, 'events/', event.id).withConverter(eventConverter);
       await updateDoc(eventRef, event);
@@ -135,16 +138,18 @@ export class EventService {
   static checkValidity(event: IEvent): boolean {
     let validity = true;
     const backgroundEvents = store.getState().events.filter(e => e.background);
-    const sameRoomEvents = store.getState().events.filter(e => e.roomId === event.roomId);
-
     backgroundEvents.forEach(backEvent => {
       if (event.start.toDate() >= backEvent.start.toDate() && event.start.toDate() <= backEvent.end.toDate() ||
       event.end.toDate() >= backEvent.start.toDate() && event.end.toDate() <= backEvent.end.toDate()) {
         validity = false;
       }
     });
+    return validity;
+  }
 
-    // TODO auslagern!
+  private static checkRoomValidity(event: IEvent): boolean {
+    let validity = true;
+    const sameRoomEvents = store.getState().events.filter(e => (e.roomId === event.roomId) && (e.id !== event.id));
     sameRoomEvents.forEach(roomEvent => {
       if (event.start.toDate() >= roomEvent.start.toDate() && event.start.toDate() <= roomEvent.end.toDate() ||
       event.end.toDate() >= roomEvent.start.toDate() && event.end.toDate() <= roomEvent.end.toDate()) {
