@@ -188,7 +188,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
     events.forEach(event => {
       const start = new Date(event.start.seconds * 1000);
       const end = new Date(event.end.seconds * 1000);
-      this.calendar?.addEvent({
+      const addEvent = {
         title: event.title,
         start: event.background? this.getDate(start) : start,
         end: event.background? this.getDate(end, 1) : end,
@@ -197,13 +197,20 @@ export default class WebCalendar extends PageMixin(LitElement) {
         display: event.background ? 'background' : undefined,
         description: event.description,
         room: event.room,
-        allDay: event.allDay,
+        // allDay: event.allDay,
         color: this.rooms.get(event.roomId) ? this.rooms.get(event.roomId)!.room.eventColor : '#b1b1b1',
         createdFromId: event.createdFromId,
         id: event.id,
         seriesId: event.seriesId,
         createdAt: event.createdAt?.toDate()
-      });
+      }
+      if (event.background) {
+        this.calendar?.addEvent({
+          ...addEvent,
+          allDay: event.allDay,
+        });
+      }
+      this.calendar?.addEvent(addEvent);
     });
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
