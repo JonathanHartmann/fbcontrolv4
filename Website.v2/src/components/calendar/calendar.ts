@@ -3,7 +3,7 @@ import { customElement, html, LitElement, property, query, TemplateResult } from
 import { styleMap } from 'lit-html/directives/style-map';
 import { Modal, Tooltip } from 'bootstrap';
 import { PageMixin } from '../../client-packages/page.mixin';
-import { BASE_OPTION_REFINERS, Calendar, EventApi } from '@fullcalendar/core';
+import { BASE_OPTION_REFINERS, Calendar, CalendarOptions, EventApi } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import resourceTimeGridPlugin from '@fullcalendar/resource-timegrid';
@@ -54,7 +54,6 @@ export default class WebCalendar extends PageMixin(LitElement) {
     super();
     this.smallScreen = window.innerWidth < 768;
     window.addEventListener('resize', () => {
-      console.log(window.innerHeight);
       if (this.calendar) {
         this.calendar.render();
       }
@@ -248,7 +247,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
   renderCalendar(): void {
     const navEle = document.getElementsByTagName('nav');
     const oneRem = parseFloat(getComputedStyle(document.documentElement).fontSize)
-    this.calendar = new Calendar(this.calendarElement, {
+    let calendarConfig: CalendarOptions = {
       plugins: [ dayGridPlugin, timeGridPlugin, resourceTimeGridPlugin, adaptivePlugin ],
       headerToolbar: {
         left: 'prev,next today',
@@ -274,7 +273,20 @@ export default class WebCalendar extends PageMixin(LitElement) {
       eventClick: (info) => {
         this.openModal(info.event);
       }    
-    });
+    };
+    if (this.smallScreen) {
+      calendarConfig = {
+        ...calendarConfig, 
+        plugins: [ dayGridPlugin, timeGridPlugin, resourceTimeGridPlugin, adaptivePlugin ],
+        headerToolbar: {
+          left: 'prev,next',
+          center: 'title',
+          right: 'dayGridMonth'
+        },
+        weekNumbers: false,
+      }
+    }
+    this.calendar = new Calendar(this.calendarElement, calendarConfig);
     this.calendar.render();
     this.calendar.updateSize();
   }
