@@ -14,7 +14,7 @@ import './edit-event.scss';
 export default class EditEvent extends PageMixin(LitElement) {
 
   @property({ type: Object })
-  event!: IEvent;
+  event!: IEvent | undefined;
 
   @property({ attribute: false })
   rooms: IRoom[] = [];
@@ -29,7 +29,13 @@ export default class EditEvent extends PageMixin(LitElement) {
   allDay = false;
   
   @property({ attribute: false })
+  allFuture = false;
+
+  @property({ attribute: false })
   editModal: Modal | undefined = undefined;
+
+  @property({ attribute: false })
+  editMode = false;
 
   @query('form')
   form!: HTMLFormElement;
@@ -37,24 +43,48 @@ export default class EditEvent extends PageMixin(LitElement) {
   @query('#createEventModal')
   createEventModal!: HTMLElement;
 
+  @query('#edit-title')
+  titleInput!: HTMLInputElement;
+  
+  @query('#edit-description')
+  descriptionInput!: HTMLInputElement;
+
+  @query('#edit-room')
+  roomInput!: HTMLInputElement;
+
+  @query('#edit-start-date')
+  startDateInput!: HTMLInputElement;
+
+  @query('#edit-start-time')
+  startTimeInput!: HTMLInputElement;
+
+  @query('#edit-end-date')
+  endDateInput!: HTMLInputElement;
+
+  @query('#edit-end-time')
+  endTimeInput!: HTMLInputElement;
+
+  @query('#edit-created-at')
+  createdAtInput!: HTMLInputElement;
+
+  @query('#edit-created-from')
+  createdFromInput!: HTMLInputElement;
+
+  @query('#edit-background')
+  backgroundInput!: HTMLInputElement;
+
   stateChanged(state: IState): void {
     this.rooms = [HOLIDAY_MOCK_ROOM, ...state.rooms];
     this.user = state.user;
   }
 
   render(): TemplateResult {
-    if (this.event) {
-      return html`
-        <!-- Button trigger modal -->
-        <button type="button" class="btn btn-light" @click=${this.openModal}>
-          Bearbeiten
-        </button>
-
-        <div class="modal" id=${'editEvent' + this.event.id} tabindex="-1" role="dialog" aria-labelledby=${'editEventLabel' + this.event.id} aria-hidden="true">
+    return html`
+        <div class="modal" id="editEvent" tabindex="-1" role="dialog" aria-labelledby="editEventLabel" aria-hidden="true">
           <div class="modal-dialog" role="document">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id=${'editEventLabel' + this.event.id}>Buchung bearbeiten</h5>
+                <h5 class="modal-title" id="editEventLabel">Buchung bearbeiten</h5>
                 <button type="button" class="close btn" @click=${this.closeModal} aria-label="Close" id="close-button">
                   <span aria-hidden="true">&times;</span>
                 </button>
@@ -62,53 +92,72 @@ export default class EditEvent extends PageMixin(LitElement) {
               <div class="modal-body ">
                 <form class="form">
                   <div class="mb-3">
-                    <label for=${'title' + this.event.id}>Titel ihrer Veranstaltung</label>
-                    <input required type="text" class="form-control" value=${this.event.title} id=${'title' + this.event.id}>
+                    <label for="edit-title">Titel ihrer Veranstaltung</label>
+                    <input required ?readonly=${!this.editMode} type="text" class="form-control" value=${this.event? this.event.title : ''} id="edit-title">
                   </div>
                 <div class="mb-3">
-                  <label for=${'description' + this.event.id}>Beschreibung ihrer Veranstaltung</label>
-                  <textarea class="form-control" aria-label="description" id=${'description' + this.event.id} placeholder="Nähere Beschreibung ihrer Veranstaltung..."></textarea>
+                  <label for="edit-description">Beschreibung ihrer Veranstaltung</label>
+                  <textarea ?readonly=${!this.editMode} class="form-control" aria-label="description" id="edit-description" placeholder="Nähere Beschreibung ihrer Veranstaltung..."></textarea>
                 </div>
                   <div class="mb-3">
-                    <label for=${'room' + this.event.id}>Raum für ihre Veranstaltung</label>
-                    <select class="form-control" id=${'room' + this.event.id}>
+                    <label for="edit-room">Raum für ihre Veranstaltung</label>
+                    <select class="form-control" id="edit-room" ?readonly=${!this.editMode}>
                       ${this.rooms.map(room => html`<option value=${room.id} ?selected=${this.event?.roomId == room.id}>${room.title === 'Ferien' ? '-': room.title}</option>`)}
                     </select>
                   </div>
 
                   <div class="mb-3">
-                    <label for=${'start-date-' + this.event.id} class="form-label">Start-Datum*</label>
-                    <input id=${'start-date-' + this.event.id} required class="form-control" type="date">  
+                    <label for="edit-start-date" class="form-label">Start-Datum*</label>
+                    <input ?readonly=${!this.editMode} id="edit-start-date" required class="form-control" type="date">  
                   </div>
                   ${!this.allDay? html`
                   <div class="mb-3">
-                    <label for=${'start-time-' + this.event.id} class="form-label">Start-Uhrzeit*</label>
-                    <input id=${'start-time-' + this.event.id} required class="form-control" type="time">  
+                    <label for="edit-start-time-" class="form-label">Start-Uhrzeit*</label>
+                    <input ?readonly=${!this.editMode} id="edit-start-time" required class="form-control" type="time">  
                   </div>
                   `:undefined}
                   <div class="mb-3">
-                    <label for=${'end-date-' + this.event.id} class="form-label">End-Datum*</label>
-                    <input id=${'end-date-' + this.event.id} required class="form-control" type="date">  
+                    <label for="edit-end-date" class="form-label">End-Datum*</label>
+                    <input ?readonly=${!this.editMode} id="edit-end-date" required class="form-control" type="date">  
                   </div>
                   ${!this.allDay? html`
                   <div class="mb-3">
-                    <label for=${'end-time-' + this.event.id} class="form-label">End-Uhrzeit*</label>
-                    <input id=${'end-time-' + this.event.id} required class="form-control" type="time">  
+                    <label for="edit-end-time-" class="form-label">End-Uhrzeit*</label>
+                    <input ?readonly=${!this.editMode} id="edit-end-time" required class="form-control" type="time">  
+                  </div>
+                  `:undefined}
+
+
+                  <div class="mb-3">
+                    <label for="edit-created-from">Erstellt von</label>
+                    <input readonly type="text" class="form-control" value=${this.event? this.event.createdFrom : ''} id="edit-created-from">
+                  </div>
+                  <div class="mb-3">
+                    <label for="edit-created-at" class="form-label">Erstellt am</label>
+                    <input id="edit-created-at" readonly class="form-control" type="datetime-local">  
+                  </div>
+
+                  ${this.event && this.event.seriesId && this.editMode? html`
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" ?checked=${this.allFuture} id="edit-allFuture" @input=${() => this.allFuture = !this.allFuture}>
+                    <label class="form-check-label" for="edit-allFuture">
+                      Update auch alle zukünftigen Termine
+                    </label>
                   </div>
                   `:undefined}
 
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value=${this.allDay} id="allDay" @input=${() => this.allDay = !this.allDay}>
-                    <label class="form-check-label" for="allDay">
+                    <input class="form-check-input" type="checkbox" ?checked=${this.allDay} id="edit-allDay" @input=${() => this.allDay = !this.allDay} ?disabled=${!this.editMode}>
+                    <label class="form-check-label" for="edit-allDay">
                       Ganztägiger Termin
                     </label>
                   </div>
 
                   <div class="form-check" data-bs-toggle="tooltip" data-bs-placement="top" title="An Ferien können im gesamten Gebäude Keine Räume gebucht werden!">
-                  <input class="form-check-input" type="checkbox" value=${this.event.background} id=${'background' + this.event.id}>
-                  <label class="form-check-label" for=${'background' + this.event.id}>
-                    Gebäude ist in diesem Zeitraum geschlossen.
-                  </label>
+                    <input class="form-check-input" type="checkbox" ?checked=${this.event? this.event.background : false} id="edit-background" @input=${() => this.event!.background = !this.event?.background} ?disabled=${!this.editMode}>
+                    <label class="form-check-label" for="edit-background">
+                      Gebäude ist in diesem Zeitraum geschlossen.
+                    </label>
                 </div>
                 </form>
               </div>
@@ -117,35 +166,22 @@ export default class EditEvent extends PageMixin(LitElement) {
               <div  class="text-danger">${this.error}</div>
               ` : undefined}
             </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @click=${this.closeModal}>Abbrechen</button>
-                <button type="button" class="btn btn-primary" @click="${this.submit}">Speichern</button>
-              </div>
+            ${ this.editMode? html`
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click=${this.quitEditMode}}>Abbrechen</button>
+              <button type="button" class="btn btn-primary" @click="${this.submit}">Speichern</button>
+            </div>
+            `:html`
+            <div class="modal-footer">
+              <button type="button" class="btn btn-danger" @click=${this.deleteEvent}>Löschen</button>
+              <button type="button" class="btn btn-secondary" @click=${() =>this.editMode = !this.editMode}>Bearbeiten</button>
+              <button type="button" class="btn btn-primary" @click="${this.closeModal}">OK</button>
+            </div>
+            `}
             </div>
           </div>
         </div>
-        `
-    } else {
-      return html``;
-    }
-  }
-
-  firstUpdated(): void {
-    if (this.event) {
-      const startDateInput = document.getElementById('start-date-' + this.event.id) as HTMLInputElement;
-      const startTimeInput = document.getElementById('start-time-' + this.event.id) as HTMLInputElement;
-      const endDateInput = document.getElementById('end-date-' + this.event.id) as HTMLInputElement;
-      const endTimeInput = document.getElementById('end-time-' + this.event.id) as HTMLInputElement;
-      const descriptionInput = document.getElementById('description' + this.event.id) as HTMLInputElement;
-      const backgroundInput = document.getElementById('background' + this.event.id) as HTMLInputElement;
-      startDateInput.setAttribute('value', this.getDate(this.event.start.toDate()));
-      startTimeInput.setAttribute('value', this.getTime(this.event.start.toDate()));
-      endDateInput.setAttribute('value', this.getDate(this.event.end.toDate()));
-      endTimeInput.setAttribute('value', this.getTime(this.event.end.toDate()));
-      descriptionInput.value = this.event.description;
-      backgroundInput.checked = this.event.background;
-      this.allDay = this.event.allDay;
-    }
+        `;
   }
 
   async submit(): Promise<void> {
@@ -153,18 +189,18 @@ export default class EditEvent extends PageMixin(LitElement) {
       let startTime = undefined;
       let endTime = undefined;
       if (!this.allDay) {
-        const startTimeInput = document.getElementById('start-time-' + this.event.id) as HTMLInputElement;
-        const endTimeInput = document.getElementById('end-time-' + this.event.id) as HTMLInputElement;
+        const startTimeInput = document.getElementById('edit-start-time') as HTMLInputElement;
+        const endTimeInput = document.getElementById('edit-end-time') as HTMLInputElement;
         startTime = startTimeInput.value;
         endTime = endTimeInput.value;
       }
       
-      const titleInput = document.getElementById('title' + this.event.id) as HTMLInputElement;
-      const descriptionInput = document.getElementById('description' + this.event.id) as HTMLInputElement;
-      const roomInput = document.getElementById('room' + this.event.id) as HTMLInputElement;
-      const startDateInput = document.getElementById('start-date-' + this.event.id) as HTMLInputElement;
-      const endDateInput = document.getElementById('end-date-' + this.event.id) as HTMLInputElement;
-      const backgroundInput = document.getElementById('background' + this.event.id) as HTMLInputElement;
+      const titleInput = document.getElementById('edit-title') as HTMLInputElement;
+      const descriptionInput = document.getElementById('edit-description') as HTMLInputElement;
+      const roomInput = document.getElementById('edit-room') as HTMLInputElement;
+      const startDateInput = document.getElementById('edit-start-date') as HTMLInputElement;
+      const endDateInput = document.getElementById('edit-end-date') as HTMLInputElement;
+      const backgroundInput = document.getElementById('edit-background') as HTMLInputElement;
       
       const room = this.rooms.find((r) => r.id === roomInput.value)
       
@@ -173,22 +209,25 @@ export default class EditEvent extends PageMixin(LitElement) {
       const start = !this.allDay? new Date(startDate + 'T' + startTime) : new Date(startDate);
       const end = !this.allDay? new Date(endDate + 'T' + endTime) : new Date(endDate);
 
-      console.log(startDate, ' - ', endDate);
-      if (startDate <= endDate) {
+      if (startDate <= endDate && room && this.user) {
+        const newEvent: IEvent = {
+          id: this.event.id,
+          title: titleInput.value,
+          description: descriptionInput.value,
+          start: Timestamp.fromDate(start),
+          end: Timestamp.fromDate(end),
+          room: room.title === HOLIDAY_MOCK_ROOM.title? '' : room.title,
+          roomId: room.id === HOLIDAY_MOCK_ROOM.id? '' : room.id,
+          createdFrom: this.user.name,
+          createdFromId: this.user.id,
+          background: backgroundInput.checked,
+          allDay: this.allDay,
+          seriesId: this.event.seriesId,
+          seriesNr: this.event.seriesNr
+        }
+        this.event = newEvent;
         try {
-          await EventService.updateEvent({
-            id: this.event.id,
-            title: titleInput.value,
-            description: descriptionInput.value,
-            start: Timestamp.fromDate(start),
-            end: Timestamp.fromDate(end),
-            room: room?.title === HOLIDAY_MOCK_ROOM.title? '' : room?.title,
-            roomId: room?.id === HOLIDAY_MOCK_ROOM.id? '' : room?.id,
-            createdFrom: this.user?.name,
-            createdFromId: this.user?.id,
-            background: backgroundInput.checked,
-            allDay: this.allDay
-          } as IEvent);
+          await EventService.updateEvent(newEvent, this.allFuture);
           this.closeModal();
         } catch(e) {
           console.error(e);
@@ -200,24 +239,68 @@ export default class EditEvent extends PageMixin(LitElement) {
     }
   }
 
-  openModal(): void {
+  openModal(event: IEvent | undefined): void {
+    if (event) {
+      this.event = event;
+    }
     if (!this.editModal) {
-      const element = document.getElementById('editEvent' + this.event.id);
+      const element = document.getElementById('editEvent');
       if (element) {
         this.editModal = new Modal(element);
       }
     }
     this.editModal?.show();
+    this.setData();
   }
 
   closeModal(): void {
     if (!this.editModal) {
-      const element = document.getElementById('editEvent' + this.event.id);
+      const element = document.getElementById('editEvent');
       if (element) {
         this.editModal = new Modal(element);
       }
     }
+    this.quitEditMode();
     this.editModal?.hide();
+  }
+  
+  setData(): void {
+    if (this.event) {
+      this.allDay = this.event.allDay;
+      this.startDateInput.value = this.getDate(this.event.start.toDate());
+      this.endDateInput.value = this.getDate(this.event.end.toDate());
+      this.descriptionInput.value = this.event.description;
+      if (!this.allDay) {
+        this.startTimeInput.value = this.getTime(this.event.start.toDate());
+        this.endTimeInput.value = this.getTime(this.event.end.toDate());
+      }
+      if (this.event.createdAt) {
+        this.createdAtInput.value = this.getDate(this.event.createdAt.toDate()) + 'T' + this.getTime(this.event.createdAt.toDate());
+      }
+    }
+  }
+
+  deleteEvent(): void {
+    if (this.event) {
+      const deleteSingle = confirm('Soll diese Buchung wirklich gelöscht werden?');
+      if (this.event.seriesId) {
+        const deleteFuture = confirm('Sollen zusätzlich alle Zukünftigen Buchungen gelöscht werden?');
+        if (deleteFuture) {
+          EventService.deleteEvent(this.event.id, true);
+          this.closeModal();
+          return;
+        }
+      }
+      if (deleteSingle == true) {
+        EventService.deleteEvent(this.event.id);
+        this.closeModal();
+      }
+    }
+  }
+
+  quitEditMode(): void {
+    this.editMode = false;
+    this.setData();
   }
 
   getTime(date: Date): string {

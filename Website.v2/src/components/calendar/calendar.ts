@@ -17,6 +17,7 @@ import './calendar.scss';
 import { EventService } from '../../services/event.service';
 import { store } from '../../redux/store';
 import { IUser } from '../../interfaces/user.interface';
+import EditEvent from '../edit-event/edit-event';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (BASE_OPTION_REFINERS as any).schedulerLicenseKey = 'CC-Attribution-NonCommercial-NoDerivatives';
@@ -81,61 +82,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
         </div>
 
-
-      
-      <div class="modal" id="eventDetails" tabindex="-1" aria-labelledby="exampleModalLabel" aria-modal="true" role="dialog">
-          <div class="modal-dialog" role="document">
-              <div class="modal-content">
-                  <div class="modal-header">
-                      <h5 class="modal-title" id="exampleModalLabel">Details zu der Veranstaltung: ${this.selectedCalendarEvent? this.selectedCalendarEvent.title: ''}</h5>
-                      <button type="button" class="close btn" aria-label="Close" @click=${this.closeModal}>
-                        <span aria-hidden="true">&times;</span>
-                      </button>
-                  </div>
-                  <div class="modal-body">
-                  <form class="form">
-                    <div class="mb-3">
-                      <label for="details-title">Titel der Veranstaltung</label>
-                      <input readonly type="text" class="form-control" value=${this.selectedCalendarEvent? this.selectedCalendarEvent.title: ''} id="details-title">
-                    </div>
-                    <div class="mb-3">
-                      <label for="details-description">Beschreibung der Veranstaltung</label>
-                      <textarea readonly class="form-control" aria-label="description" id="details-description"></textarea>
-                    </div>
-                    <div class="mb-3">
-                      <label for="details-room">Raum für der Veranstaltung</label>
-                      <input readonly type="text" class="form-control" value=${this.selectedCalendarEvent? this.selectedCalendarEvent.extendedProps.room:''} id="details-room">
-                    </div>
-                    <div class="mb-3">
-                      <label for="details-created">Erstellt von</label>
-                      <input readonly type="text" class="form-control" value=${this.selectedCalendarEvent? this.selectedCalendarEvent.extendedProps.createdFrom:''} id="details-created">
-                    </div>
-                    <div class="mb-3">
-                      <label for="details-created-at" class="form-label">Erstellt am</label>
-                      <input id="details-created-at" readonly class="form-control" type="datetime-local">  
-                    </div>
-                    <div class="mb-3">
-                      <label for="details-start" class="form-label">Start-Zeitpunkt</label>
-                      <input id="details-start" readonly class="form-control" type="datetime-local">  
-                    </div>
-                    <div class="mb-3">
-                      <label for="details-end" class="form-label">End-Zeitpunkt</label>
-                      <input id="details-end" readonly class="form-control" type="datetime-local">  
-                    </div>
-                  </form>
-                  </div>
-                  <div class="modal-footer">
-                    ${(this.user?.role === 'admin' || this.user?.id === this.selectedCalendarEvent?.extendedProps.createdFromId) && this.selectedEvent !== undefined? html`
-                    <td class="event-actions">
-                      <button type="button" class="btn btn-danger" @click=${this.deleteEvent}>Löschen</button>
-                      <edit-event .event=${this.selectedEvent} class="align-self-center me-3"></edit-event>
-                    </td>
-                    `: undefined}
-                    <button type="button" class="btn btn-primary" @click=${this.closeModal}>Ok</button>
-                  </div>
-              </div>
-          </div>
-      </div>
+        <edit-event id="edit-event-modal" .event=${this.selectedEvent}></edit-event>
       `
   }
 
@@ -189,27 +136,27 @@ export default class WebCalendar extends PageMixin(LitElement) {
       const end = new Date(event.end.seconds * 1000);
       const addEvent = {
         title: event.title,
-        start: event.background? this.getDate(start) : start,
-        end: event.background? this.getDate(end, 1) : end,
+        start: event.background || event.allDay? this.getDate(start) : start,
+        end: event.background ||event.allDay? this.getDate(end, 1) : end,
         createdFrom: event.createdFrom,
         resourceId: event.roomId,
         display: event.background ? 'background' : undefined,
         description: event.description,
         room: event.room,
-        // allDay: event.allDay,
         color: this.rooms.get(event.roomId) ? this.rooms.get(event.roomId)!.room.eventColor : '#b1b1b1',
         createdFromId: event.createdFromId,
         id: event.id,
         seriesId: event.seriesId,
         createdAt: event.createdAt?.toDate()
       }
-      if (event.background) {
+      if (event.background || event.allDay) {
         this.calendar?.addEvent({
           ...addEvent,
           allDay: event.allDay,
         });
+      } else {
+        this.calendar?.addEvent(addEvent);
       }
-      this.calendar?.addEvent(addEvent);
     });
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -296,22 +243,10 @@ export default class WebCalendar extends PageMixin(LitElement) {
   openModal(event: EventApi): void {
     this.selectedCalendarEvent = event;
     this.selectedEvent = this.events.find(e => e.id === event.id);
-
-    this.detailsModal = new Modal(document.getElementById('eventDetails')!);
-
-    const createdInput = document.getElementById('details-created-at') as HTMLInputElement;
-    const startInput = document.getElementById('details-start') as HTMLInputElement;
-    const endInput = document.getElementById('details-end') as HTMLInputElement;
-    const descriptionInput = document.getElementById('details-description') as HTMLInputElement;
-    const createdAt = this.selectedCalendarEvent.extendedProps.createdAt;
-    const start = this.selectedCalendarEvent.start;
-    const end = this.selectedCalendarEvent.end;
-    createdInput.setAttribute('value', createdAt? new Date(createdAt.setHours(createdAt.getHours() + 2)).toISOString().slice(0, -8) : '');
-    startInput.setAttribute('value', start? new Date(start.setHours(start.getHours() + 2)).toISOString().slice(0, -8) : '');
-    endInput.setAttribute('value', end? new Date(end.setHours(end.getHours() + 2)).toISOString().slice(0, -8) : '');
-    const desc = this.selectedCalendarEvent.extendedProps.description;
-    descriptionInput.value = desc ? desc : '';
-    this.detailsModal.toggle();
+    const modal = document.getElementById('edit-event-modal') as EditEvent;
+    if (modal) {
+      modal.openModal(this.selectedEvent);
+    }
   }
 
   closeModal(): void {

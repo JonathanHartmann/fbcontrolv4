@@ -10,7 +10,7 @@ export interface IEvent {
   roomId: string;
   createdFrom: string;
   createdFromId: string;
-  createdAt: Timestamp;
+  createdAt?: Timestamp;
   background: boolean;
   allDay: boolean;
   seriesId?: string;
