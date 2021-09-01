@@ -8,7 +8,7 @@ export class FritzService {
     const baseUrl = process.env.FRITZ_ADDRESS;
     const roomId = room.id;
     const temp = room.comfortTemp;
-    const url = `${baseUrl}/webservices/homeautoswitch.lua?sid=${sid}&ain=${roomId}&switchcmd=sethkrtsoll&param=${temp}`;
+    const url = `${baseUrl}/webservices/homeautoswitch.lua?sid=${sid}&ain=${roomId}&switchcmd=sethkrtsoll&param=${temp * 2}`;
     console.log('call: ', url);
     // TODO call to fritzBox to heat up room
     // http.get(url, (res) => {
@@ -30,7 +30,7 @@ export class FritzService {
     const baseUrl = process.env.FRITZ_ADDRESS;
     const roomId = room.id;
     const temp = room.emptyTemp;
-    const url = `${baseUrl}/webservices/homeautoswitch.lua?sid=${sid}&ain=${roomId}&switchcmd=sethkrtsoll&param=${temp}`;
+    const url = `${baseUrl}/webservices/homeautoswitch.lua?sid=${sid}&ain=${roomId}&switchcmd=sethkrtsoll&param=${temp * 2}`;
     console.log('call: ', url);
     // TODO call to fritzBox to cool down room
     // http.get(url, (res) => {

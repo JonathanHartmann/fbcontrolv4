@@ -6,12 +6,14 @@ export class FirebaseService {
   static async loadEvents(): Promise<IEvent[]> {
     const eventSnap = await firestore.collection('events').get();
     const events = FirebaseService.getDataFromSnapshot(eventSnap);
+    console.log('Request Events');
     return events as IEvent[];
   }
-
+  
   static async loadRooms(): Promise<IRoom[]> {
     const roomSnap = await firestore.collection('rooms').get();
     const rooms = FirebaseService.getDataFromSnapshot(roomSnap);
+    console.log('Request Rooms');
     return rooms as IRoom[];
   }
 

@@ -7,12 +7,12 @@ import { SIDService } from './services/file.service';
 import { FirebaseService } from './services/firebase.service';
 import { FritzService } from './services/fritz.service';
 import { EventService } from './services/event.service';
+dotenv.config();
 
 const hostname = '127.0.0.1';
 const port = 3000;
 const intervalTime = Number(process.env.CHECK_INTERVAL_TIME); // in seconds
 
-dotenv.config();
 
 const server = http.createServer((req, res) => {
   res.statusCode = 200;
@@ -22,6 +22,8 @@ const server = http.createServer((req, res) => {
 
 server.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
+  const checkIntervalTime = intervalTime * 1000
+  console.log(`Checking events every ${checkIntervalTime / 1000} seconds`);
   setInterval(() => {
     FirebaseService.loadEvents().then(events => {
       const filteredEvents = events.filter(e => !e.background);
@@ -29,7 +31,7 @@ server.listen(port, hostname, () => {
         checkEvents(filteredEvents, roomsMap);
       });
     });
-  }, intervalTime * 1000);
+  }, checkIntervalTime);
 });
 
 function checkEvents(events: IEvent[], roomsMap: Map<string, IRoom>) {

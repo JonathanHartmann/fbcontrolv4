@@ -149,7 +149,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
         seriesId: event.seriesId,
         createdAt: event.createdAt?.toDate()
       }
-      if (event.background || event.allDay) {
+      if (event.allDay) {
         this.calendar?.addEvent({
           ...addEvent,
           allDay: event.allDay,

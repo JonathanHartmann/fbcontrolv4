@@ -34,6 +34,7 @@ export class EventService {
       const roomTempTime = e.room && e.room.tempTime ? e.room.tempTime : Number(process.env.FALLBACK_TEMP_THRESHOLD);
       if (e.startsIn < roomTempTime && e.startsIn > 0) {
         beginCb(e);
+        // TODO direkt runterkühlen, wenn termin vorbei
       } else if (e.endedIn > -roomTempTime && e.endedIn < 0) {
         endCB(e);
       }

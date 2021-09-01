@@ -173,8 +173,10 @@ export default class EditEvent extends PageMixin(LitElement) {
             </div>
             `:html`
             <div class="modal-footer">
+              ${this.user?.role === 'admin' || this.user?.id === this.event?.createdFromId ? html`
               <button type="button" class="btn btn-danger" @click=${this.deleteEvent}>Löschen</button>
               <button type="button" class="btn btn-secondary" @click=${() =>this.editMode = !this.editMode}>Bearbeiten</button>
+              `:undefined}
               <button type="button" class="btn btn-primary" @click="${this.closeModal}">OK</button>
             </div>
             `}
@@ -210,7 +212,7 @@ export default class EditEvent extends PageMixin(LitElement) {
       const end = !this.allDay? new Date(endDate + 'T' + endTime) : new Date(endDate);
 
       if (startDate <= endDate && room && this.user) {
-        const newEvent: IEvent = {
+        let newEvent: IEvent = {
           id: this.event.id,
           title: titleInput.value,
           description: descriptionInput.value,
@@ -221,9 +223,14 @@ export default class EditEvent extends PageMixin(LitElement) {
           createdFrom: this.user.name,
           createdFromId: this.user.id,
           background: backgroundInput.checked,
-          allDay: this.allDay,
-          seriesId: this.event.seriesId,
-          seriesNr: this.event.seriesNr
+          allDay: this.allDay
+        }
+        if (this.event.seriesId) {
+          newEvent = {
+            ...newEvent,
+            seriesId: this.event.seriesId,
+            seriesNr: this.event.seriesNr
+          }
         }
         this.event = newEvent;
         try {
@@ -299,8 +306,8 @@ export default class EditEvent extends PageMixin(LitElement) {
   }
 
   quitEditMode(): void {
-    this.editMode = false;
     this.setData();
+    this.editMode = false;
   }
 
   getTime(date: Date): string {
