@@ -2,6 +2,10 @@ import { IEnhancedEvent, IEvent } from '../interfaces/event.interface';
 import { IRoom } from '../interfaces/room.interface';
 
 export class EventService {
+  heatingUpRooms: Map<string, IRoom> = new Map();
+  coolRooms: Map<string, IRoom> = new Map();
+
+
   static async getEnhancedEvents(events: IEvent[], roomsMap: Map<string, IRoom>): Promise<IEnhancedEvent[]> {
     const eventsRoom = events.map(e => {
       const room = roomsMap.get(e.roomId);
@@ -29,15 +33,49 @@ export class EventService {
     });;
   }
   
-  static checkTimes(events: IEnhancedEvent[], beginCb: (event: IEnhancedEvent) => void, endCB: (event: IEnhancedEvent) => void): void {
-    events.forEach(e => {
+  checkTimes(events: IEnhancedEvent[], beginCb: (room: IRoom) => void, endCB: (room: IRoom) => void): void {
+    const floorRoom: IRoom = {
+      id: '123',
+      title: 'Flur',
+      comfortTemp: 21,
+      emptyTemp: 16,
+      createdFrom: '',
+      createdFromId: '',
+      eventColor: '',
+      fritzId: ''
+    }
+
+    events.sort((a, b) => {
+      if (a.event.start > b.event.start) {
+        return 1;
+      } else if (a.event.start < b.event.start) {
+        return -1;
+      } else {
+        return 0;
+      }
+    })
+    .forEach(e => {
       const roomTempTime = e.room && e.room.tempTime ? e.room.tempTime : Number(process.env.FALLBACK_TEMP_THRESHOLD);
-      if (e.startsIn < roomTempTime && e.startsIn > 0) {
-        beginCb(e);
-        // TODO direkt runterkühlen, wenn termin vorbei
-      } else if (e.endedIn > -roomTempTime && e.endedIn < 0) {
-        endCB(e);
+      if (e.room && e.startsIn < roomTempTime && e.startsIn > 0 && !this.heatingUpRooms.has(e.room.id)) {
+        this.heatingUpRooms.set(e.room.id, e.room);
+        this.coolRooms.delete(e.room.id);
+        beginCb(e.room);
+
+      } else if (e.room &&  e.endedIn < 0 && !this.coolRooms.has(e.room.id)) {
+        this.heatingUpRooms.delete(e.room.id);
+        this.coolRooms.set(e.room.id, e.room);
+        endCB(e.room);
       }
     });
+
+    if (this.heatingUpRooms.size > 0 && !this.heatingUpRooms.has(floorRoom.id)) {
+      this.heatingUpRooms.set(floorRoom.id, floorRoom);
+      this.coolRooms.delete(floorRoom.id);
+      beginCb(floorRoom);
+    } else if (this.heatingUpRooms.size === 0 && !this.coolRooms.has(floorRoom.id)) {
+      this.heatingUpRooms.delete(floorRoom.id);
+      this.coolRooms.set(floorRoom.id, floorRoom);
+      endCB(floorRoom);
+    }
   }
 }

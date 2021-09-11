@@ -62,6 +62,10 @@ export default class EditRoom extends PageMixin(LitElement) {
                     <input id=${'emptyTemp' + this.room.id} required class="form-control" type="number" value=${this.room.emptyTemp}> 
                   </div>
                   <div class="mb-3">
+                    <label for=${'tempTime' + this.room.id}>Aufheiz-Zeitraum (in Minuten)</label>
+                    <input id=${'tempTime' + this.room.id} required class="form-control" type="number" value=${this.room.tempTime? this.room.tempTime : 5}> 
+                  </div>
+                  <div class="mb-3">
                     <label for=${'fritzId' + this.room.id}>Fritzbox ID</label>
                     <input id=${'fritzId' + this.room.id} required class="form-control" type="text" value=${this.room.fritzId}> 
                   </div>
@@ -94,6 +98,7 @@ export default class EditRoom extends PageMixin(LitElement) {
       const titleInput = document.getElementById('title' + this.room.id) as HTMLInputElement;
       const comfortTempInput = document.getElementById('comfortTemp' + this.room.id) as HTMLInputElement;
       const emptyTempInput = document.getElementById('emptyTemp' + this.room.id) as HTMLInputElement;
+      const tempTimeInput = document.getElementById('tempTime' + this.room.id) as HTMLInputElement;
       const fritzIdInput = document.getElementById('fritzId' + this.room.id) as HTMLInputElement;
       const colorInput = document.getElementById('color' + this.room.id) as HTMLInputElement;
 
@@ -105,7 +110,8 @@ export default class EditRoom extends PageMixin(LitElement) {
         fritzId: fritzIdInput.value,
         createdFrom: this.user?.name,
         createdFromId: this.user?.id,
-        eventColor: colorInput.value
+        eventColor: colorInput.value,
+        tempTime: Number(tempTimeInput.value)
       } as IRoom);
       document.getElementById('close' + this.room.id)?.click();
     } else {

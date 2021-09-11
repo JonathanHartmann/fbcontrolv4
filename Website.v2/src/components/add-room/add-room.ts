@@ -26,6 +26,9 @@ export default class AddRoom extends PageMixin(LitElement) {
   @query('#color')
   colorInput!: HTMLInputElement;
 
+  @query('#tempTime')
+  tempTimeInput!: HTMLInputElement;
+
 
   render(): TemplateResult {
     return html`
@@ -59,6 +62,10 @@ export default class AddRoom extends PageMixin(LitElement) {
                   <input id="emptyTemp" required class="form-control" type="number" value="14">  
                 </div>
                 <div class="mb-3">
+                  <label for="tempTime" class="form-label">Aufheiz-Zeitraum (in Minuten)</label>
+                  <input id="tempTime" required class="form-control" type="number" value="15">  
+                </div>
+                <div class="mb-3">
                   <label for="fritzId" class="form-label">Fritzbox ID</label>
                   <input id="fritzId" required class="form-control" type="text">  
                 </div>
@@ -88,7 +95,8 @@ export default class AddRoom extends PageMixin(LitElement) {
         fritzId: this.fritzIdInput.value,
         createdFrom: user?.name,
         createdFromId: user?.id,
-        eventColor: this.colorInput.value
+        eventColor: this.colorInput.value,
+        tempTime: Number(this.tempTimeInput.value)
       } as Partial<IRoom>);
     }
   }

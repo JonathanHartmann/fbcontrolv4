@@ -7,6 +7,7 @@ export interface IRoom {
   createdFrom: string;
   createdFromId: string;
   eventColor: string;
+  tempTime?: number;
 }
 
 export const HOLIDAY_MOCK_ROOM = {

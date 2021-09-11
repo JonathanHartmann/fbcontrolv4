@@ -24,17 +24,18 @@ server.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
   const checkIntervalTime = intervalTime * 1000
   console.log(`Checking events every ${checkIntervalTime / 1000} seconds`);
+  const eventService = new EventService();
   setInterval(() => {
     FirebaseService.loadEvents().then(events => {
       const filteredEvents = events.filter(e => !e.background);
       getRoomsMap().then(roomsMap => {
-        checkEvents(filteredEvents, roomsMap);
+        checkEvents(filteredEvents, roomsMap, eventService);
       });
     });
   }, checkIntervalTime);
 });
 
-function checkEvents(events: IEvent[], roomsMap: Map<string, IRoom>) {
+function checkEvents(events: IEvent[], roomsMap: Map<string, IRoom>, eventService: EventService) {
   console.log(new Date().toISOString(), ' - Start check...');
   SIDService.readSIDFile(async function (err, sid) {
     if (err) {
@@ -45,16 +46,14 @@ function checkEvents(events: IEvent[], roomsMap: Map<string, IRoom>) {
 
     } else {
       const eventsEnh = await EventService.getEnhancedEvents(events, roomsMap);
-      EventService.checkTimes(eventsEnh,
-        (event) => {
-          if (event.room) {
-            FritzService.heatUpRoom(event.room, sid);
-          };
+      eventService.checkTimes(eventsEnh,
+        (room) => {
+          // Before the event
+          FritzService.heatUpRoom(room, sid);
         },
-        (event) => {
-          if (event.room) {
-            FritzService.coolDownRoom(event.room, sid);
-          };
+        (room) => {
+          // After the event
+          FritzService.coolDownRoom(room, sid);
         }
       );
     }
