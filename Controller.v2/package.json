@@ -1,26 +1,29 @@
 {
-  "name": "controllerv2",
-  "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rimraf ./build && tsc",
-    "start": "nodemon",
-    "start:prod": "npm run build && node build/app.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^16.7.4",
-    "nodemon": "^2.0.12",
-    "rimraf": "^3.0.2",
-    "ts-node": "^10.2.1",
-    "typescript": "^4.4.2"
-  },
-  "dependencies": {
-    "dotenv": "^10.0.0",
-    "firebase-admin": "^9.11.1"
-  }
+	"name": "controllerv2",
+	"version": "1.0.0",
+	"description": "This",
+	"repository": "./fbcontrolv4",
+	"main": "app.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"build": "rimraf ./build && tsc",
+		"start": "nodemon",
+		"start:prod": "npm run build && node build/app.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"@types/node": "^16.7.4",
+		"nodemon": "^2.0.12",
+		"rimraf": "^3.0.2",
+		"ts-node": "^10.2.1",
+		"typescript": "^4.4.2",
+		"@swc/core@": "1.2.50",
+		"@swc/wasm@": "1.2.50"
+	},
+	"dependencies": {
+		"dotenv": "^10.0.0",
+		"firebase-admin": "^9.11.1"
+	}
 }
