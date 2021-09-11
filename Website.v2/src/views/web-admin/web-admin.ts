@@ -127,18 +127,29 @@ export default class WebAdmin extends PageMixin(LitElement) {
           const comp = new ICAL.Component(jcalData);
           const vevents = comp.getAllSubcomponents('vevent');
 
+          let errorByUpload = false;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          vevents.forEach((vevent: { jCal: any[] }) => {
+          vevents.forEach(async (vevent: { jCal: any[] }) => {
             // start of holiday; format: yyyy-mm-dd
             const start: string = vevent.jCal[1][4][3];
             const startDate = new Date(Number(start.slice(0,4)), Number(start.slice(5, 7)) - 1, Number(start.slice(8, 10)));
             // end of holiday; format: yyyy-mm-dd
             const end: string = vevent.jCal[1][5][3];
-            const endDate = new Date(Number(end.slice(0,4)), Number(end.slice(5, 7)) - 1, Number(end.slice(8, 10)));
+            const endDate = new Date(Number(end.slice(0,4)), Number(end.slice(5, 7)) - 1, Number(end.slice(8, 10)) - 1);
             // name of holiday
             const name: string = vevent.jCal[1][3][3];
             if (this.user) {
-              EventService.createBackgroundEvent(name, startDate, endDate, this.user);
+              try {
+                await EventService.createBackgroundEvent(name, startDate, endDate, this.user);
+              } catch(e) {
+                console.error('Ein Fehler ist aufgetreten:', e);
+                errorByUpload = true;
+              }
+            }
+            if (errorByUpload) {
+              alert('Es gab einen Fehler beim hochladen der Ferien. Es kann sein, dass die Ferien unvollständig hochgeladen wurden. Versuche es später noch einmal.');
+            } else {
+              alert('Ferien wurden erfolgreich hochgeladen!');
             }
           });
         }

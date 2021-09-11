@@ -164,7 +164,8 @@ export class EventService {
       createdFrom: user.name,
       createdFromId: user.id,
       createdAt: Timestamp.now(),
-      background: true
+      background: true,
+      allDay: true
     } as IEvent);
   }
 
