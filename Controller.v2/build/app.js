@@ -58,16 +58,17 @@ server.listen(port, hostname, function () {
     console.log("Server running at http://" + hostname + ":" + port + "/");
     var checkIntervalTime = intervalTime * 1000;
     console.log("Checking events every " + checkIntervalTime / 1000 + " seconds");
+    var eventService = new event_service_1.EventService();
     setInterval(function () {
         firebase_service_1.FirebaseService.loadEvents().then(function (events) {
             var filteredEvents = events.filter(function (e) { return !e.background; });
             getRoomsMap().then(function (roomsMap) {
-                checkEvents(filteredEvents, roomsMap);
+                checkEvents(filteredEvents, roomsMap, eventService);
             });
         });
     }, checkIntervalTime);
 });
-function checkEvents(events, roomsMap) {
+function checkEvents(events, roomsMap, eventService) {
     console.log(new Date().toISOString(), ' - Start check...');
     file_service_1.SIDService.readSIDFile(function (err, sid) {
         return __awaiter(this, void 0, void 0, function () {
@@ -85,16 +86,12 @@ function checkEvents(events, roomsMap) {
                     case 2: return [4 /*yield*/, event_service_1.EventService.getEnhancedEvents(events, roomsMap)];
                     case 3:
                         eventsEnh = _a.sent();
-                        event_service_1.EventService.checkTimes(eventsEnh, function (event) {
-                            if (event.room) {
-                                fritz_service_1.FritzService.heatUpRoom(event.room, sid);
-                            }
-                            ;
-                        }, function (event) {
-                            if (event.room) {
-                                fritz_service_1.FritzService.coolDownRoom(event.room, sid);
-                            }
-                            ;
+                        eventService.checkTimes(eventsEnh, function (room) {
+                            // Before the event
+                            fritz_service_1.FritzService.heatUpRoom(room, sid);
+                        }, function (room) {
+                            // After the event
+                            fritz_service_1.FritzService.coolDownRoom(room, sid);
                         });
                         _a.label = 4;
                     case 4:
