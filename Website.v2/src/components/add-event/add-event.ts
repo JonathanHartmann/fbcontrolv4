@@ -22,6 +22,12 @@ export default class AddEvent extends PageMixin(LitElement) {
   seriesEvent = false;
 
   @property({ attribute: false })
+  endlessEvent = false;
+
+  @property({ attribute: false })
+  duringHoliday = false;
+
+  @property({ attribute: false })
   allDay = false;
 
   @property({ attribute: false })
@@ -51,8 +57,8 @@ export default class AddEvent extends PageMixin(LitElement) {
   @query('#end-time')
   endTimeInput!: HTMLInputElement;
 
-  @query('#seriesNr')
-  seriesNrInput!: HTMLInputElement;
+  @query('#seriesDate')
+  seriesDateInput!: HTMLInputElement;
 
   @query('#createEventModal')
   createEventModal!: HTMLElement;
@@ -128,10 +134,24 @@ export default class AddEvent extends PageMixin(LitElement) {
                   </label>
                 </div>
                 ${this.seriesEvent? html`
-                  <div class="mb-3">
-                    <label for="seriesNr" class="form-label">Anzahl der Wiederholungen (Abstand: eine Woche, maximal 52 Wochen, minimal 1 Woche) </label>
-                    <input id="seriesNr" class="form-control" type="number" min="1">  
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value=${this.endlessEvent} id="endlessEvent" @input=${() => this.endlessEvent = !this.endlessEvent}>
+                    <label class="form-check-label" for="endlessEvent">
+                      Endloser Termin
+                    </label>
                   </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value=${this.duringHoliday} id="duringHoliday" @input=${() => this.duringHoliday = !this.duringHoliday}>
+                    <label class="form-check-label" for="duringHoliday">
+                      Findet der Termin auch in den Ferien statt?
+                    </label>
+                  </div>
+                  ${!this.endlessEvent? html`
+                  <div class="mb-3">
+                    <label for="seriesDate" class="form-label">Letzter Termin (Die Buchung wird wöchentlich bis zu disem Tag wiederholt)</label>
+                    <input id="seriesDate" class="form-control" type="date" min="1">  
+                  </div>
+                  `:undefined}
                 `:undefined}
               </form>
 
@@ -156,8 +176,7 @@ export default class AddEvent extends PageMixin(LitElement) {
   async submit(event: MouseEvent): Promise<void> {
     event.preventDefault();
     if (this.form.reportValidity()) {
-      const seriesNrRaw = this.seriesNrInput ? Number(this.seriesNrInput.value) : 0
-      const seriesNr = this.seriesEvent && seriesNrRaw > 0? seriesNrRaw : 0;
+      const seriesDate = this.seriesDateInput ? new Date(this.seriesDateInput.value) : undefined;
 
       const room = this.rooms.find((r) => r.id === this.roomInput.value)
       const startDate = this.startDateInput.value;
@@ -167,26 +186,32 @@ export default class AddEvent extends PageMixin(LitElement) {
       
       const start = !this.allDay? new Date(startDate + 'T' + startTime) : new Date(startDate);
       const end = !this.allDay? new Date(endDate + 'T' + endTime) : new Date(endDate);
+      const startTimeStamp = Timestamp.fromDate(start);
+      const endTimeStamp = Timestamp.fromDate(end);
 
-      try {
-        await EventService.createEvent({
-          title: this.titleInput.value,
-          description: this.descriptionInput.value,
-          start: Timestamp.fromDate(start),
-          end: Timestamp.fromDate(end),
-          room: room?.title,
-          roomId: room?.id,
-          createdFrom: this.user?.name,
-          createdFromId: this.user?.id,
-          createdAt: Timestamp.now(),
-          background: false,
-          allDay: this.allDay
-        } as IEvent, seriesNr);
-        this.resetForm();
-        document.getElementById('close-button')?.click();
-      } catch(e) {
-        console.error(e);
-        this.error = 'Der Termin ist entweder in den Ferien oder zur selben Zeit ist bereits der ausgewählte Raum ausgebucht.';
+      if (startTimeStamp < endTimeStamp) {
+        try {
+          await EventService.createEvent({
+            title: this.titleInput.value,
+            description: this.descriptionInput.value,
+            start: startTimeStamp,
+            end: endTimeStamp,
+            room: room?.title,
+            roomId: room?.id,
+            createdFrom: this.user?.name,
+            createdFromId: this.user?.id,
+            createdAt: Timestamp.now(),
+            background: false,
+            allDay: this.allDay
+          } as IEvent, seriesDate, this.duringHoliday);
+          this.resetForm();
+          document.getElementById('close-button')?.click();
+        } catch(e) {
+          console.error(e);
+          this.error = 'Der Termin ist entweder in den Ferien oder zur selben Zeit ist bereits der ausgewählte Raum ausgebucht.';
+        }
+      } else {
+        this.error = 'Der Startzeitpunkt ist nach dem Endzeitpunkt.';
       }
     } else {
       this.error = 'Bitte füllen Sie alle mit \'*\' markierten Felder aus.';
@@ -194,6 +219,10 @@ export default class AddEvent extends PageMixin(LitElement) {
   }
 
   resetForm(): void {
+    this.endlessEvent = false;
+    this.seriesEvent = false;
+    this.duringHoliday = false;
+    this.allDay = false;
     this.form.reset();
   }
 

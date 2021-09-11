@@ -64,20 +64,22 @@ const eventConverter = {
 
 export class EventService {
 
-  static async createEvent(event: IEvent, seriesNr = 0): Promise<void> {
-    if (seriesNr === 0) {
+  static async createEvent(event: IEvent, seriesDate: Date | undefined = undefined, duringHoliday = false): Promise<void> {
+    if (!seriesDate) {
       const validRoom = EventService.checkRoomValidity(event);
       if (validRoom) {
         EventService.saveEvent(event);
       } else {
         throw new Error('Event is during a background event or an event has already been created in the same room and time');
       }
-    } else if (seriesNr > 0) {
+    } else if (seriesDate > new Date()) {
       const seriesId = nanoid();
+      const seriesNr = EventService.getNrWeeksUntil(event.start.toDate(), seriesDate);
+      console.log('Nr of weeks:', seriesNr);
       let nextEvent: IEvent = {...event, seriesNr, seriesId};
       for (let i=seriesNr-1; i >= 0; i--) {
         const validRoom = EventService.checkRoomValidity(event);
-        const valid = EventService.checkValidity(nextEvent);
+        const valid = duringHoliday? true : EventService.checkValidity(nextEvent);
         if (valid && validRoom) {
           EventService.saveEvent(nextEvent);
         }
@@ -226,6 +228,10 @@ export class EventService {
     const eventRef = doc(firestore, 'events/' + eventId);
     await deleteDoc(eventRef);
     store.dispatch(deleteEvent(eventId));
+  }
+
+  private static getNrWeeksUntil(startDate: Date, endDate: Date) {
+    return Math.round((endDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
   }
 
 }
