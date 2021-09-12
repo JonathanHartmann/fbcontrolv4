@@ -135,7 +135,7 @@ export default class WebAdmin extends PageMixin(LitElement) {
             const startDate = new Date(Number(start.slice(0,4)), Number(start.slice(5, 7)) - 1, Number(start.slice(8, 10)));
             // end of holiday; format: yyyy-mm-dd
             const end: string = vevent.jCal[1][5][3];
-            const endDate = new Date(Number(end.slice(0,4)), Number(end.slice(5, 7)) - 1, Number(end.slice(8, 10)) - 1);
+            const endDate = new Date(Number(end.slice(0,4)), Number(end.slice(5, 7)) - 1, Number(end.slice(8, 10)));
             // name of holiday
             const name: string = vevent.jCal[1][3][3];
             if (this.user) {

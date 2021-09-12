@@ -137,7 +137,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
       const addEvent = {
         title: event.title,
         start: event.background || event.allDay? this.getDate(start) : start,
-        end: event.background ||event.allDay? this.getDate(end, 1) : end,
+        end: event.background ||event.allDay? this.getDate(end) : end,
         createdFrom: event.createdFrom,
         resourceId: event.roomId,
         display: event.background ? 'background' : undefined,

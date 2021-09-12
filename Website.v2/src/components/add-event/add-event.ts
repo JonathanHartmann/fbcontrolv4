@@ -202,8 +202,10 @@ export default class AddEvent extends PageMixin(LitElement) {
             createdFromId: this.user?.id,
             createdAt: Timestamp.now(),
             background: false,
-            allDay: this.allDay
-          } as IEvent, seriesDate, this.duringHoliday);
+            allDay: this.allDay,
+            seriesEndless: this.endlessEvent,
+            seriesDuringHoliday: this.duringHoliday
+          } as IEvent, seriesDate);
           this.resetForm();
           document.getElementById('close-button')?.click();
         } catch(e) {

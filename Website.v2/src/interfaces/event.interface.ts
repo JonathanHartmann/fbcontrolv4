@@ -15,4 +15,6 @@ export interface IEvent {
   allDay: boolean;
   seriesId?: string;
   seriesNr?: number;
+  seriesEndless?: boolean;
+  seriesDuringHoliday: boolean;
 }

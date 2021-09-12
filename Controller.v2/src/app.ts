@@ -47,13 +47,18 @@ function checkEvents(events: IEvent[], roomsMap: Map<string, IRoom>, eventServic
     } else {
       const eventsEnh = await EventService.getEnhancedEvents(events, roomsMap);
       eventService.checkTimes(eventsEnh,
-        (room) => {
+        (room, event) => {
           // Before the event
           FritzService.heatUpRoom(room, sid);
         },
-        (room) => {
+        (room, event) => {
           // After the event
-          FritzService.coolDownRoom(room, sid);
+          FritzService.coolDownRoom(room, sid);+
+          console.log('name', event?.title, 'endless?', event?.seriesEndless, ' - id:', event?.seriesId);
+          if (event?.seriesEndless && event.seriesId) {
+            console.log('try to create new evetn');
+            FirebaseService.appendEndlessEvent(events, event.seriesId);
+          }
         }
       );
     }

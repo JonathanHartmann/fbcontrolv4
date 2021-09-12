@@ -223,7 +223,9 @@ export default class EditEvent extends PageMixin(LitElement) {
           createdFrom: this.user.name,
           createdFromId: this.user.id,
           background: backgroundInput.checked,
-          allDay: this.allDay
+          allDay: this.allDay,
+          seriesEndless: this.event.seriesEndless,
+          seriesDuringHoliday: this.event.seriesDuringHoliday
         }
         if (this.event.seriesId) {
           newEvent = {
@@ -308,6 +310,7 @@ export default class EditEvent extends PageMixin(LitElement) {
   quitEditMode(): void {
     this.setData();
     this.editMode = false;
+    this.error = undefined;
   }
 
   getTime(date: Date): string {

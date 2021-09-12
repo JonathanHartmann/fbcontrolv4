@@ -20,7 +20,9 @@ const eventConverter = {
       createdFromId: event.createdFromId,
       createdAt: event.createdAt,
       background: event.background,
-      allDay: event.allDay
+      allDay: event.allDay,
+      seriesEndless: event.seriesEndless,
+      seriesDuringHoliday: event.seriesDuringHoliday
     };
     if (event.seriesId) {
       return {
@@ -48,7 +50,9 @@ const eventConverter = {
       createdFromId: data.createdFromId,
       createdAt: data.createdAt,
       background: data.background,
-      allDay: data.allDay
+      allDay: data.allDay,
+      seriesEndless: data.seriesEndless? data.seriesEndless : false,
+      seriesDuringHoliday: data.seriesDuringHoliday
     };
     if (data.seriesId) {
       return {
@@ -64,22 +68,23 @@ const eventConverter = {
 
 export class EventService {
 
-  static async createEvent(event: IEvent, seriesDate: Date | undefined = undefined, duringHoliday = false): Promise<void> {
-    if (!seriesDate) {
+  static async createEvent(event: IEvent, seriesDate: Date | undefined = undefined): Promise<void> {
+    if (!seriesDate && !event.seriesEndless) {
       const validRoom = EventService.checkRoomValidity(event);
       if (validRoom) {
         EventService.saveEvent(event);
       } else {
         throw new Error('Event is during a background event or an event has already been created in the same room and time');
       }
-    } else if (seriesDate > new Date()) {
+    } else if ((seriesDate && seriesDate > new Date()) || event.seriesEndless) {
       const seriesId = nanoid();
-      const seriesNr = EventService.getNrWeeksUntil(event.start.toDate(), seriesDate);
-      console.log('Nr of weeks:', seriesNr);
+      const oneYearFromNow = new Date(event.start.toDate());
+      oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+      const seriesNr = event.seriesEndless ? EventService.getNrWeeksUntil(event.start.toDate(), oneYearFromNow) : EventService.getNrWeeksUntil(event.start.toDate(), seriesDate!);
       let nextEvent: IEvent = {...event, seriesNr, seriesId};
       for (let i=seriesNr-1; i >= 0; i--) {
         const validRoom = EventService.checkRoomValidity(event);
-        const valid = duringHoliday? true : EventService.checkValidity(nextEvent);
+        const valid = event.seriesDuringHoliday? true : EventService.checkValidity(nextEvent);
         if (valid && validRoom) {
           EventService.saveEvent(nextEvent);
         }
