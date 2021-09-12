@@ -76,6 +76,8 @@ function checkEvents(events, roomsMap, eventService) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        console.log('SID:', sid);
+                        console.log('SID:', sid.length);
                         if (!err) return [3 /*break*/, 1];
                         console.error('Could not read sid.txt! ', err);
                         return [3 /*break*/, 4];
@@ -86,12 +88,17 @@ function checkEvents(events, roomsMap, eventService) {
                     case 2: return [4 /*yield*/, event_service_1.EventService.getEnhancedEvents(events, roomsMap)];
                     case 3:
                         eventsEnh = _a.sent();
-                        eventService.checkTimes(eventsEnh, function (room) {
+                        eventService.checkTimes(eventsEnh, function (room, event) {
                             // Before the event
                             fritz_service_1.FritzService.heatUpRoom(room, sid);
-                        }, function (room) {
+                        }, function (room, event) {
                             // After the event
                             fritz_service_1.FritzService.coolDownRoom(room, sid);
+                            +console.log('name', event === null || event === void 0 ? void 0 : event.title, 'endless?', event === null || event === void 0 ? void 0 : event.seriesEndless, ' - id:', event === null || event === void 0 ? void 0 : event.seriesId);
+                            if ((event === null || event === void 0 ? void 0 : event.seriesEndless) && event.seriesId) {
+                                console.log('try to create new evetn');
+                                firebase_service_1.FirebaseService.appendEndlessEvent(events, event.seriesId);
+                            }
                         });
                         _a.label = 4;
                     case 4:

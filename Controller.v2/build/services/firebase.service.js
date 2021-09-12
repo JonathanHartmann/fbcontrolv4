@@ -49,6 +49,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FirebaseService = void 0;
 var firebase_1 = require("../config/firebase");
+var firebase_admin_1 = require("firebase-admin");
 var FirebaseService = /** @class */ (function () {
     function FirebaseService() {
     }
@@ -82,9 +83,79 @@ var FirebaseService = /** @class */ (function () {
             });
         });
     };
+    FirebaseService.appendEndlessEvent = function (allEvents, seriesId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var eventSeries, lastEvent, nextEvent, validRoom, valid;
+            return __generator(this, function (_a) {
+                eventSeries = allEvents.filter(function (e) { return e.seriesId = seriesId; }).sort(function (a, b) {
+                    if (a.start > b.start) {
+                        return -1;
+                    }
+                    else if (a.start < b.start) {
+                        return 1;
+                    }
+                    else {
+                        return 0;
+                    }
+                });
+                lastEvent = eventSeries[0];
+                if (lastEvent.seriesId && lastEvent.seriesNr) {
+                    nextEvent = FirebaseService.eventNextWeek(lastEvent, lastEvent.seriesNr + 1, lastEvent.seriesId);
+                    validRoom = FirebaseService.checkRoomValidity(nextEvent, allEvents);
+                    valid = nextEvent.seriesDuringHoliday ? true : FirebaseService.checkValidity(nextEvent, allEvents);
+                    if (valid && validRoom) {
+                        console.log('--- Create new endless Event!');
+                        FirebaseService.saveEvent(nextEvent);
+                    }
+                }
+                return [2 /*return*/];
+            });
+        });
+    };
     FirebaseService.getDataFromSnapshot = function (snapshot) {
         return snapshot.docs.map(function (value) {
             return __assign(__assign({}, value.data()), { id: value.id });
+        });
+    };
+    FirebaseService.eventNextWeek = function (event, seriesNr, seriesId) {
+        var newEvent = __assign(__assign({}, event), { start: firebase_admin_1.firestore.Timestamp.fromDate(new Date(event.start.toDate().getTime() + 7 * 24 * 60 * 60 * 1000)), end: firebase_admin_1.firestore.Timestamp.fromDate(new Date(event.end.toDate().getTime() + 7 * 24 * 60 * 60 * 1000)), seriesId: seriesId, seriesNr: seriesNr });
+        return newEvent;
+    };
+    FirebaseService.checkValidity = function (event, events) {
+        var validity = true;
+        var backgroundEvents = events.filter(function (e) { return e.background; });
+        backgroundEvents.forEach(function (backEvent) {
+            if (event.start.toDate() >= backEvent.start.toDate() && event.start.toDate() <= backEvent.end.toDate() ||
+                event.end.toDate() >= backEvent.start.toDate() && event.end.toDate() <= backEvent.end.toDate()) {
+                validity = false;
+            }
+        });
+        return validity;
+    };
+    FirebaseService.checkRoomValidity = function (event, events) {
+        var validity = true;
+        var sameRoomEvents = events.filter(function (e) { return (e.roomId === event.roomId) && (e.id !== event.id); });
+        sameRoomEvents.forEach(function (roomEvent) {
+            if (event.start.toDate() >= roomEvent.start.toDate() && event.start.toDate() <= roomEvent.end.toDate() ||
+                event.end.toDate() >= roomEvent.start.toDate() && event.end.toDate() <= roomEvent.end.toDate()) {
+                validity = false;
+            }
+        });
+        return validity;
+    };
+    FirebaseService.saveEvent = function (event) {
+        return __awaiter(this, void 0, void 0, function () {
+            var eventsColl;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        eventsColl = firebase_1.firestore.collection('events');
+                        return [4 /*yield*/, eventsColl.add(__assign({}, event))];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
         });
     };
     return FirebaseService;

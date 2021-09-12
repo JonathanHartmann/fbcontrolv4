@@ -38,6 +38,8 @@ server.listen(port, hostname, () => {
 function checkEvents(events: IEvent[], roomsMap: Map<string, IRoom>, eventService: EventService) {
   console.log(new Date().toISOString(), ' - Start check...');
   SIDService.readSIDFile(async function (err, sid) {
+    console.log('SID:', sid);
+    console.log('SID:', sid.length);
     if (err) {
       console.error('Could not read sid.txt! ', err);
 

@@ -84,9 +84,8 @@ var EventService = /** @class */ (function () {
                 return 0;
             }
         });
-        ;
     };
-    EventService.prototype.checkTimes = function (events, beginCb, endCB) {
+    EventService.prototype.checkTimes = function (events, beginCb, endCb) {
         var _this = this;
         var floorRoom = {
             id: '123',
@@ -98,6 +97,7 @@ var EventService = /** @class */ (function () {
             eventColor: '',
             fritzId: ''
         };
+        var actions = [];
         events.sort(function (a, b) {
             if (a.event.start > b.event.start) {
                 return 1;
@@ -111,26 +111,40 @@ var EventService = /** @class */ (function () {
         })
             .forEach(function (e) {
             var roomTempTime = e.room && e.room.tempTime ? e.room.tempTime : Number(process.env.FALLBACK_TEMP_THRESHOLD);
-            if (e.room && e.startsIn < roomTempTime && e.startsIn > 0 && !_this.heatingUpRooms.has(e.room.id)) {
-                _this.heatingUpRooms.set(e.room.id, e.room);
-                _this.coolRooms.delete(e.room.id);
-                beginCb(e.room);
+            if (e.room && e.startsIn < roomTempTime && e.startsIn > 0) {
+                actions.push({ type: 'heat', event: e });
             }
-            else if (e.room && e.endedIn < 0 && !_this.coolRooms.has(e.room.id)) {
-                _this.heatingUpRooms.delete(e.room.id);
-                _this.coolRooms.set(e.room.id, e.room);
-                endCB(e.room);
+            else if (e.room && e.endedIn < 0 && e.endedIn > -5) {
+                actions.push({ type: 'cool', event: e });
             }
         });
-        if (this.heatingUpRooms.size > 0 && !this.heatingUpRooms.has(floorRoom.id)) {
+        var actionPerRoom = [];
+        actions.reverse().forEach(function (action) {
+            if (action.event.room && !actionPerRoom.includes(action.event.room.id)) {
+                actionPerRoom.push(action.event.room.id);
+                if (action.type === 'heat' && !_this.heatingUpRooms.has(action.event.room.id)) {
+                    _this.heatingUpRooms.set(action.event.room.id, action.event.room);
+                    _this.coolRooms.delete(action.event.room.id);
+                    beginCb(action.event.room, action.event.event);
+                }
+                else if (action.type === 'cool' && !_this.coolRooms.has(action.event.room.id)) {
+                    _this.heatingUpRooms.delete(action.event.room.id);
+                    _this.coolRooms.set(action.event.room.id, action.event.room);
+                    endCb(action.event.room, action.event.event);
+                }
+            }
+        });
+        var shouldFloorBeHeated = !this.heatingUpRooms.has(floorRoom.id) && this.heatingUpRooms.size > 0;
+        var shouldFloorBeCooled = this.heatingUpRooms.has(floorRoom.id) && !this.coolRooms.has(floorRoom.id) && this.heatingUpRooms.size === 1;
+        if (shouldFloorBeHeated) {
             this.heatingUpRooms.set(floorRoom.id, floorRoom);
             this.coolRooms.delete(floorRoom.id);
-            beginCb(floorRoom);
+            beginCb(floorRoom, undefined);
         }
-        else if (this.heatingUpRooms.size === 0 && !this.coolRooms.has(floorRoom.id)) {
+        else if (shouldFloorBeCooled) {
             this.heatingUpRooms.delete(floorRoom.id);
             this.coolRooms.set(floorRoom.id, floorRoom);
-            endCB(floorRoom);
+            endCb(floorRoom, undefined);
         }
     };
     return EventService;
