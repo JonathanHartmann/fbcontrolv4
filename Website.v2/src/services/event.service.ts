@@ -93,45 +93,12 @@ export class EventService {
     }
   }
 
-  static async updateEvent(event: IEvent, allFuture = false): Promise<void> {
-    if (allFuture && event.seriesId) {
-      const events = store.getState().events.filter(e => e.seriesId === event.seriesId && e.seriesNr && event.seriesNr && e.seriesNr <= event.seriesNr).sort((a, b) => {
-        if (a.seriesNr! < b.seriesNr!) {
-          return 1;
-        } else if (a.seriesNr! > b.seriesNr!) {
-          return -1;
-        } else {
-          return 0;
-        }
-      });
-
-      let nextEvent = undefined;
-      let currentEvent = event;
-      for (let i=events.length-1, j=1; i > 0 && j<=events.length; i--, j++) {
-        const validRoom = EventService.checkRoomValidity(currentEvent);
-        const valid = EventService.checkValidity(currentEvent);
-        if (valid && validRoom) {
-          EventService.updateSingleEvent(currentEvent);
-        } else {
-          EventService.deleteEvent(currentEvent.id);
-        }
-        nextEvent = { ...currentEvent, id: events[j].id, seriesNr: events[j].seriesNr };
-        currentEvent = EventService.eventNextWeek(nextEvent, nextEvent.seriesNr!, nextEvent.seriesId!);
-      }
-      const validRoom = EventService.checkRoomValidity(currentEvent);
-      const valid = EventService.checkValidity(currentEvent);
-      if (valid && validRoom) {
-        EventService.updateSingleEvent(currentEvent);
-      } else {
-        EventService.deleteEvent(currentEvent.id);
-      }
+  static async updateEvent(event: IEvent): Promise<void> {
+    const valid = EventService.checkRoomValidity(event);
+    if(valid) {
+      EventService.updateSingleEvent(event);
     } else {
-      const valid = EventService.checkRoomValidity(event);
-      if(valid) {
-        EventService.updateSingleEvent(event);
-      } else {
-        throw new Error('Event is during a background event or an event has already been created in the same room and time');
-      }
+      throw new Error('Event is during a background event or an event has already been created in the same room and time');
     }
   }
   

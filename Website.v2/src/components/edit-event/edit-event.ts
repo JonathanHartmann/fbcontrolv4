@@ -6,6 +6,7 @@ import { IEvent } from '../../interfaces/event.interface';
 import { HOLIDAY_MOCK_ROOM, IRoom } from '../../interfaces/room.interface';
 import { IState } from '../../interfaces/state.interface';
 import { IUser } from '../../interfaces/user.interface';
+import { store } from '../../redux/store';
 import { EventService } from '../../services/event.service';
 
 import './edit-event.scss';
@@ -212,6 +213,7 @@ export default class EditEvent extends PageMixin(LitElement) {
       const end = !this.allDay? new Date(endDate + 'T' + endTime) : new Date(endDate);
 
       if (startDate <= endDate && room && this.user) {
+        
         let newEvent: IEvent = {
           id: this.event.id,
           title: titleInput.value,
@@ -227,21 +229,47 @@ export default class EditEvent extends PageMixin(LitElement) {
           seriesEndless: this.event.seriesEndless,
           seriesDuringHoliday: this.event.seriesDuringHoliday
         }
-        if (this.event.seriesId) {
-          newEvent = {
-            ...newEvent,
-            seriesId: this.event.seriesId,
-            seriesNr: this.event.seriesNr
-          }
+        newEvent = {
+          ...newEvent,
+          seriesId: this.event.seriesId,
+          seriesNr: this.event.seriesNr
         }
         this.event = newEvent;
-        try {
-          await EventService.updateEvent(newEvent, this.allFuture);
-          this.closeModal();
-        } catch(e) {
-          console.error(e);
-          this.error = 'Der Termin ist entweder in den Ferien oder zur selben Zeit ist bereits der ausgewählte Raum ausgebucht.';
-        }
+  
+        if (this.allFuture) {
+          const events = store.getState().events.filter(e => e.seriesId === this.event?.seriesId && e.start.toDate() > this.event!.start.toDate());
+          events.sort((a, b) => {
+            if (a.start.toDate() < b.start.toDate()) {
+              return 1;
+            } else if (a.start.toDate() > b.start.toDate()) {
+              return -1;
+            } else {
+              return 0;
+            }
+          });
+          this.event = {
+            ...this.event,
+            createdAt: Timestamp.now()
+          }
+          const lastDate = events[0].start.toDate()
+          lastDate.setDate(lastDate.getDate() + 1);
+          try {
+            EventService.deleteEvent(this.event.id, true);
+            EventService.createEvent(this.event, lastDate);
+            this.closeModal();
+          } catch(e) {
+            console.error(e);
+            this.error = 'Der Termin ist entweder in den Ferien oder zur selben Zeit ist bereits der ausgewählte Raum ausgebucht.';
+          }
+        } else if (this.event.seriesId) {
+          try {
+            await EventService.updateEvent(newEvent);
+            this.closeModal();
+          } catch(e) {
+            console.error(e);
+            this.error = 'Der Termin ist entweder in den Ferien oder zur selben Zeit ist bereits der ausgewählte Raum ausgebucht.';
+          }
+        } 
       } else {
         this.error = 'Das Start-Datum liegt nicht vor dem End-Datum!';
       }
