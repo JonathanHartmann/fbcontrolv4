@@ -8,7 +8,7 @@
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"build": "rimraf ./build && tsc",
 		"start": "nodemon",
-		"start:prod": "npm run build && node build/app.js"
+		"start:prod": "node app.js"
 	},
 	"keywords": [],
 	"author": "",
