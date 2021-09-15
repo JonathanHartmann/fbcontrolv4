@@ -75,7 +75,7 @@ export default class WebAdmin extends PageMixin(LitElement) {
                 <li class="list-group-item d-flex justify-content-between align-items-start">
                   <div class="ms-2 me-auto">
                     <div class="fw-bold">${room.title}</div>
-                    Komforttemperatur: ${room.comfortTemp}°C - Absenktemperatur: ${room.emptyTemp}°C - Fritzbox ID: ${room.fritzId}
+                    Komforttemperatur: ${room.comfortTemp}°C - Absenktemperatur: ${room.emptyTemp}°C - Fritzbox AIN: ${room.fritzId}
                   </div>
                   <edit-room .room=${room}></edit-room>
                   <button type="button" class="btn btn-danger" @click=${() => this.deleteRoom(room.id)}>Löschen</button>
@@ -90,7 +90,7 @@ export default class WebAdmin extends PageMixin(LitElement) {
           <h1>Ferien hochladen</h1>
           <form>
             <div class="mb-3">
-              <label for="events" class="form-label">Lade eine iCal Datei hoch, welche die Tage enthält, an denen keine Termine erstellt werden können.</label>
+              <label for="events" class="form-label">Lade eine .iCal Datei hoch, welche die Tage enthält, an denen ein Background-Event eingerichtet wird. <br>Serientermine finden dort nicht statt.</label>
               <input class="form-control" type="file" id="events" name="events" accept="ical">
             </div>
             <button type="submit" class="btn btn-primary" @click=${this.upload}>Hochladen</button>
@@ -149,7 +149,7 @@ export default class WebAdmin extends PageMixin(LitElement) {
             if (errorByUpload) {
               alert('Es gab einen Fehler beim hochladen der Ferien. Es kann sein, dass die Ferien unvollständig hochgeladen wurden. Versuche es später noch einmal.');
             } else {
-              alert('Ferien wurden erfolgreich hochgeladen!');
+              alert('Ferientermine wurden erfolgreich hochgeladen!');
             }
           });
         }

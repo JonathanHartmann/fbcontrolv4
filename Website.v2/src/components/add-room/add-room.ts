@@ -59,14 +59,14 @@ export default class AddRoom extends PageMixin(LitElement) {
                 </div>
                 <div class="mb-3">
                   <label for="emptyTemp" class="form-label">Absenktemperatur</label>
-                  <input id="emptyTemp" required class="form-control" type="number" value="14">  
+                  <input id="emptyTemp" required class="form-control" type="number" value="16">  
                 </div>
                 <div class="mb-3">
-                  <label for="tempTime" class="form-label">Aufheiz-Zeitraum (in Minuten)</label>
-                  <input id="tempTime" required class="form-control" type="number" value="15">  
+                  <label for="tempTime" class="form-label">Aufheiz-Zeit (in Minuten)</label>
+                  <input id="tempTime" required class="form-control" type="number" value="45">  
                 </div>
                 <div class="mb-3">
-                  <label for="fritzId" class="form-label">Fritzbox ID</label>
+                  <label for="fritzId" class="form-label">Fritzbox AIN</label>
                   <input id="fritzId" required class="form-control" type="text">  
                 </div>
                 <div class="mb-3">
