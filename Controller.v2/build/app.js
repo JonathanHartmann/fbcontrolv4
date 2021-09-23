@@ -56,7 +56,7 @@ var server = http_1.default.createServer(function (req, res) {
 });
 server.listen(port, hostname, function () {
     console.log("Server running at http://" + hostname + ":" + port + "/");
-    var checkIntervalTime = intervalTime * 1000;
+    var checkIntervalTime = intervalTime && intervalTime > 10 ? intervalTime * 1000 : 60 * 1000;
     console.log("Checking events every " + checkIntervalTime / 1000 + " seconds");
     var eventService = new event_service_1.EventService();
     setInterval(function () {

@@ -35,14 +35,18 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FritzService = void 0;
+var http_1 = __importDefault(require("http"));
 var FritzService = /** @class */ (function () {
     function FritzService() {
     }
     FritzService.heatUpRoom = function (room, sid) {
         return __awaiter(this, void 0, void 0, function () {
-            var baseUrl, roomId, temp, url;
+            var baseUrl, roomId, temp, url, prodMode;
             return __generator(this, function (_a) {
                 console.log('🔼 Heat up room: ', room.title);
                 baseUrl = process.env.FRITZ_ADDRESS;
@@ -50,13 +54,28 @@ var FritzService = /** @class */ (function () {
                 temp = room.comfortTemp;
                 url = baseUrl + "/webservices/homeautoswitch.lua?sid=" + sid + "&ain=" + roomId + "&switchcmd=sethkrtsoll&param=" + temp * 2;
                 console.log('call: ', url);
+                prodMode = process.env.MODE;
+                if (prodMode === 'prod') {
+                    http_1.default.get(url, function (res) {
+                        var data = '';
+                        // A chunk of data has been received.
+                        res.on('data', function (chunk) {
+                            data += chunk;
+                        });
+                        // The whole response has been received. Print out the result.
+                        res.on('end', function () {
+                            console.log('Recieved data from FrtizBox for heating up room', room.title, ':');
+                            console.log(JSON.parse(data));
+                        });
+                    });
+                }
                 return [2 /*return*/];
             });
         });
     };
     FritzService.coolDownRoom = function (room, sid) {
         return __awaiter(this, void 0, void 0, function () {
-            var baseUrl, roomId, temp, url;
+            var baseUrl, roomId, temp, url, prodMode;
             return __generator(this, function (_a) {
                 console.log('🔽 Cool down room: ', room.title);
                 baseUrl = process.env.FRITZ_ADDRESS;
@@ -64,6 +83,21 @@ var FritzService = /** @class */ (function () {
                 temp = room.emptyTemp;
                 url = baseUrl + "/webservices/homeautoswitch.lua?sid=" + sid + "&ain=" + roomId + "&switchcmd=sethkrtsoll&param=" + temp * 2;
                 console.log('call: ', url);
+                prodMode = process.env.MODE;
+                if (prodMode === 'prod') {
+                    http_1.default.get(url, function (res) {
+                        var data = '';
+                        // A chunk of data has been received.
+                        res.on('data', function (chunk) {
+                            data += chunk;
+                        });
+                        // The whole response has been received. Print out the result.
+                        res.on('end', function () {
+                            console.log('Recieved data from FrtizBox for cooling down room', room.title, ':');
+                            console.log(JSON.parse(data));
+                        });
+                    });
+                }
                 return [2 /*return*/];
             });
         });

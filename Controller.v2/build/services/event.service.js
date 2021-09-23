@@ -87,15 +87,17 @@ var EventService = /** @class */ (function () {
     };
     EventService.prototype.checkTimes = function (events, beginCb, endCb) {
         var _this = this;
+        var fritzRoomId = process.env.ROOM_FRIZTZ_ID;
+        var fritzRoomName = process.env.ROOM_NAME;
         var floorRoom = {
             id: '123',
-            title: 'Flur',
+            title: fritzRoomName ? fritzRoomName : '',
             comfortTemp: 21,
             emptyTemp: 16,
             createdFrom: '',
             createdFromId: '',
             eventColor: '',
-            fritzId: ''
+            fritzId: fritzRoomId ? fritzRoomId : ''
         };
         var actions = [];
         events.sort(function (a, b) {
@@ -136,7 +138,7 @@ var EventService = /** @class */ (function () {
         });
         var shouldFloorBeHeated = !this.heatingUpRooms.has(floorRoom.id) && this.heatingUpRooms.size > 0;
         var shouldFloorBeCooled = this.heatingUpRooms.has(floorRoom.id) && !this.coolRooms.has(floorRoom.id) && this.heatingUpRooms.size === 1;
-        if (shouldFloorBeHeated) {
+        if (shouldFloorBeHeated && floorRoom.fritzId !== '') {
             this.heatingUpRooms.set(floorRoom.id, floorRoom);
             this.coolRooms.delete(floorRoom.id);
             beginCb(floorRoom, undefined);

@@ -34,15 +34,17 @@ export class EventService {
   }
   
   checkTimes(events: IEnhancedEvent[], beginCb: (room: IRoom, event: IEvent | undefined) => void, endCb: (room: IRoom, event: IEvent | undefined) => void): void {
+    const fritzRoomId = process.env.ROOM_FRIZTZ_ID;
+    const fritzRoomName = process.env.ROOM_NAME;
     const floorRoom: IRoom = {
       id: '123',
-      title: 'Flur',
+      title: fritzRoomName? fritzRoomName : '',
       comfortTemp: 21,
       emptyTemp: 16,
       createdFrom: '',
       createdFromId: '',
       eventColor: '',
-      fritzId: ''
+      fritzId: fritzRoomId? fritzRoomId : ''
     }
 
     const actions: {type: 'heat' | 'cool', event: IEnhancedEvent}[] = [];
@@ -86,7 +88,7 @@ export class EventService {
     const shouldFloorBeHeated = !this.heatingUpRooms.has(floorRoom.id) && this.heatingUpRooms.size > 0;
     const shouldFloorBeCooled = this.heatingUpRooms.has(floorRoom.id) && !this.coolRooms.has(floorRoom.id) && this.heatingUpRooms.size === 1;
 
-    if (shouldFloorBeHeated) {
+    if (shouldFloorBeHeated && floorRoom.fritzId !== '') {
       this.heatingUpRooms.set(floorRoom.id, floorRoom);
       this.coolRooms.delete(floorRoom.id);
       beginCb(floorRoom, undefined);
