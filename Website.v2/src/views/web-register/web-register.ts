@@ -1,3 +1,4 @@
+import { Modal } from 'bootstrap';
 import { customElement, html, LitElement, property, query, TemplateResult } from 'lit-element';
 import { PageMixin } from '../../client-packages/page.mixin';
 import { router } from '../../client-packages/router';
@@ -62,6 +63,25 @@ export default class WebRegister extends PageMixin(LitElement) {
           <p class="mt-5 mb-3 text-muted">&copy; 2021</p>
         </form>
       </div>
+
+
+      <!-- Modal -->
+      <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="registerModalLabel">Account Aktivierung</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              Bitte benachrichtigen Sie einen Admin, um ihren Account zu aktivieren. (z.B. Jonathan Hartmann)
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
+            </div>
+          </div>
+        </div>
+      </div>
         `
   }
 
@@ -72,7 +92,11 @@ export default class WebRegister extends PageMixin(LitElement) {
     if (this.form.reportValidity() && (password1 === password2)) {
       try {
         await AuthService.register(this.emailInput.value, this.passwordInput.value, this.nameInput.value);
-        alert('Bitte benachrichtigen Sie einen Admin, um ihren Account zu aktivieren. (z.B. Jonathan Hartmann)')
+        const element = document.getElementById('registerModal');
+        if (element) {
+          const registerModal = new Modal(element);
+          registerModal.show();
+        }
       } catch (error) {
         console.error(error);
         this.error = true;

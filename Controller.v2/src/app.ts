@@ -22,7 +22,7 @@ const server = http.createServer((req, res) => {
 
 server.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
-  const checkIntervalTime = intervalTime * 1000
+  const checkIntervalTime = intervalTime && intervalTime > 10 ? intervalTime * 1000 : 60 * 1000;
   console.log(`Checking events every ${checkIntervalTime / 1000} seconds`);
   const eventService = new EventService();
   setInterval(() => {
