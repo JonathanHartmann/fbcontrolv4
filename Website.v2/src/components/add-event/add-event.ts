@@ -89,16 +89,16 @@ export default class AddEvent extends PageMixin(LitElement) {
               <form class="form">
                 <div class="mb-3">
                   <label for="title">Titel ihrer Veranstaltung*</label>
-                  <input required type="text" class="form-control" placeholder="Musikunterricht" id="title">
+                  <input required type="text" class="form-control" placeholder="Veranstaltungs Titel" id="title">
                 </div>
                 <div class="mb-3">
                   <label for="description">Beschreibung ihrer Veranstaltung</label>
-                  <textarea class="form-control" aria-label="description" id="description" placeholder="description"></textarea>
+                  <textarea class="form-control" aria-label="description" id="description" placeholder="Beschreibung"></textarea>
                 </div>
                 <div class="mb-3">
                   <label for="room">Raum für ihre Veranstaltung*</label>
                   <select required class="form-control" id="room">
-                    ${this.rooms.map(room => html`<option value=${room.id}>Raum ${room.title}</option>`)}
+                    ${this.rooms.map(room => html`<option value=${room.id}> ${room.title}</option>`)}
                   </select>
                 </div>
                 <div class="mb-3">
@@ -143,12 +143,12 @@ export default class AddEvent extends PageMixin(LitElement) {
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" value=${this.duringHoliday} id="duringHoliday" @input=${() => this.duringHoliday = !this.duringHoliday}>
                     <label class="form-check-label" for="duringHoliday">
-                      Findet der Termin auch in den Ferien statt?
+                      Termin findet auch in den Ferien statt
                     </label>
                   </div>
                   ${!this.endlessEvent? html`
                   <div class="mb-3">
-                    <label for="seriesDate" class="form-label">Letzter Termin (Die Buchung wird wöchentlich bis zu disem Tag wiederholt)</label>
+                    <label for="seriesDate" class="form-label">Letzter Termin (Der Termin wird wöchentlich bis zu diesem Tag wiederholt)</label>
                     <input id="seriesDate" class="form-control" type="date" min="1">  
                   </div>
                   `:undefined}
