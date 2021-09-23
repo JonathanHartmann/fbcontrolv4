@@ -17,7 +17,7 @@ const intervalTime = Number(process.env.CHECK_INTERVAL_TIME); // in seconds
 const server = http.createServer((req, res) => {
   res.statusCode = 200;
   res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello World');
+  res.end('Conrtoller is running!');
 });
 
 server.listen(port, hostname, () => {
