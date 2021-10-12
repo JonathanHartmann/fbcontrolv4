@@ -33,6 +33,9 @@ export default class AddEvent extends PageMixin(LitElement) {
   @property({ attribute: false })
   error = '';
 
+  @property({ attribute: false })
+  loading = false;
+
   @query('form')
   form!: HTMLFormElement;
 
@@ -86,6 +89,13 @@ export default class AddEvent extends PageMixin(LitElement) {
               </button>
             </div>
             <div class="modal-body">
+            ${this.loading? html`
+                <div class="d-flex justify-content-center">
+                  <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+                `:html`
               <form class="form">
                 <div class="mb-3">
                   <label for="title">Titel ihrer Veranstaltung*</label>
@@ -154,6 +164,7 @@ export default class AddEvent extends PageMixin(LitElement) {
                   `:undefined}
                 `:undefined}
               </form>
+              `}
 
               <div class="message-box">
                 ${ this.error !== '' ? html`
@@ -176,6 +187,7 @@ export default class AddEvent extends PageMixin(LitElement) {
   async submit(event: MouseEvent): Promise<void> {
     event.preventDefault();
     if (this.form.reportValidity()) {
+      this.loading = true;
       const seriesDate = this.seriesDateInput ? new Date(this.seriesDateInput.value) : undefined;
 
       const room = this.rooms.find((r) => r.id === this.roomInput.value)
@@ -205,13 +217,16 @@ export default class AddEvent extends PageMixin(LitElement) {
             seriesEndless: this.endlessEvent,
             seriesDuringHoliday: this.duringHoliday
           } as IEvent, seriesDate);
+          this.loading = false;
           this.resetForm();
           document.getElementById('close-button')?.click();
         } catch(e) {
           console.error(e);
           this.error = 'Der Termin ist entweder in den Ferien oder zur selben Zeit ist bereits der ausgewählte Raum ausgebucht.';
+          this.loading = false;
         }
       } else {
+        this.loading = false;
         this.error = 'Der Startzeitpunkt ist nach dem Endzeitpunkt.';
       }
     } else {
@@ -224,7 +239,7 @@ export default class AddEvent extends PageMixin(LitElement) {
     this.seriesEvent = false;
     this.duringHoliday = false;
     this.allDay = false;
-    this.form.reset();
+    // this.form.reset();
   }
 
   addHoursToTime(time: string): string {

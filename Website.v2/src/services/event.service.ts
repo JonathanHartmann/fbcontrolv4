@@ -73,17 +73,20 @@ export class EventService {
       const validRoom = EventService.checkRoomValidity(event);
       if (validRoom) {
         console.log('create new Event!');
-        EventService.saveEvent(event);
+        await EventService.saveEvent(event);
       } else {
         throw new Error('Event is during a background event or an event has already been created in the same room and time');
       }
     } else if ((seriesDate && seriesDate > new Date()) || event.seriesEndless) {
+      console.log('series event');
       const seriesId = nanoid();
       const oneYearFromNow = new Date(event.start.toDate());
       oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
       const seriesNr = event.seriesEndless ? EventService.getNrWeeksUntil(event.start.toDate(), oneYearFromNow) : EventService.getNrWeeksUntil(event.start.toDate(), seriesDate!);
+      console.log('Series nr:', seriesNr);
       let nextEvent: IEvent = {...event, seriesNr, seriesId};
       for (let i=seriesNr-1; i >= 0; i--) {
+        console.log('round:', i);
         const validRoom = EventService.checkRoomValidity(event);
         const valid = event.seriesDuringHoliday? true : EventService.checkValidity(nextEvent);
         if (valid && validRoom) {
@@ -97,7 +100,7 @@ export class EventService {
   static async updateEvent(event: IEvent): Promise<void> {
     const valid = EventService.checkRoomValidity(event);
     if(valid) {
-      EventService.updateSingleEvent(event);
+      await EventService.updateSingleEvent(event);
     } else {
       throw new Error('Event is during a background event or an event has already been created in the same room and time');
     }
@@ -105,17 +108,17 @@ export class EventService {
   
   static async deleteEvent(eventId: IEvent['id'], allSeries = false): Promise<void> {
     if (!allSeries) {
-      EventService.removeEvent(eventId);
+      await EventService.removeEvent(eventId);
     } else {
       const firstEvent = store.getState().events.find(event => event.id === eventId);
       if (firstEvent) {
-        store.getState().events.forEach(event => {
+        store.getState().events.forEach(async event => {
           if (firstEvent.seriesId === event.seriesId && firstEvent.start.toDate() < event.start.toDate()) {
-            EventService.removeEvent(event.id);
+            await EventService.removeEvent(event.id);
           }
         });
       }
-      EventService.removeEvent(eventId);
+      await EventService.removeEvent(eventId);
     }
   }
   

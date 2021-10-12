@@ -33,6 +33,9 @@ export default class WebCalendar extends PageMixin(LitElement) {
   @property({ type: Boolean })
   smallScreen = false;
 
+  @property({ type: Boolean })
+  loading = false;
+
   @property({ attribute: false })
   user: IUser | undefined = undefined;
 
@@ -77,7 +80,15 @@ export default class WebCalendar extends PageMixin(LitElement) {
             </div>
 
           <div class="calendar-section">
-            <div id="calendar"></div>
+            ${this.loading? html`
+              <div class="d-flex justify-content-center">
+                <div class="spinner-border" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            `:html`
+              <div id="calendar"></div>
+            `}
           </div>
 
         </div>
@@ -100,6 +111,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
   }
 
   stateChanged(state: IState): void {
+    this.loading = true;
     if (state.events.length >= 0) {
       this.events = state.events;
     }
@@ -111,6 +123,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
       this.setResources();
       this.requestUpdate();
     }
+    this.loading = false;
   }
 
   roomFilter(roomId: string): void {
@@ -207,7 +220,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
       eventDidMount: (info) => {
         info.el.setAttribute('data-bs-toggle', 'tooltip');
         info.el.setAttribute('data-bs-placement', 'bottom');
-        const time = info.event.allDay? 'Ganztägiger Termin - ' + info.event.extendedProps.room : this.getTime(info.event.start!) + '-' + this.getTime(info.event.end!) + '-' + info.event.extendedProps.room;
+        const time = info.event.allDay? 'Ganztägiger Termin - ' + info.event.extendedProps.room : `${info.event.start!.getHours()}:${info.event.start!.getMinutes()}-${info.event.end!.getHours()}:${info.event.end!.getMinutes()}-${info.event.extendedProps.room}`;
         info.el.title = info.event.display === 'background' ? 'Aufgrund der Ferien findet hier nichts statt.' : time;
         if (info.event.extendedProps.description) {
           info.el.title += ' - ' + info.event.extendedProps.description;

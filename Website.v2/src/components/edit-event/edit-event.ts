@@ -31,6 +31,9 @@ export default class EditEvent extends PageMixin(LitElement) {
   
   @property({ attribute: false })
   allFuture = false;
+  
+  @property({ attribute: false })
+  loading = false;
 
   @property({ attribute: false })
   editModal: Modal | undefined = undefined;
@@ -91,6 +94,13 @@ export default class EditEvent extends PageMixin(LitElement) {
                 </button>
               </div>
               <div class="modal-body ">
+                ${this.loading? html`
+                <div class="d-flex justify-content-center">
+                  <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+                `:html`
                 <form class="form">
                   <div class="mb-3">
                     <label for="edit-title">Titel ihrer Veranstaltung</label>
@@ -161,12 +171,14 @@ export default class EditEvent extends PageMixin(LitElement) {
                     </label>
                 </div>
                 </form>
+                `}
               </div>
+
               <div class="message-box mx-3">
-              ${ this.error ? html`
-              <div  class="text-danger">${this.error}</div>
-              ` : undefined}
-            </div>
+                ${ this.error ? html`
+                <div  class="text-danger">${this.error}</div>
+                ` : undefined}
+              </div>
             ${ this.editMode? html`
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" @click=${this.quitEditMode}}>Abbrechen</button>
@@ -263,7 +275,7 @@ export default class EditEvent extends PageMixin(LitElement) {
           }
         } else if (!this.event.seriesId) {
           try {
-            await EventService.updateEvent(newEvent);
+            EventService.updateEvent(newEvent);
             this.closeModal();
           } catch(e) {
             console.error(e);
