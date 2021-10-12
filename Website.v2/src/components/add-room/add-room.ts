@@ -1,4 +1,4 @@
-import { customElement, html, LitElement, query, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, property, query, TemplateResult } from 'lit-element';
 import { PageMixin } from '../../client-packages/page.mixin';
 import { IRoom } from '../../interfaces/room.interface';
 import { store } from '../../redux/store';
@@ -8,6 +8,10 @@ import './add-room.scss';
 
 @customElement('add-room')
 export default class AddRoom extends PageMixin(LitElement) {
+
+  @property({ attribute: false })
+  error = '';
+
   @query('form')
   form!: HTMLFormElement;
 
@@ -43,7 +47,7 @@ export default class AddRoom extends PageMixin(LitElement) {
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title" id="createRoomModalLabel">Neuen Raum hinzufügen</h5>
-              <button type="button" class="close btn" data-dismiss="modal" aria-label="Close">
+              <button type="button" class="close btn" data-dismiss="modal" aria-label="Close" id="close-button">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
@@ -55,11 +59,11 @@ export default class AddRoom extends PageMixin(LitElement) {
                 </div>
                 <div class="mb-3">
                   <label for="comfortTemp" class="form-label">Komforttemperatur</label>
-                  <input id="comfortTemp" required class="form-control" type="number" value="21">  
+                  <input id="comfortTemp" required class="form-control" type="number" value="21" step="0.5" min="0" max="40">  
                 </div>
                 <div class="mb-3">
                   <label for="emptyTemp" class="form-label">Absenktemperatur</label>
-                  <input id="emptyTemp" required class="form-control" type="number" value="16">  
+                  <input id="emptyTemp" required class="form-control" type="number" value="16" step="0.5" min="0" max="40">  
                 </div>
                 <div class="mb-3">
                   <label for="tempTime" class="form-label">Aufheiz-Zeit (in Minuten)</label>
@@ -74,10 +78,18 @@ export default class AddRoom extends PageMixin(LitElement) {
                   <input type="color" id="color" class="form-control form-control-color" name="color" value="">
                 </div>
               </form>
+
+              <div class="message-box">
+                ${ this.error !== '' ? html`
+                <div  class="text-danger"> 
+                  ${this.error}
+                </div>
+                ` : undefined}
+              </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
-              <button type="button" class="btn btn-primary" data-dismiss="modal" @click="${this.submit}">Speichern</button>
+              <button type="button" class="btn btn-primary" @click="${this.submit}">Speichern</button>
             </div>
           </div>
         </div>
@@ -98,6 +110,9 @@ export default class AddRoom extends PageMixin(LitElement) {
         eventColor: this.colorInput.value,
         tempTime: Number(this.tempTimeInput.value)
       } as Partial<IRoom>);
+      document.getElementById('close-button')?.click();
+    } else {
+      this.error = 'Bitte füllen Sie alle Pflichtfelder aus.';
     }
   }
 }

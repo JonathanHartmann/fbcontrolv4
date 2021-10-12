@@ -179,16 +179,17 @@ export default class AddEvent extends PageMixin(LitElement) {
       const seriesDate = this.seriesDateInput ? new Date(this.seriesDateInput.value) : undefined;
 
       const room = this.rooms.find((r) => r.id === this.roomInput.value)
-      const startDate = this.startDateInput.value;
-      const startTime = !this.allDay? this.startTimeInput.value : undefined;
-      const endDate = this.endDateInput.value;
-      const endTime = !this.allDay? this.endTimeInput.value : undefined;
+      const startDate = this.getDateFromInput(this.startDateInput.value);
+      const startTime = !this.allDay? this.getTimeFromInput(this.startTimeInput.value) : undefined;
+      const endDate = this.getDateFromInput(this.endDateInput.value);
+      const endTime = !this.allDay? this.getTimeFromInput(this.endTimeInput.value) : undefined;
       
-      const start = !this.allDay? new Date(startDate + 'T' + startTime) : new Date(startDate);
-      const end = !this.allDay? new Date(endDate + 'T' + endTime) : new Date(endDate);
+      const start = !this.allDay? new Date(Date.UTC(startDate[0], startDate[1]-1, startDate[2], startTime![0], startTime![1])) : new Date(Date.UTC(startDate[0], startDate[1]));
+      const end = !this.allDay? new Date(Date.UTC(endDate[0], endDate[1]-1, endDate[2], endTime![0], endTime![1])) : new Date(Date.UTC(endDate[0], endDate[1]));
       const startTimeStamp = Timestamp.fromDate(start);
       const endTimeStamp = Timestamp.fromDate(end);
-
+      console.log(startDate, '-', endDate);
+      console.log(start, '-', end);
       if (startTimeStamp < endTimeStamp) {
         try {
           await EventService.createEvent({
@@ -231,5 +232,15 @@ export default class AddEvent extends PageMixin(LitElement) {
   addHoursToTime(time: string): string {
     const nextHour = Number(time.slice(0,2)) + 1;
     return nextHour + ':' + time.slice(3,5);
+  }
+
+  getTimeFromInput(time: string): number[] {
+    const arrTime = time.split(':');
+    return arrTime.map(t => Number(t));
+  }
+
+  getDateFromInput(date: string): number[] {
+    const arrDate = date.split('-');
+    return arrDate.map(d => Number(d));
   }
 }

@@ -3,7 +3,7 @@ import { customElement, html, LitElement, property, query, TemplateResult } from
 import { styleMap } from 'lit-html/directives/style-map';
 import { Modal, Tooltip } from 'bootstrap';
 import { PageMixin } from '../../client-packages/page.mixin';
-import { BASE_OPTION_REFINERS, Calendar, CalendarOptions, EventApi } from '@fullcalendar/core';
+import { BASE_OPTION_REFINERS, Calendar, CalendarOptions, EventApi, EventSourceInput } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import resourceTimeGridPlugin from '@fullcalendar/resource-timegrid';
@@ -87,7 +87,6 @@ export default class WebCalendar extends PageMixin(LitElement) {
   }
 
   firstUpdated(): void {
-    this.renderCalendar();
     this.detailsModal = new Modal(document.getElementById('eventDetails')!);
     this.user = store.getState().user;
     // Get the modal
@@ -103,7 +102,6 @@ export default class WebCalendar extends PageMixin(LitElement) {
   stateChanged(state: IState): void {
     if (state.events.length >= 0) {
       this.events = state.events;
-      this.setEvents(state.events);
     }
     if (state.rooms.length > 0) {
       state.rooms.forEach(room => {
@@ -126,42 +124,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   filterEvents(): void {
     const filteredEvents = this.events.filter(event => event.background || this.rooms.get(event.roomId)?.checked);
-    this.setEvents(filteredEvents);
-  }
-
-  setEvents(events: IEvent[]): void {
-    this.calendar?.removeAllEvents();
-    events.forEach(event => {
-      const start = new Date(event.start.seconds * 1000);
-      const end = new Date(event.end.seconds * 1000);
-      const addEvent = {
-        title: event.title,
-        start: event.background || event.allDay? this.getDate(start) : start,
-        end: event.background ||event.allDay? this.getDate(end) : end,
-        createdFrom: event.createdFrom,
-        resourceId: event.roomId,
-        display: event.background ? 'background' : undefined,
-        description: event.description,
-        room: event.room,
-        color: this.rooms.get(event.roomId) ? this.rooms.get(event.roomId)!.room.eventColor : '#b1b1b1',
-        createdFromId: event.createdFromId,
-        id: event.id,
-        seriesId: event.seriesId,
-        createdAt: event.createdAt?.toDate()
-      }
-      if (event.allDay) {
-        this.calendar?.addEvent({
-          ...addEvent,
-          allDay: event.allDay,
-        });
-      } else {
-        this.calendar?.addEvent(addEvent);
-      }
-    });
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new Tooltip(tooltipTriggerEl);
-    });
+    this.renderCalendar(filteredEvents);
   }
 
 
@@ -191,9 +154,42 @@ export default class WebCalendar extends PageMixin(LitElement) {
     }
   }
 
-  renderCalendar(): void {
+  renderCalendar(events?: IEvent[]): void {
     const navEle = document.getElementsByTagName('nav');
     const oneRem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+
+    let formatEvents: EventSourceInput = [];
+    if (events) {
+      formatEvents = events.map(event => {
+        const start = new Date(event.start.seconds * 1000);
+        const end = new Date(event.end.seconds * 1000);
+        
+        const addEvent = {
+          title: event.title,
+          start: event.background || event.allDay? this.getDate(start) : start,
+          end: event.background ||event.allDay? this.getDate(end) : end,
+          createdFrom: event.createdFrom,
+          resourceId: event.roomId,
+          display: event.background ? 'background' : undefined,
+          description: event.description,
+          room: event.room,
+          color: this.rooms.get(event.roomId) ? this.rooms.get(event.roomId)!.room.eventColor : '#b1b1b1',
+          createdFromId: event.createdFromId,
+          id: event.id,
+          seriesId: event.seriesId,
+          createdAt: event.createdAt?.toDate()
+        }
+        if (event.allDay) {
+          return{
+            ...addEvent,
+            allDay: event.allDay,
+          };
+        } else {
+          return addEvent;
+        }
+      });
+    }
+
     let calendarConfig: CalendarOptions = {
       plugins: [ dayGridPlugin, timeGridPlugin, resourceTimeGridPlugin, adaptivePlugin ],
       headerToolbar: {
@@ -206,10 +202,11 @@ export default class WebCalendar extends PageMixin(LitElement) {
         info.el.setAttribute('data-bs-placement', 'bottom');
         const time = info.event.allDay? 'Ganztägiger Termin - ' + info.event.extendedProps.room : this.getTime(info.event.start!) + '-' + this.getTime(info.event.end!) + '-' + info.event.extendedProps.room;
         info.el.title = info.event.display === 'background' ? 'Aufgrund der Ferien findet hier nichts statt.' : time;
+        if (info.event.extendedProps.description) {
+          info.el.title += ' - ' + info.event.extendedProps.description;
+        }
       },
       initialView: 'dayGridMonth',
-      locales: [ deLocale ],
-      locale: 'de',
       initialDate: new Date(),
       weekNumbers: true,
       navLinks: true, // can click day/week names to navigate views
@@ -219,7 +216,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
       height: window.innerHeight - (navEle? navEle[0].offsetHeight : 0) - 2 * oneRem,
       eventClick: (info) => {
         this.openModal(info.event);
-      }    
+      }
     };
     if (this.smallScreen) {
       calendarConfig = {
@@ -233,9 +230,20 @@ export default class WebCalendar extends PageMixin(LitElement) {
         weekNumbers: false,
       }
     }
+    if (formatEvents.length > 0) {
+      calendarConfig = {
+        ...calendarConfig,
+        events: formatEvents
+      }
+    }
     this.calendar = new Calendar(this.calendarElement, calendarConfig);
     this.calendar.render();
     this.calendar.updateSize();
+
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new Tooltip(tooltipTriggerEl);
+    });
   }
 
 

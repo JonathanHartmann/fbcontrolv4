@@ -55,11 +55,11 @@ export default class EditRoom extends PageMixin(LitElement) {
                   </div>
                   <div class="mb-3">
                     <label for=${'comfortTemp' + this.room.id}>Komforttemperatur</label>
-                    <input id=${'comfortTemp' + this.room.id} required class="form-control" type="number" value=${this.room.comfortTemp}> 
+                    <input id=${'comfortTemp' + this.room.id} required class="form-control" type="number" value=${this.room.comfortTemp} step="0.5" min="0" max="40"> 
                   </div>
                   <div class="mb-3">
                     <label for=${'emptyTemp' + this.room.id}>Absenktemperatur</label>
-                    <input id=${'emptyTemp' + this.room.id} required class="form-control" type="number" value=${this.room.emptyTemp}> 
+                    <input id=${'emptyTemp' + this.room.id} required class="form-control" type="number" value=${this.room.emptyTemp} step="0.5" min="0" max="40"> 
                   </div>
                   <div class="mb-3">
                     <label for=${'tempTime' + this.room.id}>Aufheiz-Zeitraum (in Minuten)</label>

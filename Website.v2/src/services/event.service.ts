@@ -72,6 +72,7 @@ export class EventService {
     if (!seriesDate && !event.seriesEndless) {
       const validRoom = EventService.checkRoomValidity(event);
       if (validRoom) {
+        console.log('create new Event!');
         EventService.saveEvent(event);
       } else {
         throw new Error('Event is during a background event or an event has already been created in the same room and time');

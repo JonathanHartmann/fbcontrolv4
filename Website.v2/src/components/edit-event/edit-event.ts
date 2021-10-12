@@ -212,7 +212,7 @@ export default class EditEvent extends PageMixin(LitElement) {
       const start = !this.allDay? new Date(startDate + 'T' + startTime) : new Date(startDate);
       const end = !this.allDay? new Date(endDate + 'T' + endTime) : new Date(endDate);
 
-      if (startDate <= endDate && room && this.user) {
+      if (start <= end && room && this.user) {
         
         let newEvent: IEvent = {
           id: this.event.id,
@@ -229,14 +229,14 @@ export default class EditEvent extends PageMixin(LitElement) {
           seriesEndless: this.event.seriesEndless,
           seriesDuringHoliday: this.event.seriesDuringHoliday
         }
-        newEvent = {
-          ...newEvent,
-          seriesId: this.event.seriesId,
-          seriesNr: this.event.seriesNr
-        }
         this.event = newEvent;
-  
+        
         if (this.allFuture) {
+          newEvent = {
+            ...newEvent,
+            seriesId: this.event.seriesId,
+            seriesNr: this.event.seriesNr
+          }
           const events = store.getState().events.filter(e => e.seriesId === this.event?.seriesId && e.start.toDate() > this.event!.start.toDate());
           events.sort((a, b) => {
             if (a.start.toDate() < b.start.toDate()) {
@@ -261,7 +261,7 @@ export default class EditEvent extends PageMixin(LitElement) {
             console.error(e);
             this.error = 'Der Termin ist entweder in den Ferien oder zur selben Zeit ist bereits der ausgewählte Raum ausgebucht.';
           }
-        } else if (this.event.seriesId) {
+        } else if (!this.event.seriesId) {
           try {
             await EventService.updateEvent(newEvent);
             this.closeModal();
