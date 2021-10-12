@@ -343,7 +343,7 @@ export default class EditEvent extends PageMixin(LitElement) {
 
   getTime(date: Date): string {
     if (date) {
-      let hours = date.getHours().toString();
+      let hours = date.getUTCHours().toString();
       let min = date.getMinutes().toString();
       if (hours.length === 1) {
         hours = '0' + hours;

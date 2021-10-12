@@ -161,9 +161,14 @@ export default class WebCalendar extends PageMixin(LitElement) {
     let formatEvents: EventSourceInput = [];
     if (events) {
       formatEvents = events.map(event => {
-        const start = new Date(event.start.seconds * 1000);
-        const end = new Date(event.end.seconds * 1000);
-        
+        const [startYear, startMonth, startDay] = this.getDate(event.start.toDate()).split('-').map(s => Number(s));
+        const [endYear, endMonth, endDay] = this.getDate(event.end.toDate()).split('-').map(s => Number(s));
+        const [startHours, startMinutes] = this.getTime(event.start.toDate()).split(':').map(s => Number(s));
+        const [endHours, endMinutes] = this.getTime(event.end.toDate()).split(':').map(s => Number(s));
+
+        const start = new Date(startYear, startMonth, startDay, startHours, startMinutes);
+        const end = new Date(endYear, endMonth, endDay, endHours, endMinutes);
+
         const addEvent = {
           title: event.title,
           start: event.background || event.allDay? this.getDate(start) : start,
@@ -197,6 +202,8 @@ export default class WebCalendar extends PageMixin(LitElement) {
         center: 'title',
         right: 'dayGridMonth,timeGridWeek,resourceTimeGridDay'
       },
+      locales: [deLocale],
+      locale: deLocale,
       eventDidMount: (info) => {
         info.el.setAttribute('data-bs-toggle', 'tooltip');
         info.el.setAttribute('data-bs-placement', 'bottom');
@@ -263,7 +270,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   getTime(date: Date): string {
     if (date) {
-      let hours = date.getHours().toString();
+      let hours = date.getUTCHours().toString();
       let min = date.getMinutes().toString();
       if (hours.length === 1) {
         hours = '0' + hours;
@@ -280,7 +287,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
   getDate(date: Date, addDays = 0): string {
     if (date) {
       const year = date.getFullYear();
-      let month = (date.getMonth() + 1).toString();
+      let month = (date.getMonth()).toString();
       date.setDate(date.getDate() + addDays);
       let day = date.getDate().toString();
   

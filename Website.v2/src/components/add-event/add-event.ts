@@ -188,8 +188,6 @@ export default class AddEvent extends PageMixin(LitElement) {
       const end = !this.allDay? new Date(Date.UTC(endDate[0], endDate[1]-1, endDate[2], endTime![0], endTime![1])) : new Date(Date.UTC(endDate[0], endDate[1]));
       const startTimeStamp = Timestamp.fromDate(start);
       const endTimeStamp = Timestamp.fromDate(end);
-      console.log(startDate, '-', endDate);
-      console.log(start, '-', end);
       if (startTimeStamp < endTimeStamp) {
         try {
           await EventService.createEvent({
