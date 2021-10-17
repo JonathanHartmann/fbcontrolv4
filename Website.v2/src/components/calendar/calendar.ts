@@ -31,9 +31,6 @@ export default class WebCalendar extends PageMixin(LitElement) {
   calendar: Calendar | undefined = undefined;
 
   @property({ type: Boolean })
-  smallScreen = false;
-
-  @property({ type: Boolean })
   loading = false;
 
   @property({ attribute: false })
@@ -56,7 +53,6 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   constructor() {
     super();
-    this.smallScreen = window.innerWidth < 768;
     window.addEventListener('resize', () => {
       if (this.calendar) {
         this.calendar.render();
@@ -238,18 +234,6 @@ export default class WebCalendar extends PageMixin(LitElement) {
         this.openModal(info.event);
       }
     };
-    if (this.smallScreen) {
-      calendarConfig = {
-        ...calendarConfig, 
-        plugins: [ dayGridPlugin, timeGridPlugin, resourceTimeGridPlugin, adaptivePlugin ],
-        headerToolbar: {
-          left: 'prev,next',
-          center: 'title',
-          right: 'dayGridMonth'
-        },
-        weekNumbers: false,
-      }
-    }
     if (formatEvents.length > 0) {
       calendarConfig = {
         ...calendarConfig,
