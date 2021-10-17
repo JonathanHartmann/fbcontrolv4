@@ -240,14 +240,16 @@ export default class WebCalendar extends PageMixin(LitElement) {
         events: formatEvents
       }
     }
-    this.calendar = new Calendar(this.calendarElement, calendarConfig);
-    this.calendar.render();
-    this.calendar.updateSize();
+    if (this.calendarElement && calendarConfig) {
+      this.calendar = new Calendar(this.calendarElement, calendarConfig);
+      this.calendar.render();
+      this.calendar.updateSize();
+      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new Tooltip(tooltipTriggerEl);
+      });
+    }
 
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new Tooltip(tooltipTriggerEl);
-    });
   }
 
 
