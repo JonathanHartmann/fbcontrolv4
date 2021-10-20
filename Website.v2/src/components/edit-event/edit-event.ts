@@ -201,28 +201,26 @@ export default class EditEvent extends PageMixin(LitElement) {
 
   async submit(): Promise<void> {
     if (this.form.reportValidity() && this.event) {
-      let startTime = undefined;
-      let endTime = undefined;
-      if (!this.allDay) {
-        const startTimeInput = document.getElementById('edit-start-time') as HTMLInputElement;
-        const endTimeInput = document.getElementById('edit-end-time') as HTMLInputElement;
-        startTime = startTimeInput.value;
-        endTime = endTimeInput.value;
-      }
-      
       const titleInput = document.getElementById('edit-title') as HTMLInputElement;
       const descriptionInput = document.getElementById('edit-description') as HTMLInputElement;
       const roomInput = document.getElementById('edit-room') as HTMLInputElement;
       const startDateInput = document.getElementById('edit-start-date') as HTMLInputElement;
       const endDateInput = document.getElementById('edit-end-date') as HTMLInputElement;
+      const startTimeInput = document.getElementById('edit-start-time') as HTMLInputElement;
+      const endTimeInput = document.getElementById('edit-end-time') as HTMLInputElement;
       const backgroundInput = document.getElementById('edit-background') as HTMLInputElement;
       
       const room = this.rooms.find((r) => r.id === roomInput.value)
       
-      const startDate = startDateInput.value;
-      const endDate = endDateInput.value;
-      const start = !this.allDay? new Date(startDate + 'T' + startTime) : new Date(startDate);
-      const end = !this.allDay? new Date(endDate + 'T' + endTime) : new Date(endDate);
+      const startDate = this.getDateFromInput(startDateInput.value);
+      const startTime = !this.allDay? this.getTimeFromInput(startTimeInput.value) : undefined;
+      const endDate = this.getDateFromInput(endDateInput.value);
+      const endTime = !this.allDay? this.getTimeFromInput(endTimeInput.value) : undefined;
+      
+      const start = !this.allDay? new Date(Date.UTC(startDate[0], startDate[1]-1, startDate[2], startTime?.[0], startTime?.[1])) : new Date(Date.UTC(startDate[0], startDate[1]));
+      const end = !this.allDay? new Date(Date.UTC(endDate[0], endDate[1]-1, endDate[2], endTime?.[0], endTime?.[1])) : new Date(Date.UTC(endDate[0], endDate[1]));
+      const startTimeStamp = Timestamp.fromDate(start);
+      const endTimeStamp = Timestamp.fromDate(end);
 
       if (start <= end && room && this.user) {
         
@@ -230,8 +228,8 @@ export default class EditEvent extends PageMixin(LitElement) {
           id: this.event.id,
           title: titleInput.value,
           description: descriptionInput.value,
-          start: Timestamp.fromDate(start),
-          end: Timestamp.fromDate(end),
+          start: startTimeStamp,
+          end: endTimeStamp,
           room: room.title === HOLIDAY_MOCK_ROOM.title? '' : room.title,
           roomId: room.id === HOLIDAY_MOCK_ROOM.id? '' : room.id,
           createdFrom: this.user.name,
@@ -387,5 +385,15 @@ export default class EditEvent extends PageMixin(LitElement) {
     } else {
       return '';
     }
+  }
+
+  getTimeFromInput(time: string): number[] {
+    const arrTime = time.split(':');
+    return arrTime.map(t => Number(t));
+  }
+
+  getDateFromInput(date: string): number[] {
+    const arrDate = date.split('-');
+    return arrDate.map(d => Number(d));
   }
 }

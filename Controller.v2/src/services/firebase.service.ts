@@ -5,9 +5,19 @@ import { IRoom } from '../interfaces/room.interface';
 
 export class FirebaseService {
   static async loadEvents(): Promise<IEvent[]> {
-    const eventSnap = await firestore.collection('events').get();
+    const startDate = new Date();
+    startDate.setHours(startDate.getHours() - 2);
+    const endDate = new Date();
+    endDate.setHours(24);
+    const startTimestamp = firebaseAdmin.Timestamp.fromDate(startDate);
+    const endTimestamp = firebaseAdmin.Timestamp.fromDate(endDate);
+
+    const eventSnap = await firestore.collection('events')
+      .where('start', '>', startTimestamp)
+      .where('start', '<', endTimestamp)
+      .get();
     const events = FirebaseService.getDataFromSnapshot(eventSnap);
-    console.log('Request Events');
+    console.log('Nr events:', events.length);
     return events as IEvent[];
   }
   
@@ -71,6 +81,11 @@ export class FirebaseService {
     });
     return validity;
   }
+  
+  static async updateRoom(room: IRoom): Promise<void> {
+    const eventsColl = firestore.collection('rooms');
+    const updated = eventsColl.doc(room.id).update(room);
+  }
 
   private static checkRoomValidity(event: IEvent, events: IEvent[]): boolean {
     let validity = true;
@@ -88,4 +103,5 @@ export class FirebaseService {
     const eventsColl = firestore.collection('events');
     await eventsColl.add({...event});
   }
+
 }

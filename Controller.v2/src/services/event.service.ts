@@ -1,10 +1,9 @@
 import { IEnhancedEvent, IEvent } from '../interfaces/event.interface';
 import { IRoom } from '../interfaces/room.interface';
+import { firestore as firebaseAdmin } from 'firebase-admin';
+
 
 export class EventService {
-  heatingUpRooms: Map<string, IRoom> = new Map();
-  coolRooms: Map<string, IRoom> = new Map();
-
 
   static async getEnhancedEvents(events: IEvent[], roomsMap: Map<string, IRoom>): Promise<IEnhancedEvent[]> {
     const eventsRoom = events.map(e => {
@@ -19,8 +18,8 @@ export class EventService {
   
   static updateTimes(events: IEnhancedEvent[]): IEnhancedEvent[] {
     return events.map(e => {
-      const startsIn = Math.round(((e.event.start.toMillis() - Date.now()) / 60000) * 100) / 100;
-      const endedIn = Math.round(((e.event.end.toMillis() - Date.now()) / 60000) * 100) / 100;
+      const startsIn = Math.round(((this.getUTCDateFromTimestamp(e.event.start).getTime() - (new Date()).getTime()) / 60000) * 100) / 100;
+      const endedIn = Math.round(((this.getUTCDateFromTimestamp(e.event.end).getTime() - (new Date()).getTime()) / 60000) * 100) / 100;
       return {...e, startsIn, endedIn};
     }).sort((a, b) => {
       if (a.startsIn > b.startsIn) {
@@ -33,19 +32,10 @@ export class EventService {
     });
   }
   
-  checkTimes(events: IEnhancedEvent[], beginCb: (room: IRoom, event: IEvent | undefined) => void, endCb: (room: IRoom, event: IEvent | undefined) => void): void {
+  static checkTimes(events: IEnhancedEvent[], roomsMap: Map<string, IRoom>, beginCb: (room: IRoom, event: IEvent | undefined) => void, endCb: (room: IRoom, event: IEvent | undefined) => void): void {
     const fritzRoomId = process.env.ROOM_FRIZTZ_ID;
-    const fritzRoomName = process.env.ROOM_NAME;
-    const floorRoom: IRoom = {
-      id: '123',
-      title: fritzRoomName? fritzRoomName : '',
-      comfortTemp: 21,
-      emptyTemp: 16,
-      createdFrom: '',
-      createdFromId: '',
-      eventColor: '',
-      fritzId: fritzRoomId? fritzRoomId : ''
-    }
+    const roomsArrBefore = [...Array.from(roomsMap.values())];
+    const floorRoom = Array.from(roomsMap.values()).find(r => r.fritzId === fritzRoomId);
 
     const actions: {type: 'heat' | 'cool', event: IEnhancedEvent}[] = [];
 
@@ -60,9 +50,10 @@ export class EventService {
     })
     .forEach(e => {
       const roomTempTime = e.room && e.room.tempTime ? e.room.tempTime : Number(process.env.FALLBACK_TEMP_THRESHOLD);
-      if (e.room && e.startsIn < roomTempTime && e.startsIn > 0) {
+      console.log('Event starts in:', e.startsIn);
+      if (e.room && e.startsIn < roomTempTime && e.startsIn > 0 && e.room.tempTime !== 0) {
         actions.push({type: 'heat', event: e});
-      } else if (e.room &&  e.endedIn < 0 && e.endedIn > -5) {
+      } else if (e.room &&  e.endedIn < 0 && e.endedIn > -5 && e.room.tempTime !== 0) {
         actions.push({type: 'cool', event: e});
       }
     });
@@ -72,30 +63,75 @@ export class EventService {
       if (action.event.room && !actionPerRoom.includes(action.event.room.id)) {
         actionPerRoom.push(action.event.room.id);
 
-        if (action.type === 'heat' && !this.heatingUpRooms.has(action.event.room.id)) {
-          this.heatingUpRooms.set(action.event.room.id, action.event.room);
-          this.coolRooms.delete(action.event.room.id);
+        if (action.type === 'heat' && !roomsMap.get(action.event.room.id)?.heated) {
+          roomsMap.set(action.event.room.id, {...action.event.room, heated: true, cooled: false});
           beginCb(action.event.room, action.event.event);
 
-        } else if (action.type === 'cool' && !this.coolRooms.has(action.event.room.id)) {
-          this.heatingUpRooms.delete(action.event.room.id);
-          this.coolRooms.set(action.event.room.id, action.event.room);
+        } else if (action.type === 'cool' && !roomsMap.get(action.event.room.id)?.cooled) {
+          roomsMap.set(action.event.room.id, {...action.event.room, heated: false, cooled: true});
           endCb(action.event.room, action.event.event);
         }
       }
     });
 
-    const shouldFloorBeHeated = !this.heatingUpRooms.has(floorRoom.id) && this.heatingUpRooms.size > 0;
-    const shouldFloorBeCooled = this.heatingUpRooms.has(floorRoom.id) && !this.coolRooms.has(floorRoom.id) && this.heatingUpRooms.size === 1;
+    if (floorRoom) {
+      const heatedRooms = Array.from(roomsMap.values()).filter(r => r.heated);
 
-    if (shouldFloorBeHeated && floorRoom.fritzId !== '') {
-      this.heatingUpRooms.set(floorRoom.id, floorRoom);
-      this.coolRooms.delete(floorRoom.id);
-      beginCb(floorRoom, undefined);
-    } else if (shouldFloorBeCooled) {
-      this.heatingUpRooms.delete(floorRoom.id);
-      this.coolRooms.set(floorRoom.id, floorRoom);
-      endCb(floorRoom, undefined);
+      const shouldFloorBeHeated = !roomsMap.get(floorRoom.id)?.heated && heatedRooms.length > 0;
+      const shouldFloorBeCooled = roomsMap.get(floorRoom.id)?.heated && !roomsMap.get(floorRoom.id)?.cooled && heatedRooms.length === 1;
+  
+      if (shouldFloorBeHeated && floorRoom.fritzId !== '') {
+        roomsMap.set(floorRoom.id, {...floorRoom, heated: true, cooled: false});
+        beginCb(floorRoom, undefined);
+        
+      } else if (shouldFloorBeCooled) {
+        roomsMap.set(floorRoom.id, {...floorRoom, heated: false, cooled: true});
+        endCb(floorRoom, undefined);
+      }
+    }
+  }
+
+  private static getUTCDateFromTimestamp(timestamp: firebaseAdmin.Timestamp): Date {
+    const [year, month, day] = this.getDate(timestamp.toDate()).split('-').map(s => Number(s));
+    const [hours, minutes] = this.getTime(timestamp.toDate()).split(':').map(s => Number(s));
+
+    const date = new Date(year, month, day, hours, minutes);
+    return date;
+  }
+
+  private static getTime(date: Date): string {
+    if (date) {
+      let hours = date.getUTCHours().toString();
+      let min = date.getMinutes().toString();
+      if (hours.length === 1) {
+        hours = '0' + hours;
+      }
+      if (min.length === 1) {
+        min = '0' + min;
+      }
+      return `${hours}:${min}`;
+    } else {
+      return '';
+    }
+  }
+
+  private static getDate(date: Date, addDays = 0): string {
+    if (date) {
+      const year = date.getFullYear();
+      let month = (date.getMonth()).toString();
+      date.setDate(date.getDate() + addDays);
+      let day = date.getDate().toString();
+  
+      if (month.length === 1) {
+        month = '0' + month;
+      }
+      if (day.length === 1) {
+        day = '0' + day;
+      }
+  
+      return `${year}-${month}-${day}`;
+    } else {
+      return '';
     }
   }
 }

@@ -8,4 +8,7 @@ export interface IRoom {
   createdFromId: string;
   eventColor: string;
   tempTime?: number;
+  cooled?: boolean;
+  heated?: boolean;
+  hidden?: boolean;
 }

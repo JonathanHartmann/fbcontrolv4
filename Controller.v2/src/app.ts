@@ -1,6 +1,4 @@
-import http from 'http';
 import dotenv from 'dotenv';
-
 import { IEvent } from './interfaces/event.interface';
 import { IRoom } from './interfaces/room.interface';
 import { SIDService } from './services/file.service';
@@ -9,37 +7,19 @@ import { FritzService } from './services/fritz.service';
 import { EventService } from './services/event.service';
 dotenv.config();
 
-const hostname = '127.0.0.1';
-const port = 3000;
-const intervalTime = Number(process.env.CHECK_INTERVAL_TIME); // in seconds
 
-
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Conrtoller is running!');
-});
-
-server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
-  const checkIntervalTime = intervalTime && intervalTime > 10 ? intervalTime * 1000 : 60 * 1000;
-  console.log(`Checking events every ${checkIntervalTime / 1000} seconds`);
-  const eventService = new EventService();
-  setInterval(() => {
-    FirebaseService.loadEvents().then(events => {
-      const filteredEvents = events.filter(e => !e.background);
-      getRoomsMap().then(roomsMap => {
-        checkEvents(filteredEvents, roomsMap, eventService);
-      });
+const start = () => {
+  FirebaseService.loadEvents().then(events => {
+    const filteredEvents = events.filter(e => !e.background);
+    getRoomsMap().then(roomsMap => {
+      checkEvents(filteredEvents, roomsMap);
     });
-  }, checkIntervalTime);
-});
+  });
+};
 
-function checkEvents(events: IEvent[], roomsMap: Map<string, IRoom>, eventService: EventService) {
+const checkEvents = (events: IEvent[], roomsMap: Map<string, IRoom>) => {
   console.log(new Date().toISOString(), ' - Start check...');
   SIDService.readSIDFile(async function (err, sid) {
-    console.log('SID:', sid);
-    console.log('SID:', sid.length);
     if (err) {
       console.error('Could not read sid.txt! ', err);
 
@@ -48,15 +28,16 @@ function checkEvents(events: IEvent[], roomsMap: Map<string, IRoom>, eventServic
 
     } else {
       const eventsEnh = await EventService.getEnhancedEvents(events, roomsMap);
-      eventService.checkTimes(eventsEnh,
+      EventService.checkTimes(eventsEnh, roomsMap,
         (room, event) => {
           // Before the event
+          FirebaseService.updateRoom({...room, heated: true, cooled: false});
           FritzService.heatUpRoom(room, sid);
         },
         (room, event) => {
           // After the event
-          FritzService.coolDownRoom(room, sid);+
-          console.log('name', event?.title, 'endless?', event?.seriesEndless, ' - id:', event?.seriesId);
+          FirebaseService.updateRoom({...room, heated: false, cooled: true});
+          FritzService.coolDownRoom(room, sid);
           if (event?.seriesEndless && event.seriesId) {
             console.log('try to create new evetn');
             FirebaseService.appendEndlessEvent(events, event.seriesId);
@@ -68,9 +49,11 @@ function checkEvents(events: IEvent[], roomsMap: Map<string, IRoom>, eventServic
   });
 }
 
-async function getRoomsMap(): Promise<Map<string, IRoom>> {
+const getRoomsMap = async (): Promise<Map<string, IRoom>> => {
   const roomsArr = await FirebaseService.loadRooms();
   const roomsMap = new Map<string, IRoom>();
   roomsArr.forEach(r => roomsMap.set(r.id, r));
   return roomsMap;
 }
+
+start();
