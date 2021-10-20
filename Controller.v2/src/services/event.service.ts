@@ -34,8 +34,9 @@ export class EventService {
   
   static checkTimes(events: IEnhancedEvent[], roomsMap: Map<string, IRoom>, beginCb: (room: IRoom, event: IEvent | undefined) => void, endCb: (room: IRoom, event: IEvent | undefined) => void): void {
     const fritzRoomId = process.env.ROOM_FRIZTZ_ID;
-    const roomsArrBefore = [...Array.from(roomsMap.values())];
     const floorRoom = Array.from(roomsMap.values()).find(r => r.fritzId === fritzRoomId);
+
+    console.log('Floor room:', floorRoom);
 
     const actions: {type: 'heat' | 'cool', event: IEnhancedEvent}[] = [];
 
@@ -50,23 +51,23 @@ export class EventService {
     })
     .forEach(e => {
       const roomTempTime = e.room && e.room.tempTime ? e.room.tempTime : Number(process.env.FALLBACK_TEMP_THRESHOLD);
-      console.log('Event starts in:', e.startsIn);
-      if (e.room && e.startsIn < roomTempTime && e.startsIn > 0 && e.room.tempTime !== 0) {
+      if (e.room && e.startsIn < roomTempTime && e.endedIn > 0 && e.room.tempTime !== 0) {
         actions.push({type: 'heat', event: e});
-      } else if (e.room &&  e.endedIn < 0 && e.endedIn > -5 && e.room.tempTime !== 0) {
+      } else if (e.room && e.endedIn < 0 && e.endedIn > -5 && e.room.tempTime !== 0) {
         actions.push({type: 'cool', event: e});
       }
     });
-
+    
+    console.log('Actions:', actions);
     const actionPerRoom: string[] = [];
     actions.reverse().forEach(action => {
       if (action.event.room && !actionPerRoom.includes(action.event.room.id)) {
         actionPerRoom.push(action.event.room.id);
-
+        
         if (action.type === 'heat' && !roomsMap.get(action.event.room.id)?.heated) {
           roomsMap.set(action.event.room.id, {...action.event.room, heated: true, cooled: false});
           beginCb(action.event.room, action.event.event);
-
+          
         } else if (action.type === 'cool' && !roomsMap.get(action.event.room.id)?.cooled) {
           roomsMap.set(action.event.room.id, {...action.event.room, heated: false, cooled: true});
           endCb(action.event.room, action.event.event);

@@ -8,6 +8,7 @@ export interface IRoom {
   createdFromId: string;
   eventColor: string;
   tempTime?: number;
+  hidden?: boolean;
 }
 
 export const HOLIDAY_MOCK_ROOM = {
@@ -18,5 +19,6 @@ export const HOLIDAY_MOCK_ROOM = {
   fritzId: '',
   createdFrom: '',
   createdFromId: '',
-  eventColor: '#b1b1b1'
+  eventColor: '#b1b1b1',
+  hidden: false
 }

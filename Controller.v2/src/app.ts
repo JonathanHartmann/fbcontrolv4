@@ -39,7 +39,7 @@ const checkEvents = (events: IEvent[], roomsMap: Map<string, IRoom>) => {
           FirebaseService.updateRoom({...room, heated: false, cooled: true});
           FritzService.coolDownRoom(room, sid);
           if (event?.seriesEndless && event.seriesId) {
-            console.log('try to create new evetn');
+            console.log('try to create new event');
             FirebaseService.appendEndlessEvent(events, event.seriesId);
           }
         }

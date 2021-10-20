@@ -78,7 +78,7 @@ export default class EditEvent extends PageMixin(LitElement) {
   backgroundInput!: HTMLInputElement;
 
   stateChanged(state: IState): void {
-    this.rooms = [HOLIDAY_MOCK_ROOM, ...state.rooms];
+    this.rooms = [HOLIDAY_MOCK_ROOM, ...state.rooms].filter(r => !r.hidden);
     this.user = state.user;
   }
 

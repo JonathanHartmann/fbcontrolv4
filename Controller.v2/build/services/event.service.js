@@ -46,15 +46,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EventService = void 0;
 var EventService = /** @class */ (function () {
@@ -96,8 +87,8 @@ var EventService = /** @class */ (function () {
     EventService.checkTimes = function (events, roomsMap, beginCb, endCb) {
         var _a, _b, _c;
         var fritzRoomId = process.env.ROOM_FRIZTZ_ID;
-        var roomsArrBefore = __spreadArray([], Array.from(roomsMap.values()), true);
         var floorRoom = Array.from(roomsMap.values()).find(function (r) { return r.fritzId === fritzRoomId; });
+        console.log('Floor room:', floorRoom);
         var actions = [];
         events.sort(function (a, b) {
             if (a.event.start > b.event.start) {
@@ -112,14 +103,14 @@ var EventService = /** @class */ (function () {
         })
             .forEach(function (e) {
             var roomTempTime = e.room && e.room.tempTime ? e.room.tempTime : Number(process.env.FALLBACK_TEMP_THRESHOLD);
-            console.log('Event starts in:', e.startsIn);
-            if (e.room && e.startsIn < roomTempTime && e.startsIn > 0 && e.room.tempTime !== 0) {
+            if (e.room && e.startsIn < roomTempTime && e.endedIn > 0 && e.room.tempTime !== 0) {
                 actions.push({ type: 'heat', event: e });
             }
             else if (e.room && e.endedIn < 0 && e.endedIn > -5 && e.room.tempTime !== 0) {
                 actions.push({ type: 'cool', event: e });
             }
         });
+        console.log('Actions:', actions);
         var actionPerRoom = [];
         actions.reverse().forEach(function (action) {
             var _a, _b;

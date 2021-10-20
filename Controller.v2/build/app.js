@@ -91,7 +91,7 @@ var checkEvents = function (events, roomsMap) {
                             firebase_service_1.FirebaseService.updateRoom(__assign(__assign({}, room), { heated: false, cooled: true }));
                             fritz_service_1.FritzService.coolDownRoom(room, sid);
                             if ((event === null || event === void 0 ? void 0 : event.seriesEndless) && event.seriesId) {
-                                console.log('try to create new evetn');
+                                console.log('try to create new event');
                                 firebase_service_1.FirebaseService.appendEndlessEvent(events, event.seriesId);
                             }
                         });

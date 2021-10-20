@@ -113,7 +113,9 @@ export default class WebCalendar extends PageMixin(LitElement) {
     }
     if (state.rooms.length > 0) {
       state.rooms.forEach(room => {
-        this.rooms.set(room.id, {room, checked: this.rooms.get(room.id) ? !!this.rooms.get(room.id)?.checked : true});
+        if (!room.hidden) {
+          this.rooms.set(room.id, {room, checked: this.rooms.get(room.id) ? !!this.rooms.get(room.id)?.checked : true});
+        }
       });
       this.filterEvents();
       this.setResources();

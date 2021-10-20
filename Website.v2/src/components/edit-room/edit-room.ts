@@ -31,6 +31,7 @@ export default class EditRoom extends PageMixin(LitElement) {
 
   render(): TemplateResult {
     if (this.room) {
+      this.room.hidden = this.room.hidden? true : false;
       return html`
         <!-- Button trigger modal -->
         <button type="button" class="btn btn-light" data-toggle="modal" data-target=${'#editRoom' + this.room.id}>
@@ -73,6 +74,12 @@ export default class EditRoom extends PageMixin(LitElement) {
                     <label for=${'color' + this.room.id} class="form-label">Farbe im Kalender</label>
                     <input type="color" id=${'color' + this.room.id} class="form-control form-control-color" name="color" value=${this.room.eventColor}>
                   </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" ?checked=${this.room.hidden} id=${'hiddenRoom' + this.room.id}>
+                    <label class="form-check-label" for=${'hiddenRoom' + this.room.id}>
+                      Ankreuzen, wenn in diesem Raum keine Veranstaltungen stattfinden können. (Flure zum Beispiel)
+                    </label>
+                  </div>
                 </form>
               </div>
               <div class="message-box mx-3">
@@ -101,6 +108,7 @@ export default class EditRoom extends PageMixin(LitElement) {
       const tempTimeInput = document.getElementById('tempTime' + this.room.id) as HTMLInputElement;
       const fritzIdInput = document.getElementById('fritzId' + this.room.id) as HTMLInputElement;
       const colorInput = document.getElementById('color' + this.room.id) as HTMLInputElement;
+      const hidden = (document.getElementById('hiddenRoom' + this.room.id) as HTMLInputElement).checked;
 
       await RoomService.updateRoom({
         id: this.room.id,
@@ -111,7 +119,8 @@ export default class EditRoom extends PageMixin(LitElement) {
         createdFrom: this.user?.name,
         createdFromId: this.user?.id,
         eventColor: colorInput.value,
-        tempTime: Number(tempTimeInput.value)
+        tempTime: Number(tempTimeInput.value),
+        hidden: hidden
       } as IRoom);
       document.getElementById('close' + this.room.id)?.click();
     } else {

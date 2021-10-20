@@ -67,7 +67,7 @@ export default class AddEvent extends PageMixin(LitElement) {
   createEventModal!: HTMLElement;
 
   stateChanged(state: IState): void {
-    this.rooms = state.rooms;
+    this.rooms = state.rooms.filter(r => !r.hidden);
     this.user = state.user;
   }
 
