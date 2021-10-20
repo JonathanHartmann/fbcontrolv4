@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -39,36 +50,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var http_1 = __importDefault(require("http"));
 var dotenv_1 = __importDefault(require("dotenv"));
 var file_service_1 = require("./services/file.service");
 var firebase_service_1 = require("./services/firebase.service");
 var fritz_service_1 = require("./services/fritz.service");
 var event_service_1 = require("./services/event.service");
 dotenv_1.default.config();
-var hostname = '127.0.0.1';
-var port = 3000;
-var intervalTime = Number(process.env.CHECK_INTERVAL_TIME); // in seconds
-var server = http_1.default.createServer(function (req, res) {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    res.end('Hello World');
-});
-server.listen(port, hostname, function () {
-    console.log("Server running at http://" + hostname + ":" + port + "/");
-    var checkIntervalTime = intervalTime && intervalTime > 10 ? intervalTime * 1000 : 60 * 1000;
-    console.log("Checking events every " + checkIntervalTime / 1000 + " seconds");
-    var eventService = new event_service_1.EventService();
-    setInterval(function () {
-        firebase_service_1.FirebaseService.loadEvents().then(function (events) {
-            var filteredEvents = events.filter(function (e) { return !e.background; });
-            getRoomsMap().then(function (roomsMap) {
-                checkEvents(filteredEvents, roomsMap, eventService);
-            });
+var start = function () {
+    firebase_service_1.FirebaseService.loadEvents().then(function (events) {
+        var filteredEvents = events.filter(function (e) { return !e.background; });
+        getRoomsMap().then(function (roomsMap) {
+            checkEvents(filteredEvents, roomsMap);
         });
-    }, checkIntervalTime);
-});
-function checkEvents(events, roomsMap, eventService) {
+    });
+};
+var checkEvents = function (events, roomsMap) {
     console.log(new Date().toISOString(), ' - Start check...');
     file_service_1.SIDService.readSIDFile(function (err, sid) {
         return __awaiter(this, void 0, void 0, function () {
@@ -76,8 +72,6 @@ function checkEvents(events, roomsMap, eventService) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        console.log('SID:', sid);
-                        console.log('SID:', sid.length);
                         if (!err) return [3 /*break*/, 1];
                         console.error('Could not read sid.txt! ', err);
                         return [3 /*break*/, 4];
@@ -88,13 +82,14 @@ function checkEvents(events, roomsMap, eventService) {
                     case 2: return [4 /*yield*/, event_service_1.EventService.getEnhancedEvents(events, roomsMap)];
                     case 3:
                         eventsEnh = _a.sent();
-                        eventService.checkTimes(eventsEnh, function (room, event) {
+                        event_service_1.EventService.checkTimes(eventsEnh, roomsMap, function (room, event) {
                             // Before the event
+                            firebase_service_1.FirebaseService.updateRoom(__assign(__assign({}, room), { heated: true, cooled: false }));
                             fritz_service_1.FritzService.heatUpRoom(room, sid);
                         }, function (room, event) {
                             // After the event
+                            firebase_service_1.FirebaseService.updateRoom(__assign(__assign({}, room), { heated: false, cooled: true }));
                             fritz_service_1.FritzService.coolDownRoom(room, sid);
-                            +console.log('name', event === null || event === void 0 ? void 0 : event.title, 'endless?', event === null || event === void 0 ? void 0 : event.seriesEndless, ' - id:', event === null || event === void 0 ? void 0 : event.seriesId);
                             if ((event === null || event === void 0 ? void 0 : event.seriesEndless) && event.seriesId) {
                                 console.log('try to create new evetn');
                                 firebase_service_1.FirebaseService.appendEndlessEvent(events, event.seriesId);
@@ -108,19 +103,18 @@ function checkEvents(events, roomsMap, eventService) {
             });
         });
     });
-}
-function getRoomsMap() {
-    return __awaiter(this, void 0, void 0, function () {
-        var roomsArr, roomsMap;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, firebase_service_1.FirebaseService.loadRooms()];
-                case 1:
-                    roomsArr = _a.sent();
-                    roomsMap = new Map();
-                    roomsArr.forEach(function (r) { return roomsMap.set(r.id, r); });
-                    return [2 /*return*/, roomsMap];
-            }
-        });
+};
+var getRoomsMap = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var roomsArr, roomsMap;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, firebase_service_1.FirebaseService.loadRooms()];
+            case 1:
+                roomsArr = _a.sent();
+                roomsMap = new Map();
+                roomsArr.forEach(function (r) { return roomsMap.set(r.id, r); });
+                return [2 /*return*/, roomsMap];
+        }
     });
-}
+}); };
+start();

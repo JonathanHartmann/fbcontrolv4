@@ -46,12 +46,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EventService = void 0;
 var EventService = /** @class */ (function () {
     function EventService() {
-        this.heatingUpRooms = new Map();
-        this.coolRooms = new Map();
     }
     EventService.getEnhancedEvents = function (events, roomsMap) {
         return __awaiter(this, void 0, void 0, function () {
@@ -69,9 +76,10 @@ var EventService = /** @class */ (function () {
         });
     };
     EventService.updateTimes = function (events) {
+        var _this = this;
         return events.map(function (e) {
-            var startsIn = Math.round(((e.event.start.toMillis() - Date.now()) / 60000) * 100) / 100;
-            var endedIn = Math.round(((e.event.end.toMillis() - Date.now()) / 60000) * 100) / 100;
+            var startsIn = Math.round(((_this.getUTCDateFromTimestamp(e.event.start).getTime() - (new Date()).getTime()) / 60000) * 100) / 100;
+            var endedIn = Math.round(((_this.getUTCDateFromTimestamp(e.event.end).getTime() - (new Date()).getTime()) / 60000) * 100) / 100;
             return __assign(__assign({}, e), { startsIn: startsIn, endedIn: endedIn });
         }).sort(function (a, b) {
             if (a.startsIn > b.startsIn) {
@@ -85,20 +93,11 @@ var EventService = /** @class */ (function () {
             }
         });
     };
-    EventService.prototype.checkTimes = function (events, beginCb, endCb) {
-        var _this = this;
+    EventService.checkTimes = function (events, roomsMap, beginCb, endCb) {
+        var _a, _b, _c;
         var fritzRoomId = process.env.ROOM_FRIZTZ_ID;
-        var fritzRoomName = process.env.ROOM_NAME;
-        var floorRoom = {
-            id: '123',
-            title: fritzRoomName ? fritzRoomName : '',
-            comfortTemp: 21,
-            emptyTemp: 16,
-            createdFrom: '',
-            createdFromId: '',
-            eventColor: '',
-            fritzId: fritzRoomId ? fritzRoomId : ''
-        };
+        var roomsArrBefore = __spreadArray([], Array.from(roomsMap.values()), true);
+        var floorRoom = Array.from(roomsMap.values()).find(function (r) { return r.fritzId === fritzRoomId; });
         var actions = [];
         events.sort(function (a, b) {
             if (a.event.start > b.event.start) {
@@ -113,40 +112,82 @@ var EventService = /** @class */ (function () {
         })
             .forEach(function (e) {
             var roomTempTime = e.room && e.room.tempTime ? e.room.tempTime : Number(process.env.FALLBACK_TEMP_THRESHOLD);
-            if (e.room && e.startsIn < roomTempTime && e.startsIn > 0) {
+            console.log('Event starts in:', e.startsIn);
+            if (e.room && e.startsIn < roomTempTime && e.startsIn > 0 && e.room.tempTime !== 0) {
                 actions.push({ type: 'heat', event: e });
             }
-            else if (e.room && e.endedIn < 0 && e.endedIn > -5) {
+            else if (e.room && e.endedIn < 0 && e.endedIn > -5 && e.room.tempTime !== 0) {
                 actions.push({ type: 'cool', event: e });
             }
         });
         var actionPerRoom = [];
         actions.reverse().forEach(function (action) {
+            var _a, _b;
             if (action.event.room && !actionPerRoom.includes(action.event.room.id)) {
                 actionPerRoom.push(action.event.room.id);
-                if (action.type === 'heat' && !_this.heatingUpRooms.has(action.event.room.id)) {
-                    _this.heatingUpRooms.set(action.event.room.id, action.event.room);
-                    _this.coolRooms.delete(action.event.room.id);
+                if (action.type === 'heat' && !((_a = roomsMap.get(action.event.room.id)) === null || _a === void 0 ? void 0 : _a.heated)) {
+                    roomsMap.set(action.event.room.id, __assign(__assign({}, action.event.room), { heated: true, cooled: false }));
                     beginCb(action.event.room, action.event.event);
                 }
-                else if (action.type === 'cool' && !_this.coolRooms.has(action.event.room.id)) {
-                    _this.heatingUpRooms.delete(action.event.room.id);
-                    _this.coolRooms.set(action.event.room.id, action.event.room);
+                else if (action.type === 'cool' && !((_b = roomsMap.get(action.event.room.id)) === null || _b === void 0 ? void 0 : _b.cooled)) {
+                    roomsMap.set(action.event.room.id, __assign(__assign({}, action.event.room), { heated: false, cooled: true }));
                     endCb(action.event.room, action.event.event);
                 }
             }
         });
-        var shouldFloorBeHeated = !this.heatingUpRooms.has(floorRoom.id) && this.heatingUpRooms.size > 0;
-        var shouldFloorBeCooled = this.heatingUpRooms.has(floorRoom.id) && !this.coolRooms.has(floorRoom.id) && this.heatingUpRooms.size === 1;
-        if (shouldFloorBeHeated && floorRoom.fritzId !== '') {
-            this.heatingUpRooms.set(floorRoom.id, floorRoom);
-            this.coolRooms.delete(floorRoom.id);
-            beginCb(floorRoom, undefined);
+        if (floorRoom) {
+            var heatedRooms = Array.from(roomsMap.values()).filter(function (r) { return r.heated; });
+            var shouldFloorBeHeated = !((_a = roomsMap.get(floorRoom.id)) === null || _a === void 0 ? void 0 : _a.heated) && heatedRooms.length > 0;
+            var shouldFloorBeCooled = ((_b = roomsMap.get(floorRoom.id)) === null || _b === void 0 ? void 0 : _b.heated) && !((_c = roomsMap.get(floorRoom.id)) === null || _c === void 0 ? void 0 : _c.cooled) && heatedRooms.length === 1;
+            if (shouldFloorBeHeated && floorRoom.fritzId !== '') {
+                roomsMap.set(floorRoom.id, __assign(__assign({}, floorRoom), { heated: true, cooled: false }));
+                beginCb(floorRoom, undefined);
+            }
+            else if (shouldFloorBeCooled) {
+                roomsMap.set(floorRoom.id, __assign(__assign({}, floorRoom), { heated: false, cooled: true }));
+                endCb(floorRoom, undefined);
+            }
         }
-        else if (shouldFloorBeCooled) {
-            this.heatingUpRooms.delete(floorRoom.id);
-            this.coolRooms.set(floorRoom.id, floorRoom);
-            endCb(floorRoom, undefined);
+    };
+    EventService.getUTCDateFromTimestamp = function (timestamp) {
+        var _a = this.getDate(timestamp.toDate()).split('-').map(function (s) { return Number(s); }), year = _a[0], month = _a[1], day = _a[2];
+        var _b = this.getTime(timestamp.toDate()).split(':').map(function (s) { return Number(s); }), hours = _b[0], minutes = _b[1];
+        var date = new Date(year, month, day, hours, minutes);
+        return date;
+    };
+    EventService.getTime = function (date) {
+        if (date) {
+            var hours = date.getUTCHours().toString();
+            var min = date.getMinutes().toString();
+            if (hours.length === 1) {
+                hours = '0' + hours;
+            }
+            if (min.length === 1) {
+                min = '0' + min;
+            }
+            return hours + ":" + min;
+        }
+        else {
+            return '';
+        }
+    };
+    EventService.getDate = function (date, addDays) {
+        if (addDays === void 0) { addDays = 0; }
+        if (date) {
+            var year = date.getFullYear();
+            var month = (date.getMonth()).toString();
+            date.setDate(date.getDate() + addDays);
+            var day = date.getDate().toString();
+            if (month.length === 1) {
+                month = '0' + month;
+            }
+            if (day.length === 1) {
+                day = '0' + day;
+            }
+            return year + "-" + month + "-" + day;
+        }
+        else {
+            return '';
         }
     };
     return EventService;

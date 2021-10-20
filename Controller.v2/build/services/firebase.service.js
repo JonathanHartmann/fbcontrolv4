@@ -55,14 +55,24 @@ var FirebaseService = /** @class */ (function () {
     }
     FirebaseService.loadEvents = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var eventSnap, events;
+            var startDate, endDate, startTimestamp, endTimestamp, eventSnap, events;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, firebase_1.firestore.collection('events').get()];
+                    case 0:
+                        startDate = new Date();
+                        startDate.setHours(startDate.getHours() - 2);
+                        endDate = new Date();
+                        endDate.setHours(24);
+                        startTimestamp = firebase_admin_1.firestore.Timestamp.fromDate(startDate);
+                        endTimestamp = firebase_admin_1.firestore.Timestamp.fromDate(endDate);
+                        return [4 /*yield*/, firebase_1.firestore.collection('events')
+                                .where('start', '>', startTimestamp)
+                                .where('start', '<', endTimestamp)
+                                .get()];
                     case 1:
                         eventSnap = _a.sent();
                         events = FirebaseService.getDataFromSnapshot(eventSnap);
-                        console.log('Request Events');
+                        console.log('Nr events:', events.length);
                         return [2 /*return*/, events];
                 }
             });
@@ -131,6 +141,16 @@ var FirebaseService = /** @class */ (function () {
             }
         });
         return validity;
+    };
+    FirebaseService.updateRoom = function (room) {
+        return __awaiter(this, void 0, void 0, function () {
+            var eventsColl, updated;
+            return __generator(this, function (_a) {
+                eventsColl = firebase_1.firestore.collection('rooms');
+                updated = eventsColl.doc(room.id).update(room);
+                return [2 /*return*/];
+            });
+        });
     };
     FirebaseService.checkRoomValidity = function (event, events) {
         var validity = true;
