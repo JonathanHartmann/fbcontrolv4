@@ -33,7 +33,7 @@ export class EventService {
   }
   
   static checkTimes(events: IEnhancedEvent[], roomsMap: Map<string, IRoom>, beginCb: (room: IRoom, event: IEvent | undefined) => void, endCb: (room: IRoom, event: IEvent | undefined) => void): void {
-    const fritzRoomId = process.env.ROOM_FRIZTZ_ID;
+    const fritzRoomId = process.env.ROOM_FRITZ_ID;
     const floorRoom = Array.from(roomsMap.values()).find(r => r.fritzId === fritzRoomId);
 
     console.log('Floor room:', floorRoom);

@@ -86,7 +86,7 @@ var EventService = /** @class */ (function () {
     };
     EventService.checkTimes = function (events, roomsMap, beginCb, endCb) {
         var _a, _b, _c;
-        var fritzRoomId = process.env.ROOM_FRIZTZ_ID;
+        var fritzRoomId = process.env.ROOM_FRITZ_ID;
         var floorRoom = Array.from(roomsMap.values()).find(function (r) { return r.fritzId === fritzRoomId; });
         console.log('Floor room:', floorRoom);
         var actions = [];
