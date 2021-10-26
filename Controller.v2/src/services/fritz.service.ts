@@ -1,4 +1,4 @@
-import http from 'http';
+import https from 'https';
 
 import { IRoom } from '../interfaces/room.interface';
 
@@ -6,13 +6,13 @@ export class FritzService {
   static async heatUpRoom(room: IRoom, sid: string): Promise<void> {
     console.log('🔼 Heat up room: ', room.title);
     const baseUrl = process.env.FRITZ_ADDRESS;
-    const roomId = room.id;
+    const roomId = room.fritzId;  
     const temp = room.comfortTemp;
     const url = `${baseUrl}/webservices/homeautoswitch.lua?sid=${sid}&ain=${roomId}&switchcmd=sethkrtsoll&param=${temp * 2}`;
     console.log('call: ', url);
     const prodMode = process.env.MODE;
     if (prodMode === 'prod') {
-      http.get(url, (res) => {
+      https.get(url, (res) => {
         let data = '';
         // A chunk of data has been received.
         res.on('data', (chunk) => {
@@ -30,13 +30,13 @@ export class FritzService {
   static async coolDownRoom(room: IRoom, sid: string): Promise<void> {
     console.log('🔽 Cool down room: ', room.title);
     const baseUrl = process.env.FRITZ_ADDRESS;
-    const roomId = room.id;
+    const roomId = room.fritzId;  
     const temp = room.emptyTemp;
     const url = `${baseUrl}/webservices/homeautoswitch.lua?sid=${sid}&ain=${roomId}&switchcmd=sethkrtsoll&param=${temp * 2}`;
     console.log('call: ', url);
     const prodMode = process.env.MODE;
     if (prodMode === 'prod') {
-      http.get(url, (res) => {
+      https.get(url, (res) => {
         let data = '';
         // A chunk of data has been received.
         res.on('data', (chunk) => {

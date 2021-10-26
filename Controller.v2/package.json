@@ -8,7 +8,7 @@
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"build": "rimraf ./build && tsc",
 		"start": "nodemon",
-		"start:prod": "node app.js"
+		"start:prod": "node ./build/app.js"
 	},
 	"keywords": [],
 	"author": "",
@@ -19,8 +19,8 @@
 		"rimraf": "^3.0.2",
 		"ts-node": "^10.2.1",
 		"typescript": "^4.4.2",
-		"@swc/core@": "1.2.50",
-		"@swc/wasm@": "1.2.50"
+		"@swc/core": "1.2.50",
+		"@swc/wasm": "1.2.50"
 	},
 	"dependencies": {
 		"dotenv": "^10.0.0",
