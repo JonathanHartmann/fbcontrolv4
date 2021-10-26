@@ -6,9 +6,11 @@ import { IRoom } from '../interfaces/room.interface';
 export class FirebaseService {
   static async loadEvents(): Promise<IEvent[]> {
     const startDate = new Date();
-    startDate.setHours(startDate.getHours() - 2);
+    startDate.setHours(0);
+    startDate.setMinutes(0);
     const endDate = new Date();
     endDate.setHours(24);
+    startDate.setMinutes(60);
     const startTimestamp = firebaseAdmin.Timestamp.fromDate(startDate);
     const endTimestamp = firebaseAdmin.Timestamp.fromDate(endDate);
 

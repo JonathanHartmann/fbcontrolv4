@@ -40,7 +40,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FritzService = void 0;
-var http_1 = __importDefault(require("http"));
+var https_1 = __importDefault(require("https"));
 var FritzService = /** @class */ (function () {
     function FritzService() {
     }
@@ -50,13 +50,13 @@ var FritzService = /** @class */ (function () {
             return __generator(this, function (_a) {
                 console.log('🔼 Heat up room: ', room.title);
                 baseUrl = process.env.FRITZ_ADDRESS;
-                roomId = room.id;
+                roomId = room.fritzId;
                 temp = room.comfortTemp;
                 url = baseUrl + "/webservices/homeautoswitch.lua?sid=" + sid + "&ain=" + roomId + "&switchcmd=sethkrtsoll&param=" + temp * 2;
                 console.log('call: ', url);
                 prodMode = process.env.MODE;
                 if (prodMode === 'prod') {
-                    http_1.default.get(url, function (res) {
+                    https_1.default.get(url, function (res) {
                         var data = '';
                         // A chunk of data has been received.
                         res.on('data', function (chunk) {
@@ -79,13 +79,13 @@ var FritzService = /** @class */ (function () {
             return __generator(this, function (_a) {
                 console.log('🔽 Cool down room: ', room.title);
                 baseUrl = process.env.FRITZ_ADDRESS;
-                roomId = room.id;
+                roomId = room.fritzId;
                 temp = room.emptyTemp;
                 url = baseUrl + "/webservices/homeautoswitch.lua?sid=" + sid + "&ain=" + roomId + "&switchcmd=sethkrtsoll&param=" + temp * 2;
                 console.log('call: ', url);
                 prodMode = process.env.MODE;
                 if (prodMode === 'prod') {
-                    http_1.default.get(url, function (res) {
+                    https_1.default.get(url, function (res) {
                         var data = '';
                         // A chunk of data has been received.
                         res.on('data', function (chunk) {
