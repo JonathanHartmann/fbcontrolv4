@@ -24,7 +24,8 @@ const checkEvents = (events: IEvent[], roomsMap: Map<string, IRoom>) => {
       console.error('Could not read sid.txt! ', err);
 
     } else if (sid.length !== 16) {
-      SIDService.requestNewSID();
+      console.log('lenght of SID not correct!');
+    SIDService.requestNewSID();
 
     } else {
       const eventsEnh = await EventService.getEnhancedEvents(events, roomsMap);

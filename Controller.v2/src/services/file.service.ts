@@ -7,9 +7,11 @@ export class SIDService {
     const sidPath = process.env.SID_FILE;
     if (sidPath) {
       const filename = path.join(__dirname, sidPath);
-      fs.readFile(filename, 'utf16le', (err: NodeJS.ErrnoException | null, data: string) => {
+      fs.readFile(filename, 'utf8', (err: NodeJS.ErrnoException | null, data: string) => {
+        console.log('Encrypt SID ', data);
         if (process.env.SID_KEY) {
           const sid = SIDService.decrypt(data, process.env.SID_KEY);
+          console.log('Decrypt SID ', sid);
           cb(err, sid);
         }
       });
