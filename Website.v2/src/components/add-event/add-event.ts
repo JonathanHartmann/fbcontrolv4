@@ -196,11 +196,12 @@ export default class AddEvent extends PageMixin(LitElement) {
       const endDate = this.getDateFromInput(this.endDateInput.value);
       const endTime = !this.allDay? this.getTimeFromInput(this.endTimeInput.value) : undefined;
       
-      const start = !this.allDay? new Date(Date.UTC(startDate[0], startDate[1]-1, startDate[2], startTime![0], startTime![1])) : new Date(Date.UTC(startDate[0], startDate[1]));
-      const end = !this.allDay? new Date(Date.UTC(endDate[0], endDate[1]-1, endDate[2], endTime![0], endTime![1])) : new Date(Date.UTC(endDate[0], endDate[1]));
+      const start = !this.allDay? new Date(Date.UTC(startDate[0], startDate[1]-1, startDate[2], startTime![0], startTime![1])) : new Date(Date.UTC(startDate[0], startDate[1]-1, startDate[2]));
+      const end = !this.allDay? new Date(Date.UTC(endDate[0], endDate[1]-1, endDate[2], endTime![0], endTime![1])) : new Date(Date.UTC(endDate[0], endDate[1]-1, endDate[2]));
       const startTimeStamp = Timestamp.fromDate(start);
       const endTimeStamp = Timestamp.fromDate(end);
-      if (startTimeStamp < endTimeStamp) {
+
+      if (startTimeStamp <= endTimeStamp) {
         try {
           await EventService.createEvent({
             title: this.titleInput.value,

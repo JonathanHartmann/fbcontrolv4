@@ -141,7 +141,8 @@ export class EventService {
       createdFromId: user.id,
       createdAt: Timestamp.now(),
       background: true,
-      allDay: true
+      allDay: true,
+      seriesEndless: false,
     } as IEvent);
   }
 
