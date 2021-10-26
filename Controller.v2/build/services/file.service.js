@@ -14,9 +14,11 @@ var SIDService = /** @class */ (function () {
         var sidPath = process.env.SID_FILE;
         if (sidPath) {
             var filename = path_1.default.join(__dirname, sidPath);
-            fs_1.default.readFile(filename, 'utf16le', function (err, data) {
+            fs_1.default.readFile(filename, 'utf8', function (err, data) {
+                console.log('Encrypt SID ', data);
                 if (process.env.SID_KEY) {
                     var sid = SIDService.decrypt(data, process.env.SID_KEY);
+                    console.log('Decrypt SID ', sid);
                     cb(err, sid);
                 }
             });

@@ -77,6 +77,7 @@ var checkEvents = function (events, roomsMap) {
                         return [3 /*break*/, 4];
                     case 1:
                         if (!(sid.length !== 16)) return [3 /*break*/, 2];
+                        console.log('lenght of SID not correct!');
                         file_service_1.SIDService.requestNewSID();
                         return [3 /*break*/, 4];
                     case 2: return [4 /*yield*/, event_service_1.EventService.getEnhancedEvents(events, roomsMap)];
