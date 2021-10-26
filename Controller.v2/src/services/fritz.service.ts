@@ -1,4 +1,4 @@
-import http from 'http';
+import https from 'https';
 
 import { IRoom } from '../interfaces/room.interface';
 
@@ -12,7 +12,7 @@ export class FritzService {
     console.log('call: ', url);
     const prodMode = process.env.MODE;
     if (prodMode === 'prod') {
-      http.get(url, (res) => {
+      https.get(url, (res) => {
         let data = '';
         // A chunk of data has been received.
         res.on('data', (chunk) => {
@@ -36,7 +36,7 @@ export class FritzService {
     console.log('call: ', url);
     const prodMode = process.env.MODE;
     if (prodMode === 'prod') {
-      http.get(url, (res) => {
+      https.get(url, (res) => {
         let data = '';
         // A chunk of data has been received.
         res.on('data', (chunk) => {
