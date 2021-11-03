@@ -164,10 +164,10 @@ export default class EditEvent extends PageMixin(LitElement) {
                     </label>
                   </div>
 
-                  <div class="form-check" data-bs-toggle="tooltip" data-bs-placement="top" title="An Ferien können im gesamten Gebäude Keine Räume gebucht werden!">
+                  <div class="form-check" data-bs-toggle="tooltip" data-bs-placement="top" title="Es sind Ferien!">
                     <input class="form-check-input" type="checkbox" ?checked=${this.event? this.event.background : false} id="edit-background" @input=${() => this.event!.background = !this.event?.background} ?disabled=${!this.editMode}>
                     <label class="form-check-label" for="edit-background">
-                      Gebäude ist in diesem Zeitraum geschlossen.
+                      Es sind Ferien.
                     </label>
                 </div>
                 </form>
