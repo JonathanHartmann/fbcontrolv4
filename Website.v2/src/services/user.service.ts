@@ -18,8 +18,9 @@ export class UserService {
       await setDoc(newUserDoc, userData);
       return user;
     } catch (e) {
-      console.error('Error by creating user in Firestore: ', e);
-      throw new Error(e);
+      const msg = 'Error by creating user in Firestore: ' + e;
+      console.error(msg);
+      throw new Error(msg);
     }
   }
 
@@ -61,7 +62,7 @@ export class UserService {
       await deleteDoc(userRef);
       await AuthService.deleteUser()
     } catch(e) {
-      throw new Error(e);
+      throw new Error('Error by deleting user! ' + e);
     }
   }
 

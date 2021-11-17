@@ -72,21 +72,17 @@ export class EventService {
     if (!seriesDate && !event.seriesEndless) {
       const validRoom = EventService.checkRoomValidity(event);
       if (validRoom) {
-        console.log('create new Event!');
         await EventService.saveEvent(event);
       } else {
         throw new Error('Event is during a background event or an event has already been created in the same room and time');
       }
     } else if ((seriesDate && seriesDate > new Date()) || event.seriesEndless) {
-      console.log('series event');
       const seriesId = nanoid();
       const oneYearFromNow = new Date(event.start.toDate());
       oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
       const seriesNr = event.seriesEndless ? EventService.getNrWeeksUntil(event.start.toDate(), oneYearFromNow) : EventService.getNrWeeksUntil(event.start.toDate(), seriesDate!);
-      console.log('Series nr:', seriesNr);
       let nextEvent: IEvent = {...event, seriesNr, seriesId};
       for (let i=seriesNr-1; i >= 0; i--) {
-        console.log('round:', i);
         const validRoom = EventService.checkRoomValidity(event);
         const valid = event.seriesDuringHoliday? true : EventService.checkValidity(nextEvent);
         if (valid && validRoom) {
@@ -162,8 +158,12 @@ export class EventService {
     let validity = true;
     const sameRoomEvents = store.getState().events.filter(e => (e.roomId === event.roomId) && (e.id !== event.id));
     sameRoomEvents.forEach(roomEvent => {
-      if (event.start.toDate() >= roomEvent.start.toDate() && event.start.toDate() <= roomEvent.end.toDate() ||
-      event.end.toDate() >= roomEvent.start.toDate() && event.end.toDate() <= roomEvent.end.toDate()) {
+      const roomEventEnd = roomEvent.end.toDate();
+      roomEventEnd.setMinutes(roomEventEnd.getMinutes() - 1);
+      const roomEventStart = roomEvent.start.toDate();
+      roomEventStart.setMinutes(roomEventStart.getMinutes() + 1);
+      if (event.start.toDate() >= roomEventStart && event.start.toDate() <= roomEventEnd ||
+      event.end.toDate() >= roomEventStart && event.end.toDate() <= roomEventEnd) {
         validity = false;
       }
     });

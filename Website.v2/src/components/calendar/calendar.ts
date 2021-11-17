@@ -51,6 +51,9 @@ export default class WebCalendar extends PageMixin(LitElement) {
   @property({ attribute: false })
   detailsModal: Modal | undefined = undefined;
 
+  @property({ attribute: false })
+  selectedDate: Date = new Date();
+
   constructor() {
     super();
     window.addEventListener('resize', () => {
@@ -225,7 +228,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
         }
       },
       initialView: 'dayGridMonth',
-      initialDate: new Date(),
+      initialDate: this.selectedDate,
       weekNumbers: true,
       navLinks: true, // can click day/week names to navigate views
       editable: true,
@@ -236,6 +239,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
         this.openModal(info.event);
       }
     };
+
     if (formatEvents.length > 0) {
       calendarConfig = {
         ...calendarConfig,
@@ -250,10 +254,13 @@ export default class WebCalendar extends PageMixin(LitElement) {
       tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new Tooltip(tooltipTriggerEl);
       });
+      const setSelectedDate = () => {
+        this.selectedDate = this.calendar ? this.calendar.getDate() : this.selectedDate;
+      }
+      document.getElementsByClassName('fc-next-button')[0].addEventListener('click', setSelectedDate);
+      document.getElementsByClassName('fc-prev-button')[0].addEventListener('click', setSelectedDate);
     }
-
   }
-
 
 
   openModal(event: EventApi): void {
