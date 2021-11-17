@@ -1,9 +1,11 @@
 import https from 'https';
-
+import fs from 'fs';
+import path from 'path';
 import { IRoom } from '../interfaces/room.interface';
 
 export class FritzService {
   static async heatUpRoom(room: IRoom, sid: string): Promise<void> {
+    //TODO: Print to File Ausgabe für weniger Logs. -> Datum Timestamp : Heat Up Room , Room.title 
     console.log('🔼 Heat up room: ', room.title);
     const baseUrl = process.env.FRITZ_ADDRESS;
     const roomId = room.fritzId;  
@@ -20,10 +22,21 @@ export class FritzService {
         });
         // The whole response has been received. Print out the result.
         res.on('end', () => {
-          console.log('Recieved data from FrtizBox for heating up room', room.title, ':');
-          console.log(JSON.parse(data));
+          console.log('Recieved data from FritzBox for heating up room', room.title, ': ' , JSON.parse(data));
         });
       });
+            //ToDo Noch auslagern in die file.service.ts
+            const simplelogpath = process.env.simplelog_path;
+            const date_controller = new Date().toISOString();
+            const date = new Date();
+            if (simplelogpath) {
+              const filename = path.join(__dirname, simplelogpath);
+              const simpledata = `${date} | Date Controller:${date_controller} | Heat Up room: ${room.title}, \n` ;
+              fs.appendFile(filename, simpledata, () => { 
+        
+               });
+            }
+            //<<--
     }
   }
   
@@ -44,10 +57,21 @@ export class FritzService {
         });
         // The whole response has been received. Print out the result.
         res.on('end', () => {
-          console.log('Recieved data from FrtizBox for cooling down room', room.title, ':');
-          console.log(JSON.parse(data));
+          console.log('Recieved data from FritzBox for cooling down room', room.title, ': ', JSON.parse(data));
         });
       });
+      //ToDO Noch auslagern in die file.service.ts
+      const simplelogpath = process.env.simplelog_path;
+      const date_controller = new Date().toISOString();
+      const date = new Date();
+      if (simplelogpath) {
+        const filename = path.join(__dirname, simplelogpath);
+        const simpledata = `${date} | Date Controller:${date_controller} | Cool down room: ${room.title}, \n` ;
+        fs.appendFile(filename, simpledata, () => { 
+  
+         });
+      }
     }
   }
+
 }

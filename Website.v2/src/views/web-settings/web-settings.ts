@@ -109,7 +109,7 @@ export default class WebSettings extends PageMixin(LitElement) {
 
 
       <hr/>
-      <h1>Nutzer Account unwiederruflich löschen</h1>
+      <h1>Nutzer Account unwiderruflich löschen</h1>
       <button type="button" class="btn btn-danger" @click=${this.deleteUser}>Account löschen</button>
     </div>
     `
@@ -141,7 +141,7 @@ export default class WebSettings extends PageMixin(LitElement) {
   }
 
   deleteUser(): void {
-    const deleteUser = confirm('Soll dieser Account wirklich unwiederruflich gelöscht werden?');
+    const deleteUser = confirm('Soll dieser Account wirklich unwiderruflich gelöscht werden?');
     if (this.user && deleteUser) {
       UserService.deleteUser(this.user.id);
     }

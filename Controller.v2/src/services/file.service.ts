@@ -11,7 +11,7 @@ export class SIDService {
         console.log('Encrypt SID ', data);
         if (process.env.SID_KEY) {
           const sid = SIDService.decrypt(data, process.env.SID_KEY);
-          console.log('Decrypt SID ', sid);
+         // console.log('Decrypt SID ', sid);
           cb(err, sid);
         }
       });
@@ -33,5 +33,20 @@ export class SIDService {
     const mykey = createDecipheriv('aes-128-ecb', key, null);
     const mystr = mykey.update(cipherText, 'base64', 'utf8');
     return mystr;
+  }
+}
+
+export class SimpleLog {
+  //Direkte Ansteuerungsbefehle aus der fritz.service.ts (Zeile 8,31) mit Realtime Timestamp in eine eigene .log Datei schreiben
+  //Pfad der Datei muss definiert sein (.env)
+  //
+  static WriteSimpleLog() {
+  const simplelogpath = process.env.SimpleLog_Path;
+  if (simplelogpath) {
+    const filename = path.join(__dirname, simplelogpath);
+    fs.writeFile(filename, 'Diesdas', () => {
+      
+    });
+  }
   }
 }

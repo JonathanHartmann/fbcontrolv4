@@ -137,8 +137,9 @@ export class EventService {
       createdFromId: user.id,
       createdAt: Timestamp.now(),
       background: true,
-      allDay: true,
       seriesEndless: false,
+      seriesDuringHoliday: false,
+      allDay: true
     } as IEvent);
   }
 
