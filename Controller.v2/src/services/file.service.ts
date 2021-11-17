@@ -40,13 +40,20 @@ export class SimpleLog {
   //Direkte Ansteuerungsbefehle aus der fritz.service.ts (Zeile 8,31) mit Realtime Timestamp in eine eigene .log Datei schreiben
   //Pfad der Datei muss definiert sein (.env)
   //
-  static WriteSimpleLog() {
-  const simplelogpath = process.env.SimpleLog_Path;
-  if (simplelogpath) {
-    const filename = path.join(__dirname, simplelogpath);
-    fs.writeFile(filename, 'Diesdas', () => {
-      
-    });
-  }
+  static writeSimpleLog(roomTitle: string, expectedTemp?: number, fritzBoxTemp?: number, others?: string) {
+    const simplelogpath = process.env.simplelog_path;
+    const date_controller = new Date().toISOString();
+    const date = new Date();
+    if (simplelogpath) {
+      const filename = path.join(__dirname, simplelogpath);
+      let simpledata = `${date} | Date Controller:${date_controller} | Cool down room: ${roomTitle} | expected temp: ${expectedTemp} | actual temp: ${fritzBoxTemp}` ;
+      if (others) {
+        simpledata += ' | ' + others;
+      }
+      simpledata += '\n';
+      fs.appendFile(filename, simpledata, () => {
+        // Hier kommt Logik rein, die Ausgeführt wird, wenn simpledata an die Datei angehangen wurde.
+      });
+    }
   }
 }

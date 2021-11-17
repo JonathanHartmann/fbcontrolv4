@@ -48,11 +48,19 @@ var SimpleLog = /** @class */ (function () {
     //Direkte Ansteuerungsbefehle aus der fritz.service.ts (Zeile 8,31) mit Realtime Timestamp in eine eigene .log Datei schreiben
     //Pfad der Datei muss definiert sein (.env)
     //
-    SimpleLog.WriteSimpleLog = function () {
-        var simplelogpath = process.env.SimpleLog_Path;
+    SimpleLog.writeSimpleLog = function (roomTitle, expectedTemp, fritzBoxTemp, others) {
+        var simplelogpath = process.env.simplelog_path;
+        var date_controller = new Date().toISOString();
+        var date = new Date();
         if (simplelogpath) {
             var filename = path_1.default.join(__dirname, simplelogpath);
-            fs_1.default.writeFile(filename, 'Diesdas', function () {
+            var simpledata = date + " | Date Controller:" + date_controller + " | Cool down room: " + roomTitle + " | expected temp: " + expectedTemp + " | actual temp: " + fritzBoxTemp;
+            if (others) {
+                simpledata += ' | ' + others;
+            }
+            simpledata += '\n';
+            fs_1.default.appendFile(filename, simpledata, function () {
+                // Hier kommt Logik rein, die Ausgeführt wird, wenn simpledata an die Datei angehangen wurde.
             });
         }
     };

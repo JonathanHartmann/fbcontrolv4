@@ -41,14 +41,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FritzService = void 0;
 var https_1 = __importDefault(require("https"));
-var fs_1 = __importDefault(require("fs"));
-var path_1 = __importDefault(require("path"));
+var file_service_1 = require("./file.service");
 var FritzService = /** @class */ (function () {
     function FritzService() {
     }
     FritzService.heatUpRoom = function (room, sid) {
         return __awaiter(this, void 0, void 0, function () {
-            var baseUrl, roomId, temp, url, prodMode, simplelogpath, date_controller, date, filename, simpledata;
+            var baseUrl, roomId, temp, url, prodMode;
             return __generator(this, function (_a) {
                 //TODO: Print to File Ausgabe für weniger Logs. -> Datum Timestamp : Heat Up Room , Room.title 
                 console.log('🔼 Heat up room: ', room.title);
@@ -67,19 +66,11 @@ var FritzService = /** @class */ (function () {
                         });
                         // The whole response has been received. Print out the result.
                         res.on('end', function () {
-                            console.log('Recieved data from FritzBox for heating up room', room.title, ': ', JSON.parse(data));
+                            var jsonData = JSON.parse(data);
+                            console.log('Recieved data from FritzBox for heating up room', room.title, ': ', jsonData);
+                            file_service_1.SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData);
                         });
                     });
-                    simplelogpath = process.env.simplelog_path;
-                    date_controller = new Date().toISOString();
-                    date = new Date();
-                    if (simplelogpath) {
-                        filename = path_1.default.join(__dirname, simplelogpath);
-                        simpledata = date + " | Date Controller:" + date_controller + " | Heat Up room: " + room.title + ", \n";
-                        fs_1.default.appendFile(filename, simpledata, function () {
-                        });
-                    }
-                    //<<--
                 }
                 return [2 /*return*/];
             });
@@ -87,7 +78,7 @@ var FritzService = /** @class */ (function () {
     };
     FritzService.coolDownRoom = function (room, sid) {
         return __awaiter(this, void 0, void 0, function () {
-            var baseUrl, roomId, temp, url, prodMode, simplelogpath, date_controller, date, filename, simpledata;
+            var baseUrl, roomId, temp, url, prodMode;
             return __generator(this, function (_a) {
                 console.log('🔽 Cool down room: ', room.title);
                 baseUrl = process.env.FRITZ_ADDRESS;
@@ -105,18 +96,11 @@ var FritzService = /** @class */ (function () {
                         });
                         // The whole response has been received. Print out the result.
                         res.on('end', function () {
-                            console.log('Recieved data from FritzBox for cooling down room', room.title, ': ', JSON.parse(data));
+                            var jsonData = JSON.parse(data);
+                            console.log('Recieved data from FritzBox for cooling down room', room.title, ': ', jsonData);
+                            file_service_1.SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData);
                         });
                     });
-                    simplelogpath = process.env.simplelog_path;
-                    date_controller = new Date().toISOString();
-                    date = new Date();
-                    if (simplelogpath) {
-                        filename = path_1.default.join(__dirname, simplelogpath);
-                        simpledata = date + " | Date Controller:" + date_controller + " | Cool down room: " + room.title + ", \n";
-                        fs_1.default.appendFile(filename, simpledata, function () {
-                        });
-                    }
                 }
                 return [2 /*return*/];
             });

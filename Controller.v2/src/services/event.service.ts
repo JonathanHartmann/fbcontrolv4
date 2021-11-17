@@ -55,6 +55,8 @@ export class EventService {
         actions.push({type: 'cool', event: e});
       }
     });
+
+    console.log(actions);
     
     const actionPerRoom: string[] = [];
     actions.reverse().forEach(action => {

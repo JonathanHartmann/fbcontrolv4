@@ -109,6 +109,7 @@ var EventService = /** @class */ (function () {
                 actions.push({ type: 'cool', event: e });
             }
         });
+        console.log(actions);
         var actionPerRoom = [];
         actions.reverse().forEach(function (action) {
             var _a, _b;
