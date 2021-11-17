@@ -32,11 +32,9 @@ export class EventService {
     });
   }
   
-  static checkTimes(events: IEnhancedEvent[], roomsMap: Map<string, IRoom>, beginCb: (room: IRoom, event: IEvent | undefined) => void, endCb: (room: IRoom, event: IEvent | undefined) => void): void {
+  static checkTimes(events: IEnhancedEvent[], roomsMap: Map<string, IRoom>, beginCb: (room: IRoom, event: IEvent | undefined) => void, endCb: (room: IRoom, event?: IEvent | undefined) => void): void {
     const fritzRoomId = process.env.ROOM_FRITZ_ID;
     const floorRoom = Array.from(roomsMap.values()).find(r => r.fritzId === fritzRoomId);
-
-    console.log('Floor room:', floorRoom);
 
     const actions: {type: 'heat' | 'cool', event: IEnhancedEvent}[] = [];
 
@@ -58,7 +56,6 @@ export class EventService {
       }
     });
     
-    console.log('Actions:', actions);
     const actionPerRoom: string[] = [];
     actions.reverse().forEach(action => {
       if (action.event.room && !actionPerRoom.includes(action.event.room.id)) {
@@ -88,6 +85,7 @@ export class EventService {
       } else if (shouldFloorBeCooled) {
         roomsMap.set(floorRoom.id, {...floorRoom, heated: false, cooled: true});
         endCb(floorRoom, undefined);
+        roomsMap.forEach((room) => endCb(room));
       }
     }
   }

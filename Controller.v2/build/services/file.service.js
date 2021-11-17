@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SIDService = void 0;
+exports.SimpleLog = exports.SIDService = void 0;
 var crypto_1 = require("crypto");
 var fs_1 = __importDefault(require("fs"));
 var path_1 = __importDefault(require("path"));
@@ -18,7 +18,7 @@ var SIDService = /** @class */ (function () {
                 console.log('Encrypt SID ', data);
                 if (process.env.SID_KEY) {
                     var sid = SIDService.decrypt(data, process.env.SID_KEY);
-                    console.log('Decrypt SID ', sid);
+                    // console.log('Decrypt SID ', sid);
                     cb(err, sid);
                 }
             });
@@ -42,3 +42,20 @@ var SIDService = /** @class */ (function () {
     return SIDService;
 }());
 exports.SIDService = SIDService;
+var SimpleLog = /** @class */ (function () {
+    function SimpleLog() {
+    }
+    //Direkte Ansteuerungsbefehle aus der fritz.service.ts (Zeile 8,31) mit Realtime Timestamp in eine eigene .log Datei schreiben
+    //Pfad der Datei muss definiert sein (.env)
+    //
+    SimpleLog.WriteSimpleLog = function () {
+        var simplelogpath = process.env.SimpleLog_Path;
+        if (simplelogpath) {
+            var filename = path_1.default.join(__dirname, simplelogpath);
+            fs_1.default.writeFile(filename, 'Diesdas', function () {
+            });
+        }
+    };
+    return SimpleLog;
+}());
+exports.SimpleLog = SimpleLog;

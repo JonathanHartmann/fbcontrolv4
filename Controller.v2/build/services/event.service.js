@@ -88,7 +88,6 @@ var EventService = /** @class */ (function () {
         var _a, _b, _c;
         var fritzRoomId = process.env.ROOM_FRITZ_ID;
         var floorRoom = Array.from(roomsMap.values()).find(function (r) { return r.fritzId === fritzRoomId; });
-        console.log('Floor room:', floorRoom);
         var actions = [];
         events.sort(function (a, b) {
             if (a.event.start > b.event.start) {
@@ -110,7 +109,6 @@ var EventService = /** @class */ (function () {
                 actions.push({ type: 'cool', event: e });
             }
         });
-        console.log('Actions:', actions);
         var actionPerRoom = [];
         actions.reverse().forEach(function (action) {
             var _a, _b;
@@ -137,6 +135,7 @@ var EventService = /** @class */ (function () {
             else if (shouldFloorBeCooled) {
                 roomsMap.set(floorRoom.id, __assign(__assign({}, floorRoom), { heated: false, cooled: true }));
                 endCb(floorRoom, undefined);
+                roomsMap.forEach(function (room) { return endCb(room); });
             }
         }
     };
