@@ -200,7 +200,10 @@ export default class EditEvent extends PageMixin(LitElement) {
   }
 
   async submit(): Promise<void> {
+    this.error = undefined;
     if (this.form.reportValidity() && this.event) {
+      this.loading = true;
+
       const titleInput = document.getElementById('edit-title') as HTMLInputElement;
       const descriptionInput = document.getElementById('edit-description') as HTMLInputElement;
       const roomInput = document.getElementById('edit-room') as HTMLInputElement;
@@ -237,9 +240,9 @@ export default class EditEvent extends PageMixin(LitElement) {
           background: backgroundInput.checked,
           allDay: this.allDay,
           seriesEndless: this.event.seriesEndless,
-          seriesDuringHoliday: this.event.seriesDuringHoliday
+          seriesDuringHoliday: this.event.seriesDuringHoliday,
+          createdAt: Timestamp.now()
         }
-        this.event = newEvent;
         
         if (this.allFuture) {
           newEvent = {
@@ -247,7 +250,19 @@ export default class EditEvent extends PageMixin(LitElement) {
             seriesId: this.event.seriesId,
             seriesNr: this.event.seriesNr
           }
-          const events = store.getState().events.filter(e => e.seriesId === this.event?.seriesId && e.start.toDate() > this.event!.start.toDate());
+          this.event = newEvent;
+          const events = store.getState().events.filter(e => {
+            if (this.event) {
+              if (
+                e.seriesId &&
+                e.seriesId === this.event.seriesId &&
+                e.start.toDate() > this.event.start.toDate()
+              ) {
+                return true;
+              }
+            }
+            return false;
+          });
           events.sort((a, b) => {
             if (a.start.toDate() < b.start.toDate()) {
               return 1;
@@ -257,11 +272,7 @@ export default class EditEvent extends PageMixin(LitElement) {
               return 0;
             }
           });
-          this.event = {
-            ...this.event,
-            createdAt: Timestamp.now()
-          }
-          const lastDate = events[0].start.toDate()
+          const lastDate = events[0].start.toDate();
           lastDate.setDate(lastDate.getDate() + 1);
           try {
             EventService.deleteEvent(this.event.id, true);
@@ -270,20 +281,24 @@ export default class EditEvent extends PageMixin(LitElement) {
           } catch(e) {
             console.error(e);
             this.error = 'Der Termin ist entweder in den Ferien oder zur selben Zeit ist bereits der ausgewählte Raum ausgebucht.';
+            this.loading = false;
           }
         } else if (!this.event.seriesId) {
+          this.event = newEvent;
           try {
             EventService.updateEvent(newEvent);
             this.closeModal();
           } catch(e) {
             console.error(e);
             this.error = 'Der Termin ist entweder in den Ferien oder zur selben Zeit ist bereits der ausgewählte Raum ausgebucht.';
+            this.loading = false;
           }
         } 
       } else {
         this.error = 'Das Start-Datum liegt nicht vor dem End-Datum!';
       }
     }
+    this.loading = false;
   }
 
   openModal(event: IEvent | undefined): void {

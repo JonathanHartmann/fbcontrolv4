@@ -13,8 +13,9 @@ export interface IEvent {
   createdAt?: Timestamp;
   background: boolean;
   allDay: boolean;
+  seriesDuringHoliday: boolean;
   seriesId?: string;
   seriesNr?: number;
   seriesEndless?: boolean;
-  seriesDuringHoliday: boolean;
+  seriesEndDate?: Timestamp;
 }
