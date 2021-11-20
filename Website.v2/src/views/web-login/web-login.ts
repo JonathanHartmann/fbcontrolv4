@@ -37,7 +37,7 @@ export default class WebLogin extends PageMixin(LitElement) {
           <div class="message-box">
             ${ this.error ? html`
             <div  class="text-danger"> 
-              Login fehlgeschlagen! Haben Sie Email und Passwort richtig eingegeben? Ist ihr Account bereits aktiviert worden? Wenn nein, kontaktieren Sie einen Admin. (z.B. Jonathan Hartmann)
+              Login fehlgeschlagen! Haben Sie Email und Passwort richtig eingegeben? Ist ihr Account bereits aktiviert worden? Wenn nein, kontaktieren Sie einen Admin.
             </div>
             ` : undefined}
           </div>

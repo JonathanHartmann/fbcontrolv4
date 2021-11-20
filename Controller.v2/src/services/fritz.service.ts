@@ -6,7 +6,6 @@ import { SimpleLog } from './file.service';
 
 export class FritzService {
   static async heatUpRoom(room: IRoom, sid: string): Promise<void> {
-    //TODO: Print to File Ausgabe für weniger Logs. -> Datum Timestamp : Heat Up Room , Room.title 
     console.log('🔼 Heat up room: ', room.title);
     const baseUrl = process.env.FRITZ_ADDRESS;
     const roomId = room.fritzId;  
@@ -23,9 +22,10 @@ export class FritzService {
         });
         // The whole response has been received. Print out the result.
         res.on('end', () => {
+          const state = 'Heat up';
           const jsonData = JSON.parse(data);
           console.log('Recieved data from FritzBox for heating up room', room.title, ': ' , jsonData);
-          SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData);
+          SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData, state);
         });
       });
     }
@@ -48,9 +48,10 @@ export class FritzService {
         });
         // The whole response has been received. Print out the result.
         res.on('end', () => {
+          const state = 'Cool down';
           const jsonData = JSON.parse(data);
           console.log('Recieved data from FritzBox for cooling down room', room.title, ': ', jsonData);
-          SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData)
+          SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData, state)
         });
       });
     }
