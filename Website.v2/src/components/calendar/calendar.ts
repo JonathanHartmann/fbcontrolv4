@@ -70,7 +70,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
               <div class="action-section mb-3">
                 <add-event></add-event>
               </div>
-              <h4>Angezeigete Räume</h4>
+              <h4>Angezeigte Räume</h4>
               ${[...this.rooms.values()].map(roomObj => {const room = roomObj.room; return html`
               <div class="form-check form-check-inline user-select-none">
                 <input class="form-check-input" type="checkbox" id=${'room-' + room.id} value=${room.id} ?checked=${roomObj.checked} @input=${() => this.roomFilter(room.id)} style=${styleMap({ borderColor: room.eventColor, backgroundColor: room.eventColor})}>

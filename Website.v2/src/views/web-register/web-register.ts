@@ -30,7 +30,7 @@ export default class WebRegister extends PageMixin(LitElement) {
     return html`
       <div class="signin-container">
         <form class="form-signin">
-          <h1 class="h3 mb-3 fw-normal">Bitt registriere dich</h1>
+          <h1 class="h3 mb-3 fw-normal">Bitte registriere dich</h1>
   
           <div class="form-floating">
             <input type="text" required class="form-control" id="name" placeholder="Max Mustermann">

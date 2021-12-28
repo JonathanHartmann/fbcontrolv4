@@ -49,7 +49,6 @@ var FritzService = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var baseUrl, roomId, temp, url, prodMode;
             return __generator(this, function (_a) {
-                //TODO: Print to File Ausgabe für weniger Logs. -> Datum Timestamp : Heat Up Room , Room.title 
                 console.log('🔼 Heat up room: ', room.title);
                 baseUrl = process.env.FRITZ_ADDRESS;
                 roomId = room.fritzId;
@@ -66,9 +65,10 @@ var FritzService = /** @class */ (function () {
                         });
                         // The whole response has been received. Print out the result.
                         res.on('end', function () {
+                            var state = 'Heat up';
                             var jsonData = JSON.parse(data);
                             console.log('Recieved data from FritzBox for heating up room', room.title, ': ', jsonData);
-                            file_service_1.SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData);
+                            file_service_1.SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData, state);
                         });
                     });
                 }
@@ -96,9 +96,10 @@ var FritzService = /** @class */ (function () {
                         });
                         // The whole response has been received. Print out the result.
                         res.on('end', function () {
+                            var state = 'Cool down';
                             var jsonData = JSON.parse(data);
                             console.log('Recieved data from FritzBox for cooling down room', room.title, ': ', jsonData);
-                            file_service_1.SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData);
+                            file_service_1.SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData, state);
                         });
                     });
                 }

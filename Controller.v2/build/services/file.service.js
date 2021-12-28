@@ -45,16 +45,13 @@ exports.SIDService = SIDService;
 var SimpleLog = /** @class */ (function () {
     function SimpleLog() {
     }
-    //Direkte Ansteuerungsbefehle aus der fritz.service.ts (Zeile 8,31) mit Realtime Timestamp in eine eigene .log Datei schreiben
-    //Pfad der Datei muss definiert sein (.env)
-    //
-    SimpleLog.writeSimpleLog = function (roomTitle, expectedTemp, fritzBoxTemp, others) {
+    SimpleLog.writeSimpleLog = function (roomTitle, expectedTemp, fritzBoxTemp, state, others) {
         var simplelogpath = process.env.simplelog_path;
         var date_controller = new Date().toISOString();
         var date = new Date();
         if (simplelogpath) {
             var filename = path_1.default.join(__dirname, simplelogpath);
-            var simpledata = date + " | Date Controller:" + date_controller + " | Cool down room: " + roomTitle + " | expected temp: " + expectedTemp + " | actual temp: " + fritzBoxTemp;
+            var simpledata = date + " | Date Controller:" + date_controller + " | " + state + " room: " + roomTitle + " | send: " + expectedTemp + " | return: " + fritzBoxTemp;
             if (others) {
                 simpledata += ' | ' + others;
             }
