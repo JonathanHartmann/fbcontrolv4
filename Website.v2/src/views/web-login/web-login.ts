@@ -56,6 +56,7 @@ export default class WebLogin extends PageMixin(LitElement) {
     if (this.form.reportValidity()) {
       try {
         await AuthService.login(this.emailInput.value, this.passwordInput.value);
+        this.form.reset();
         router.navigate('events');
       } catch (error) {
         console.error(error);

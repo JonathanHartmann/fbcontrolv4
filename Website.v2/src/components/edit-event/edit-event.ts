@@ -27,6 +27,12 @@ export default class EditEvent extends PageMixin(LitElement) {
   error: string | undefined = undefined;
   
   @property({ attribute: false })
+  deleteMode = false;
+  
+  @property({ attribute: false })
+  deleteAll = false;
+  
+  @property({ attribute: false })
   allDay = false;
   
   @property({ attribute: false })
@@ -86,114 +92,138 @@ export default class EditEvent extends PageMixin(LitElement) {
     return html`
         <div class="modal" id="editEvent" tabindex="-1" role="dialog" aria-labelledby="editEventLabel" aria-hidden="true">
           <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="editEventLabel">Buchung bearbeiten</h5>
-                <button type="button" class="close btn" @click=${this.closeModal} aria-label="Close" id="close-button">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="modal-body ">
-                ${this.loading? html`
-                <div class="d-flex justify-content-center">
-                  <div class="spinner-border" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                  </div>
+            ${this.deleteMode? html`
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="editEventLabel">Buchung "${this.event?.title}" löschen?</h5>
+                  <button type="button" class="close btn" @click=${this.closeModal} aria-label="Close" id="close-button">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
                 </div>
-                `:html`
-                <form class="form">
-                  <div class="mb-3">
-                    <label for="edit-title">Titel ihrer Veranstaltung</label>
-                    <input required ?readonly=${!this.editMode} type="text" class="form-control" value=${this.event? this.event.title : ''} id="edit-title">
-                  </div>
-                <div class="mb-3">
-                  <label for="edit-description">Beschreibung ihrer Veranstaltung</label>
-                  <textarea ?readonly=${!this.editMode} class="form-control" aria-label="description" id="edit-description" placeholder="Nähere Beschreibung ihrer Veranstaltung..."></textarea>
-                </div>
-                  <div class="mb-3">
-                    <label for="edit-room">Raum für ihre Veranstaltung</label>
-                    <select class="form-control" id="edit-room" ?readonly=${!this.editMode}>
-                      ${this.rooms.map(room => html`<option value=${room.id} ?selected=${this.event?.roomId == room.id}>${room.title === 'Ferien' ? '-': room.title}</option>`)}
-                    </select>
-                  </div>
-
-                  <div class="mb-3">
-                    <label for="edit-start-date" class="form-label">Start-Datum*</label>
-                    <input ?readonly=${!this.editMode} id="edit-start-date" required class="form-control" type="date">  
-                  </div>
-                  ${!this.allDay? html`
-                  <div class="mb-3">
-                    <label for="edit-start-time-" class="form-label">Start-Uhrzeit*</label>
-                    <input ?readonly=${!this.editMode} id="edit-start-time" required class="form-control" type="time">  
-                  </div>
-                  `:undefined}
-                  <div class="mb-3">
-                    <label for="edit-end-date" class="form-label">End-Datum*</label>
-                    <input ?readonly=${!this.editMode} id="edit-end-date" required class="form-control" type="date">  
-                  </div>
-                  ${!this.allDay? html`
-                  <div class="mb-3">
-                    <label for="edit-end-time-" class="form-label">End-Uhrzeit*</label>
-                    <input ?readonly=${!this.editMode} id="edit-end-time" required class="form-control" type="time">  
-                  </div>
-                  `:undefined}
-
-
-                  <div class="mb-3">
-                    <label for="edit-created-from">Erstellt von</label>
-                    <input readonly type="text" class="form-control" value=${this.event? this.event.createdFrom : ''} id="edit-created-from">
-                  </div>
-                  <div class="mb-3">
-                    <label for="edit-created-at" class="form-label">Erstellt am</label>
-                    <input id="edit-created-at" readonly class="form-control" type="datetime-local">  
-                  </div>
-
-                  ${this.event && this.event.seriesId && this.editMode? html`
+                <div class="modal-body">
+                  <h3>Soll dieser Termin gelöscht werden?</h3>
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" ?checked=${this.allFuture} id="edit-allFuture" @input=${() => this.allFuture = !this.allFuture}>
-                    <label class="form-check-label" for="edit-allFuture">
-                      Update auch alle zukünftigen Termine
-                    </label>
-                  </div>
-                  `:undefined}
-
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" ?checked=${this.allDay} id="edit-allDay" @input=${() => this.allDay = !this.allDay} ?disabled=${!this.editMode}>
-                    <label class="form-check-label" for="edit-allDay">
-                      Ganztägiger Termin
-                    </label>
-                  </div>
-
-                  <div class="form-check" data-bs-toggle="tooltip" data-bs-placement="top" title="Es sind Ferien!">
-                    <input class="form-check-input" type="checkbox" ?checked=${this.event? this.event.background : false} id="edit-background" @input=${() => this.event!.background = !this.event?.background} ?disabled=${!this.editMode}>
-                    <label class="form-check-label" for="edit-background">
-                      Es sind Ferien.
-                    </label>
+                      <input class="form-check-input" type="checkbox" ?checked=${this.deleteAll} id="delete-all" @input=${() => this.deleteAll = !this.deleteAll}>
+                      <label class="form-check-label" for="delete-all">
+                        Sollen zusätzlich alle Zukünftigen Buchungen gelöscht werden?
+                      </label>
+                    </div>
                 </div>
-                </form>
-                `}
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" @click=${this.quitEditMode}>Abbrechen</button>
+                  <button type="button" class="btn btn-danger" @click=${this.submitDelete}>Löschen</button>
+                </div>
               </div>
+            ` : html`
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="editEventLabel">Buchung bearbeiten</h5>
+                  <button type="button" class="close btn" @click=${this.closeModal} aria-label="Close" id="close-button">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body ">
+                  ${this.loading? html`
+                  <div class="d-flex justify-content-center">
+                    <div class="spinner-border" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
+                  `:html`
+                  <form class="form">
+                    <div class="mb-3">
+                      <label for="edit-title">Titel ihrer Veranstaltung</label>
+                      <input required ?readonly=${!this.editMode} type="text" class="form-control" value=${this.event? this.event.title : ''} id="edit-title">
+                    </div>
+                  <div class="mb-3">
+                    <label for="edit-description">Beschreibung ihrer Veranstaltung</label>
+                    <textarea ?readonly=${!this.editMode} class="form-control" aria-label="description" id="edit-description" placeholder="Nähere Beschreibung ihrer Veranstaltung..."></textarea>
+                  </div>
+                    <div class="mb-3">
+                      <label for="edit-room">Raum für ihre Veranstaltung</label>
+                      <select class="form-control" id="edit-room" ?readonly=${!this.editMode}>
+                        ${this.rooms.map(room => html`<option value=${room.id} ?selected=${this.event?.roomId == room.id}>${room.title === 'Ferien' ? '-': room.title}</option>`)}
+                      </select>
+                    </div>
 
-              <div class="message-box mx-3">
-                ${ this.error ? html`
-                <div  class="text-danger">${this.error}</div>
-                ` : undefined}
+                    <div class="mb-3">
+                      <label for="edit-start-date" class="form-label">Start-Datum*</label>
+                      <input ?readonly=${!this.editMode} id="edit-start-date" required class="form-control" type="date">  
+                    </div>
+                    ${!this.allDay? html`
+                    <div class="mb-3">
+                      <label for="edit-start-time-" class="form-label">Start-Uhrzeit*</label>
+                      <input ?readonly=${!this.editMode} id="edit-start-time" required class="form-control" type="time">  
+                    </div>
+                    `:undefined}
+                    <div class="mb-3">
+                      <label for="edit-end-date" class="form-label">End-Datum*</label>
+                      <input ?readonly=${!this.editMode} id="edit-end-date" required class="form-control" type="date">  
+                    </div>
+                    ${!this.allDay? html`
+                    <div class="mb-3">
+                      <label for="edit-end-time-" class="form-label">End-Uhrzeit*</label>
+                      <input ?readonly=${!this.editMode} id="edit-end-time" required class="form-control" type="time">  
+                    </div>
+                    `:undefined}
+
+
+                    <div class="mb-3">
+                      <label for="edit-created-from">Erstellt von</label>
+                      <input readonly type="text" class="form-control" value=${this.event? this.event.createdFrom : ''} id="edit-created-from">
+                    </div>
+                    <div class="mb-3">
+                      <label for="edit-created-at" class="form-label">Erstellt am</label>
+                      <input id="edit-created-at" readonly class="form-control" type="datetime-local">  
+                    </div>
+
+                    ${this.event && this.event.seriesId && this.editMode? html`
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" ?checked=${this.allFuture} id="edit-allFuture" @input=${() => this.allFuture = !this.allFuture}>
+                      <label class="form-check-label" for="edit-allFuture">
+                        Update auch alle zukünftigen Termine
+                      </label>
+                    </div>
+                    `:undefined}
+
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" ?checked=${this.allDay} id="edit-allDay" @input=${() => this.allDay = !this.allDay} ?disabled=${!this.editMode}>
+                      <label class="form-check-label" for="edit-allDay">
+                        Ganztägiger Termin
+                      </label>
+                    </div>
+
+                    <div class="form-check" data-bs-toggle="tooltip" data-bs-placement="top" title="Es sind Ferien!">
+                      <input class="form-check-input" type="checkbox" ?checked=${this.event? this.event.background : false} id="edit-background" @input=${() => this.event!.background = !this.event?.background} ?disabled=${!this.editMode}>
+                      <label class="form-check-label" for="edit-background">
+                        Es sind Ferien.
+                      </label>
+                  </div>
+                  </form>
+                  `}
+                </div>
+
+                <div class="message-box mx-3">
+                  ${ this.error ? html`
+                  <div  class="text-danger">${this.error}</div>
+                  ` : undefined}
+                </div>
+              ${ this.editMode? html`
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @click=${this.quitEditMode}}>Abbrechen</button>
+                <button type="button" class="btn btn-primary" @click="${this.submit}">Speichern</button>
               </div>
-            ${ this.editMode? html`
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" @click=${this.quitEditMode}}>Abbrechen</button>
-              <button type="button" class="btn btn-primary" @click="${this.submit}">Speichern</button>
-            </div>
-            `:html`
-            <div class="modal-footer">
-              ${this.user?.role === 'admin' || this.user?.id === this.event?.createdFromId ? html`
-              <button type="button" class="btn btn-danger" @click=${this.deleteEvent}>Löschen</button>
-              <button type="button" class="btn btn-secondary" @click=${() =>this.editMode = !this.editMode}>Bearbeiten</button>
-              `:undefined}
-              <button type="button" class="btn btn-primary" @click="${this.closeModal}">OK</button>
-            </div>
+              `:html`
+              <div class="modal-footer">
+                ${this.user?.role === 'admin' || this.user?.id === this.event?.createdFromId ? html`
+                <button type="button" class="btn btn-danger" @click=${this.deleteEvent}>Löschen</button>
+                <button type="button" class="btn btn-secondary" @click=${() =>this.editMode = !this.editMode}>Bearbeiten</button>
+                `:undefined}
+                <button type="button" class="btn btn-primary" @click="${this.closeModal}">OK</button>
+              </div>
+              `}
+              </div>
             `}
-            </div>
           </div>
         </div>
         `;
@@ -322,8 +352,8 @@ export default class EditEvent extends PageMixin(LitElement) {
         this.editModal = new Modal(element);
       }
     }
-    this.quitEditMode();
     this.editModal?.hide();
+    this.quitEditMode();
   }
   
   setData(): void {
@@ -344,25 +374,22 @@ export default class EditEvent extends PageMixin(LitElement) {
 
   deleteEvent(): void {
     if (this.event) {
-      const deleteSingle = confirm('Soll diese Buchung wirklich gelöscht werden?');
-      if (this.event.seriesId) {
-        const deleteFuture = confirm('Sollen zusätzlich alle Zukünftigen Buchungen gelöscht werden?');
-        if (deleteFuture) {
-          EventService.deleteEvent(this.event.id, true);
-          this.closeModal();
-          return;
-        }
-      }
-      if (deleteSingle == true) {
-        EventService.deleteEvent(this.event.id);
-        this.closeModal();
-      }
+      this.deleteMode = true;
+    }
+  }
+
+  async submitDelete(): Promise<void> {
+    if (this.event) {
+      await EventService.deleteEvent(this.event.id, this.deleteAll);
+      this.closeModal();
     }
   }
 
   quitEditMode(): void {
     this.setData();
     this.editMode = false;
+    this.deleteMode = false;
+    this.deleteAll = false;
     this.error = undefined;
   }
 

@@ -97,11 +97,16 @@ export default class WebRegister extends PageMixin(LitElement) {
           const registerModal = new Modal(element);
           registerModal.show();
         }
+        this.resetForm();
       } catch (error) {
         console.error(error);
         this.error = true;
         this.requestUpdate();
       }
     }
+  }
+
+  resetForm(): void {
+    this.form.reset();
   }
 }

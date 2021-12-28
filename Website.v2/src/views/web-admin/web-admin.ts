@@ -53,7 +53,7 @@ export default class WebAdmin extends PageMixin(LitElement) {
                     Email: ${user.email}
                   </div>
                   </div>
-                    <select @input="${() => this.changeRole(user.id)}" class="form-control select" id=${'role-' + user.id}>
+                    <select @input="${() => this.changeRole(user.id)}" class="form-control select" id=${'role-' + user.id} ?disabled=${user.id === this.user?.id}>
                       <option value=${ROLE.ACTIVATED} ?selected=${user.role === ROLE.ACTIVATED}>${ROLE.ACTIVATED}</option>
                       <option value=${ROLE.INACTIVE} ?selected=${user.role === ROLE.INACTIVE}>${ROLE.INACTIVE}</option>
                       <option value=${ROLE.ADMIN} ?selected=${user.role === ROLE.ADMIN}>${ROLE.ADMIN}</option>

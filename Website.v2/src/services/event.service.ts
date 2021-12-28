@@ -194,8 +194,8 @@ export class EventService {
   private static eventNextWeek(event: IEvent, seriesNr: number, seriesId: string): IEvent {
     const newEvent: IEvent = {
       ...event,
-      start: Timestamp.fromDate(new Date(event.start.toDate().getTime() + 7 * 24 * 60 * 60 * 1000)),
-      end: Timestamp.fromDate(new Date(event.end.toDate().getTime() + 7 * 24 * 60 * 60 * 1000)),
+      start: Timestamp.fromMillis(event.start.seconds * 1000 + 7 * 24 * 60 * 60 * 1000),
+      end: Timestamp.fromMillis(event.end.seconds * 1000 + 7 * 24 * 60 * 60 * 1000),
       seriesId,
       seriesNr
     }
@@ -211,7 +211,6 @@ export class EventService {
   private static async saveEvent(event: IEvent): Promise<void> {
     const eventsColl = collection(firestore, 'events').withConverter(eventConverter);
     const newEvent = await addDoc(eventsColl, {...event});
-    console.log('New event:', event);
     store.dispatch(addEvent({ ...event, id: newEvent.id}));
   }
 
