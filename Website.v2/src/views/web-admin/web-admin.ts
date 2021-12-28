@@ -119,6 +119,7 @@ export default class WebAdmin extends PageMixin(LitElement) {
     event.preventDefault();
     const files = this.eventsInput.files;
     if (files && files.length > 0 && this.user?.role === 'admin') {
+      let errorByUpload = false;
       for (let index = 0; index < files.length; index++) {
         const file = files.item(index);
         if (file) {
@@ -127,7 +128,6 @@ export default class WebAdmin extends PageMixin(LitElement) {
           const comp = new ICAL.Component(jcalData);
           const vevents = comp.getAllSubcomponents('vevent');
 
-          let errorByUpload = false;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           vevents.forEach(async (vevent: { jCal: any[] }) => {
             // start of holiday; format: yyyy-mm-dd
@@ -146,13 +146,13 @@ export default class WebAdmin extends PageMixin(LitElement) {
                 errorByUpload = true;
               }
             }
-            if (errorByUpload) {
-              alert('Es gab einen Fehler beim hochladen der Ferien. Es kann sein, dass die Ferien unvollständig hochgeladen wurden. Versuche es später noch einmal.');
-            } else {
-              alert('Ferientermine wurden erfolgreich hochgeladen!');
-            }
           });
         }
+      }
+      if (errorByUpload) {
+        alert('Es gab einen Fehler beim hochladen der Ferien. Es kann sein, dass die Ferien unvollständig hochgeladen wurden. Versuche es später noch einmal.');
+      } else {
+        alert('Ferientermine wurden erfolgreich hochgeladen!');
       }
     }
   }

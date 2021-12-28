@@ -329,8 +329,8 @@ export default class EditEvent extends PageMixin(LitElement) {
   setData(): void {
     if (this.event) {
       this.allDay = this.event.allDay;
-      this.startDateInput.value = this.getDate(this.event.start.toDate());
-      this.endDateInput.value = this.getDate(this.event.end.toDate());
+      this.startDateInput.value = this.getDate(new Date(this.event.start.seconds * 1000));
+      this.endDateInput.value = this.getDate(new Date(this.event.end.seconds * 1000));
       this.descriptionInput.value = this.event.description;
       if (!this.allDay) {
         this.startTimeInput.value = this.getTime(this.event.start.toDate());
@@ -369,7 +369,7 @@ export default class EditEvent extends PageMixin(LitElement) {
   getTime(date: Date): string {
     if (date) {
       let hours = date.getUTCHours().toString();
-      let min = date.getMinutes().toString();
+      let min = date.getUTCMinutes().toString();
       if (hours.length === 1) {
         hours = '0' + hours;
       }
@@ -382,12 +382,11 @@ export default class EditEvent extends PageMixin(LitElement) {
     }
   }
 
-  getDate(date: Date, addDays = 0): string {
+  getDate(date: Date): string {
     if (date) {
-      const year = date.getFullYear();
-      let month = (date.getMonth() + 1).toString();
-      date.setDate(date.getDate() + addDays);
-      let day = date.getDate().toString();
+      const year = date.getUTCFullYear();
+      let month = (date.getUTCMonth() + 1).toString();
+      let day = date.getUTCDate().toString();
   
       if (month.length === 1) {
         month = '0' + month;

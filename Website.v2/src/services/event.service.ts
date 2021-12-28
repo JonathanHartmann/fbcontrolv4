@@ -126,6 +126,7 @@ export class EventService {
   }
 
   static async createBackgroundEvent(title: string, start: Date, end: Date, user: IUser): Promise<void> {
+    EventService.deleteBackroungEventsForTimespan(start, end);
     await EventService.createEvent({
       title: title,
       description: 'An diesem Tag können keine Buchungen vorgenommen werden.',
@@ -171,6 +172,16 @@ export class EventService {
     return validity;
   }
 
+  private static deleteBackroungEventsForTimespan(start: Date, end: Date) {
+    const backgroundEvents = store.getState().events.filter(e => e.background);
+    backgroundEvents.forEach(async backEvent => {
+      if (start >= backEvent.start.toDate() && start <= backEvent.end.toDate() ||
+        end >= backEvent.start.toDate() && end >= backEvent.end.toDate()) {
+        await EventService.deleteEvent(backEvent.id);
+      }
+    });
+  }
+
   private static getDataFromSnapshot(snapshot: QuerySnapshot<DocumentData>): DocumentData[] {
     return snapshot.docs.map(value => {
       return {
@@ -200,6 +211,7 @@ export class EventService {
   private static async saveEvent(event: IEvent): Promise<void> {
     const eventsColl = collection(firestore, 'events').withConverter(eventConverter);
     const newEvent = await addDoc(eventsColl, {...event});
+    console.log('New event:', event);
     store.dispatch(addEvent({ ...event, id: newEvent.id}));
   }
 
