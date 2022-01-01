@@ -96,7 +96,7 @@ export default class EditEvent extends PageMixin(LitElement) {
               <div class="modal-content">
                 <div class="modal-header">
                   <h5 class="modal-title" id="editEventLabel">Buchung "${this.event?.title}" löschen?</h5>
-                  <button type="button" class="close btn" @click=${this.closeModal} aria-label="Close" id="close-button">
+                  <button type="button" class="close btn" @click=${this.quitDeleteMode} aria-label="Close" id="close-button">
                     <span aria-hidden="true">&times;</span>
                   </button>
                 </div>
@@ -110,7 +110,7 @@ export default class EditEvent extends PageMixin(LitElement) {
                     </div>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" @click=${this.quitEditMode}>Abbrechen</button>
+                  <button type="button" class="btn btn-secondary" @click=${this.quitDeleteMode}>Abbrechen</button>
                   <button type="button" class="btn btn-danger" @click=${this.submitDelete}>Löschen</button>
                 </div>
               </div>
@@ -381,6 +381,8 @@ export default class EditEvent extends PageMixin(LitElement) {
   async submitDelete(): Promise<void> {
     if (this.event) {
       await EventService.deleteEvent(this.event.id, this.deleteAll);
+      this.deleteMode = false;
+      this.deleteAll = false;
       this.closeModal();
     }
   }
@@ -391,6 +393,13 @@ export default class EditEvent extends PageMixin(LitElement) {
     this.deleteMode = false;
     this.deleteAll = false;
     this.error = undefined;
+  }
+
+  quitDeleteMode(): void {
+    this.deleteMode = false;
+    this.deleteAll = false;
+    this.error = undefined;
+    this.closeModal();
   }
 
   getTime(date: Date): string {

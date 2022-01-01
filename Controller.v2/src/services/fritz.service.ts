@@ -22,7 +22,7 @@ export class FritzService {
         });
         // The whole response has been received. Print out the result.
         res.on('end', () => {
-          const state = 'Heat up';
+          const state = 'Heat up  ';
           const jsonData = JSON.parse(data);
           console.log('Recieved data from FritzBox for heating up room', room.title, ': ' , jsonData);
           SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData, state);
