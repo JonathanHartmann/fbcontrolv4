@@ -103,17 +103,17 @@ export class EventService {
   }
   
   static async deleteEvent(eventId: IEvent['id'], allSeries = false): Promise<void> {
-    if (!allSeries) {
-      await EventService.removeEvent(eventId);
-    } else {
+    if (allSeries) {
       const firstEvent = store.getState().events.find(event => event.id === eventId);
-      if (firstEvent) {
+      if (firstEvent && firstEvent.seriesId) {
         store.getState().events.forEach(async event => {
           if (firstEvent.seriesId === event.seriesId && firstEvent.start.toDate() < event.start.toDate()) {
             await EventService.removeEvent(event.id);
           }
         });
       }
+      await EventService.removeEvent(eventId);
+    } else {
       await EventService.removeEvent(eventId);
     }
   }
@@ -175,8 +175,11 @@ export class EventService {
   private static deleteBackroungEventsForTimespan(start: Date, end: Date) {
     const backgroundEvents = store.getState().events.filter(e => e.background);
     backgroundEvents.forEach(async backEvent => {
-      if (start >= backEvent.start.toDate() && start <= backEvent.end.toDate() ||
-        end >= backEvent.start.toDate() && end >= backEvent.end.toDate()) {
+      if ((start <= backEvent.start.toDate() && start <= backEvent.end.toDate() &&
+        end >= backEvent.start.toDate() && end >= backEvent.end.toDate())
+        ||
+        (start >= backEvent.start.toDate() && start <= backEvent.end.toDate() &&
+        end >= backEvent.start.toDate() && end <= backEvent.end.toDate())) {
         await EventService.deleteEvent(backEvent.id);
       }
     });

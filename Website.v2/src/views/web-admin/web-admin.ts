@@ -130,7 +130,7 @@ export default class WebAdmin extends PageMixin(LitElement) {
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           vevents.forEach(async (vevent: { jCal: any[] }) => {
-            //Format changed: --> ferienwiki.de
+            // Format changed: --> ferienwiki.de
             // start of holiday; format: yyyy-mm-dd
             const start: string = vevent.jCal[1][2][3];
             const startDate = new Date(Number(start.slice(0,4)), Number(start.slice(5, 7)) - 1, Number(start.slice(8, 10)));

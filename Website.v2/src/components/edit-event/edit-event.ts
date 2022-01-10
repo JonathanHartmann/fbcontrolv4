@@ -102,12 +102,14 @@ export default class EditEvent extends PageMixin(LitElement) {
                 </div>
                 <div class="modal-body">
                   <h3>Soll dieser Termin gelöscht werden?</h3>
-                  <div class="form-check">
-                      <input class="form-check-input" type="checkbox" ?checked=${this.deleteAll} id="delete-all" @input=${() => this.deleteAll = !this.deleteAll}>
-                      <label class="form-check-label" for="delete-all">
-                        Sollen zusätzlich alle Zukünftigen Buchungen gelöscht werden?
-                      </label>
-                    </div>
+                  ${this.event?.seriesId? html`
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" ?checked=${this.deleteAll} id="delete-all" @input=${() => this.deleteAll = !this.deleteAll}>
+                        <label class="form-check-label" for="delete-all">
+                          Sollen zusätzlich alle Zukünftigen Buchungen gelöscht werden?
+                        </label>
+                      </div>
+                  `:undefined}
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" @click=${this.quitDeleteMode}>Abbrechen</button>
@@ -380,15 +382,17 @@ export default class EditEvent extends PageMixin(LitElement) {
 
   async submitDelete(): Promise<void> {
     if (this.event) {
-      await EventService.deleteEvent(this.event.id, this.deleteAll);
-      this.deleteMode = false;
-      this.deleteAll = false;
+      await EventService.deleteEvent(this.event.id, this.event.seriesId? this.deleteAll : false);
       this.closeModal();
     }
   }
 
   quitEditMode(): void {
-    this.setData();
+    try {
+      this.setData();
+    } catch {
+      // wenn ein event gelöscht wurde, können die Daten nicht nue gesetzt werden
+    }
     this.editMode = false;
     this.deleteMode = false;
     this.deleteAll = false;

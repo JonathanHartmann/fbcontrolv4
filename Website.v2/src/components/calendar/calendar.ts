@@ -175,7 +175,8 @@ export default class WebCalendar extends PageMixin(LitElement) {
     let formatEvents: EventSourceInput = [];
     if (events) {
       formatEvents = events.map(event => {
-        const [startYear, startMonth, startDay] = this.getDate(this.toDateTime(event.start.seconds)).split('-').map(s => Number(s));
+        // eslint-disable-next-line prefer-const
+        let [startYear, startMonth, startDay] = this.getDate(this.toDateTime(event.start.seconds)).split('-').map(s => Number(s));
         const [endYear, endMonth, endDay] = this.getDate(this.toDateTime(event.end.seconds)).split('-').map(s => Number(s));
         const [startHours, startMinutes] = this.getTime(this.toDateTime(event.start.seconds)).split(':').map(s => Number(s));
         const [endHours, endMinutes] = this.getTime(this.toDateTime(event.end.seconds)).split(':').map(s => Number(s));
@@ -186,7 +187,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
         const addEvent = {
           title: event.title,
           start: event.background || event.allDay? new Date(startYear, startMonth, startDay) : start,
-          end: event.background ||event.allDay? new Date(endYear, endMonth, endDay) : end,
+          end: event.background || event.allDay? new Date(endYear, endMonth, endDay) : end,
           createdFrom: event.createdFrom,
           resourceId: event.roomId,
           display: event.background ? 'background' : undefined,
@@ -221,9 +222,15 @@ export default class WebCalendar extends PageMixin(LitElement) {
       eventDidMount: (info) => {
         info.el.setAttribute('data-bs-toggle', 'tooltip');
         info.el.setAttribute('data-bs-placement', 'bottom');
+        let start = '';
+        let end = '';
         let time = '';
-        if(info.event.start && info.event.end) {
-          time = info.event.allDay? 'Ganztägiger Termin - ' + info.event.extendedProps.room : `${info.event.start.getUTCHours()}:${info.event.start.getUTCMinutes()}-${info.event.end.getUTCHours()}:${info.event.end.getUTCMinutes()}-${info.event.extendedProps.room}`;
+        if (info.event.allDay) {
+          time = 'Ganztägiger Termin - ' + info.event.extendedProps.room
+        } else if (info.event.start && info.event.end) {
+          start = this.getTime(this.toDateTime(info.event.start.getTime() / 1000));
+          end = this.getTime(this.toDateTime(info.event.end.getTime() / 1000));
+          time = `${start}-${end}-${info.event.extendedProps.room}`
         }
         info.el.title = info.event.display === 'background' ? 'Aufgrund der Ferien findet hier nichts statt.' : time;
         if (info.event.extendedProps.description) {
@@ -281,8 +288,8 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   getTime(date: Date): string {
     if (date) {
-      let hours = date.getUTCHours().toString();
-      let min = date.getUTCMinutes().toString();
+      let hours = date.getHours().toString();
+      let min = date.getMinutes().toString();
       if (hours.length === 1) {
         hours = '0' + hours;
       }
@@ -297,9 +304,9 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   getDate(date: Date): string {
     if (date) {
-      const year = date.getUTCFullYear();
-      let month = (date.getUTCMonth()).toString();
-      let day = date.getUTCDate().toString();
+      const year = date.getFullYear();
+      let month = (date.getMonth()).toString();
+      let day = date.getDate().toString();
   
       if (month.length === 1) {
         month = '0' + month;
