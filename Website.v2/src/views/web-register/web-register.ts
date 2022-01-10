@@ -5,7 +5,8 @@ import { router } from '../../client-packages/router';
 import { AuthService } from '../../services/auth.service';
 
 import './web-register.scss';
-
+const version = process.env.version;
+const copy = process.env.copy;
 @customElement('web-register')
 export default class WebRegister extends PageMixin(LitElement) {
   @query('form')
@@ -60,7 +61,7 @@ export default class WebRegister extends PageMixin(LitElement) {
           <button class="w-100 btn btn-lg btn-primary" type="submit" @click=${this.submit}>Registrieren</button>
 
           <div class="form-text">Du hast bereits einen Account? <button type="button" class="btn btn-link" @click=${() => router.navigate('login')}>Log dich ein</button></div>
-          <p class="mt-5 mb-3 text-muted">&copy; 2021</p>
+          <p class="mt-5 mb-3 text-muted">&copy;${copy} Jonathan Hartmann & \nTill Hoffmann v${version}</p>
         </form>
       </div>
 

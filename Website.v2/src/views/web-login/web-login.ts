@@ -4,7 +4,8 @@ import { router } from '../../client-packages/router';
 import { AuthService } from '../../services/auth.service';
 
 import './web-login.scss';
-
+const version = process.env.version;
+const copy = process.env.copy;
 @customElement('web-login')
 export default class WebLogin extends PageMixin(LitElement) {
   @query('form')
@@ -45,7 +46,7 @@ export default class WebLogin extends PageMixin(LitElement) {
           <button class="w-100 btn btn-lg btn-primary" type="submit" @click=${this.submit}>Login</button>
           
           <div class="form-text">Du hast noch keinen Account? <button type="button" class="btn btn-link" @click=${() => router.navigate('register')}>Registriere dich</button></div>
-          <p class="mt-5 mb-3 text-muted">&copy; 2021</p>
+          <p class="mt-5 mb-3 text-muted">&copy;${copy} Jonathan Hartmann & \nTill Hoffmann v${version}</p>
         </form>
       </div>
         `

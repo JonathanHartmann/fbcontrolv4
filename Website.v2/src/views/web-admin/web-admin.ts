@@ -9,7 +9,8 @@ import { UserService } from '../../services/user.service';
 
 import './web-admin.scss';
 import { EventService } from '../../services/event.service';
-
+const version = process.env.version;
+const copy = process.env.copy;
 @customElement('web-admin')
 export default class WebAdmin extends PageMixin(LitElement) {
 
@@ -99,6 +100,7 @@ export default class WebAdmin extends PageMixin(LitElement) {
 
 
       </div>
+      <p class="mt-5 mb-3 text-muted">&copy;${copy} Jonathan Hartmann & Till Hoffmann v${version}</p>
     </div>
         `
   }
