@@ -6,5 +6,6 @@ export interface IState {
   loggedIn: boolean,
   user: IUser | undefined,
   events: IEvent[],
-  rooms: IRoom[]
+  rooms: IRoom[],
+  users: IUser[]
 }

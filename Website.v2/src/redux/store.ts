@@ -8,7 +8,8 @@ export const INITIAL_STATE: IState = {
   loggedIn: false,
   user: undefined,
   events: [],
-  rooms: []
+  rooms: [],
+  users: []
 };
 
 export const store = createStore(

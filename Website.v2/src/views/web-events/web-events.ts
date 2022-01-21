@@ -2,9 +2,10 @@ import { customElement, html, LitElement, property, TemplateResult } from 'lit-e
 import { PageMixin } from '../../client-packages/page.mixin';
 import { IEvent } from '../../interfaces/event.interface';
 import { IState } from '../../interfaces/state.interface';
-import { IUser } from '../../interfaces/user.interface';
+import { IUser, ROLE } from '../../interfaces/user.interface';
 import { EventService } from '../../services/event.service';
 import { RoomService } from '../../services/room.service';
+import { UserService } from '../../services/user.service';
 
 import './web-events.scss';
 
@@ -21,42 +22,6 @@ export default class WebEvents extends PageMixin(LitElement) {
     return html`
       <div class="">
         <web-calendar></web-calendar>
-        <!-- <hr class="my-5"/>
-        <div class="mb-3 events-list">
-          <h1>Alle Buchungen</h1>
-
-          <div class="table-responsive">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th scope="col">Titel</th>
-                  <th scope="col">Start</th>
-                  <th scope="col">Ende</th>
-                  <th scope="col">Raum</th>
-                  <th scope="col">Erstellt von</th>
-                  <th scope="col"></th>
-                </tr>
-              </thead>
-              <tbody>
-                ${ this.events.map(event => { return html`
-                <tr>
-                  <th scope="row">${event.title}</th>
-                  <td>${this.formateDate(event.start.toDate())}</td>
-                  <td>${this.formateDate(event.end.toDate())}</td>
-                  <td>${event.room}</td>
-                  <td>${event.createdFrom}</td>
-                  ${this.user?.role === 'admin' || this.user?.id === event.createdFromId? html`
-                  <td class="event-actions">
-                    <edit-event .event=${event} class="align-self-center me-3"></edit-event>
-                    <button type="button" class="btn btn-danger" @click=${() => this.deleteEvent(event.id)}>Löschen</button>
-                  </td>
-                  `: undefined}
-                </tr>
-                `})}
-              </tbody>
-            </table>
-          </div>
-        </div> -->
       </div>
         `
   }
@@ -64,6 +29,9 @@ export default class WebEvents extends PageMixin(LitElement) {
   firstUpdated(): void {
     this.loadEvents();
     this.loadRooms();
+    if (this.user && this.user.role == ROLE.ADMIN) {
+      this.loadUsers();
+    }
   }
 
   stateChanged(state: IState): void {
@@ -87,6 +55,10 @@ export default class WebEvents extends PageMixin(LitElement) {
 
   async loadRooms(): Promise<void> {
     await RoomService.loadRooms();
+  }
+
+  loadUsers(): void {
+    UserService.getAllUser()
   }
 
   deleteEvent(id: string): void {

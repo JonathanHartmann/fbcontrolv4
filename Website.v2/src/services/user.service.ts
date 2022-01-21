@@ -2,6 +2,8 @@ import { firestore } from '../client-packages/firebase';
 import { collection, deleteDoc, doc, DocumentData, getDoc, getDocs, QuerySnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { IUser } from '../interfaces/user.interface';
 import { AuthService } from './auth.service';
+import { store } from '../redux/store';
+import { setUsers } from '../redux/actions/user.actions';
 
 export class UserService {
 
@@ -43,6 +45,7 @@ export class UserService {
     const users = UserService.getDataFromSnapshot(snapshot);
 
     if (users.length > 0) {
+      store.dispatch(setUsers(users as IUser[]));
       return users as IUser[];
     } else {
       // doc.data() will be undefined in this case

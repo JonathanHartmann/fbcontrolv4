@@ -5,7 +5,7 @@ import { PageMixin } from '../../client-packages/page.mixin';
 import { IEvent } from '../../interfaces/event.interface';
 import { HOLIDAY_MOCK_ROOM, IRoom } from '../../interfaces/room.interface';
 import { IState } from '../../interfaces/state.interface';
-import { IUser } from '../../interfaces/user.interface';
+import { IUser, ROLE } from '../../interfaces/user.interface';
 import { store } from '../../redux/store';
 import { EventService } from '../../services/event.service';
 
@@ -19,6 +19,9 @@ export default class EditEvent extends PageMixin(LitElement) {
 
   @property({ attribute: false })
   rooms: IRoom[] = [];
+
+  @property({ attribute: false })
+  users: IUser[] = [];
 
   @property({ attribute: false })
   user: IUser | undefined = undefined;
@@ -86,6 +89,7 @@ export default class EditEvent extends PageMixin(LitElement) {
   stateChanged(state: IState): void {
     this.rooms = [HOLIDAY_MOCK_ROOM, ...state.rooms].filter(r => !r.hidden);
     this.user = state.user;
+    this.users = state.users;
   }
 
   render(): TemplateResult {
@@ -171,8 +175,15 @@ export default class EditEvent extends PageMixin(LitElement) {
 
 
                     <div class="mb-3">
-                      <label for="edit-created-from">Erstellt von</label>
-                      <input readonly type="text" class="form-control" value=${this.event? this.event.createdFrom : ''} id="edit-created-from">
+                      ${this.user?.role == ROLE.ADMIN? html`
+                        <label for="edit-created-from">Erstellt von</label>
+                        <select class="form-control" id="edit-created-from" ?readonly=${!this.editMode && this.user?.role == ROLE.ADMIN}>
+                          ${this.users.map(u => html`<option value=${u.id} ?selected=${this.event?.createdFromId == u.id}>${u.name}</option>`)}
+                        </select>
+                      `:html`
+                        <label for="edit-created-from-ro">Erstellt von</label>
+                        <input readonly type="text" class="form-control" value=${this.event? this.event.createdFrom : ''} id="edit-created-from-ro">
+                      `}
                     </div>
                     <div class="mb-3">
                       <label for="edit-created-at" class="form-label">Erstellt am</label>
@@ -233,7 +244,7 @@ export default class EditEvent extends PageMixin(LitElement) {
 
   async submit(): Promise<void> {
     this.error = undefined;
-    if (this.form.reportValidity() && this.event) {
+    if (this.form.reportValidity() && this.event && this.user) {
       this.loading = true;
 
       const titleInput = document.getElementById('edit-title') as HTMLInputElement;
@@ -244,6 +255,7 @@ export default class EditEvent extends PageMixin(LitElement) {
       const startTimeInput = document.getElementById('edit-start-time') as HTMLInputElement;
       const endTimeInput = document.getElementById('edit-end-time') as HTMLInputElement;
       const backgroundInput = document.getElementById('edit-background') as HTMLInputElement;
+      const createdFromInput = document.getElementById('edit-created-from') as HTMLInputElement;
       
       const room = this.rooms.find((r) => r.id === roomInput.value)
       
@@ -257,7 +269,13 @@ export default class EditEvent extends PageMixin(LitElement) {
       const startTimeStamp = Timestamp.fromDate(start);
       const endTimeStamp = Timestamp.fromDate(end);
 
-      if (start <= end && room && this.user) {
+      let newUser = this.users.find(u => u.id == createdFromInput.value)
+      newUser = newUser ? newUser : this.user;
+      const newUserId = this.user.role == ROLE.ADMIN? newUser.id : this.user.id; 
+      const newUserName = this.user.role == ROLE.ADMIN? newUser.name : this.user.name; 
+      console.log(createdFromInput.value);
+      console.log(newUserName);
+      if (start <= end && room) {
         
         let newEvent: IEvent = {
           id: this.event.id,
@@ -267,8 +285,8 @@ export default class EditEvent extends PageMixin(LitElement) {
           end: endTimeStamp,
           room: room.title === HOLIDAY_MOCK_ROOM.title? '' : room.title,
           roomId: room.id === HOLIDAY_MOCK_ROOM.id? '' : room.id,
-          createdFrom: this.user.name,
-          createdFromId: this.user.id,
+          createdFrom: newUserName,
+          createdFromId: newUserId,
           background: backgroundInput.checked,
           allDay: this.allDay,
           seriesEndless: this.event.seriesEndless,
@@ -315,7 +333,7 @@ export default class EditEvent extends PageMixin(LitElement) {
             this.error = 'Der Termin ist entweder in den Ferien oder zur selben Zeit ist bereits der ausgewählte Raum ausgebucht.';
             this.loading = false;
           }
-        } else if (!this.event.seriesId) {
+        } else {
           this.event = newEvent;
           try {
             EventService.updateEvent(newEvent);
@@ -328,6 +346,14 @@ export default class EditEvent extends PageMixin(LitElement) {
         } 
       } else {
         this.error = 'Das Start-Datum liegt nicht vor dem End-Datum!';
+      }
+    } else {
+      this.error = 'Etwas ist schiefgelaufen, versuche es später nochmal.';
+      if (this.event) {
+        console.error('The event object is undefined');
+      }
+      if (this.user) {
+        console.error('The user object is undefined');
       }
     }
     this.loading = false;

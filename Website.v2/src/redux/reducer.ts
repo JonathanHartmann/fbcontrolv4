@@ -2,7 +2,7 @@ import { IState } from '../interfaces/state.interface';
 import { CLEAR_STORE } from './actions/clear.actions';
 import { ADD_EVENT, DELTE_EVENT, LOAD_EVENTS, EDIT_EVENT } from './actions/event.actions';
 import { ADD_ROOM, DELETE_ROOM, EDIT_ROOM, LOAD_ROOMS } from './actions/room.actions';
-import { USER_LOGIN } from './actions/user.actions';
+import { LOAD_USERS, USER_LOGIN } from './actions/user.actions';
 import { INITIAL_STATE } from './store';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
@@ -35,6 +35,9 @@ export const reducer = (state = { ...INITIAL_STATE }, action: any): IState => {
       return state;
     case DELETE_ROOM:
       state.rooms = state.rooms.filter(r => r.id !== action.roomId);
+      return state;
+    case LOAD_USERS:
+      state.users = action.users;
       return state;
     case CLEAR_STORE:
       state = { ...INITIAL_STATE };
