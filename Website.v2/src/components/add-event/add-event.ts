@@ -193,13 +193,24 @@ export default class AddEvent extends PageMixin(LitElement) {
       const seriesDate = this.seriesDateInput ? new Date(this.seriesDateInput.value) : undefined;
 
       const room = this.rooms.find((r) => r.id === this.roomInput.value)
+
       const startDate = this.getDateFromInput(this.startDateInput.value);
-      const startTime = !this.allDay? this.getTimeFromInput(this.startTimeInput.value) : undefined;
       const endDate = this.getDateFromInput(this.endDateInput.value);
-      const endTime = !this.allDay? this.getTimeFromInput(this.endTimeInput.value) : undefined;
-      
-      const startMillis = !this.allDay? Date.UTC(startDate[0], startDate[1]-1, startDate[2], startTime![0], startTime![1]) : Date.UTC(startDate[0], startDate[1]-1, startDate[2]);
-      const endMillis = !this.allDay? Date.UTC(endDate[0], endDate[1]-1, endDate[2], endTime![0], endTime![1]) : Date.UTC(endDate[0], endDate[1]-1, endDate[2]);
+      let startMillis = 0;
+      let endMillis = 0;
+
+      if (this.allDay) {
+        startMillis = new Date(startDate[0], startDate[1]-1, startDate[2]).getTime();
+        endMillis = new Date(endDate[0], endDate[1]-1, endDate[2]).getTime();
+
+      } else {
+        const startTime = this.getTimeFromInput(this.startTimeInput.value);
+        const endTime = this.getTimeFromInput(this.endTimeInput.value);
+
+        startMillis = new Date(startDate[0], startDate[1]-1, startDate[2], startTime[0], startTime[1]).getTime();
+        endMillis = new Date(endDate[0], endDate[1]-1, endDate[2], endTime[0], endTime[1]).getTime();
+        
+      }
       const startTimeStamp = Timestamp.fromMillis(startMillis);
       const endTimeStamp = Timestamp.fromMillis(endMillis);
 

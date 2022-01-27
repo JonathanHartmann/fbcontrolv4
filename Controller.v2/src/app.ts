@@ -31,18 +31,18 @@ const checkEvents = (events: IEvent[], roomsMap: Map<string, IRoom>) => {
     } else {
       const eventsEnh = await EventService.getEnhancedEvents(events, roomsMap);
       EventService.checkTimes(eventsEnh, roomsMap,
-        (room, event) => {
+        async (room, event) => {
           // Before the event
-          FirebaseService.updateRoom({...room, heated: true, cooled: false});
-          FritzService.heatUpRoom(room, sid);
+          await FirebaseService.updateRoom({...room, heated: true, cooled: false});
+          await FritzService.heatUpRoom(room, sid);
         },
-        (room, event) => {
+        async (room, event) => {
           // After the event
-          FirebaseService.updateRoom({...room, heated: false, cooled: true});
-          FritzService.coolDownRoom(room, sid);
+          await FirebaseService.updateRoom({...room, heated: false, cooled: true});
+          await FritzService.coolDownRoom(room, sid);
           if (event?.seriesEndless && event.seriesId) {
             console.log('try to create new event');
-            FirebaseService.appendEndlessEvent(events, event.seriesId);
+            await FirebaseService.appendEndlessEvent(events, event.seriesId);
           }
         }
       );

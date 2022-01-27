@@ -69,6 +69,7 @@ var checkEvents = function (events, roomsMap) {
     file_service_1.SIDService.readSIDFile(function (err, sid) {
         return __awaiter(this, void 0, void 0, function () {
             var eventsEnh;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -83,19 +84,43 @@ var checkEvents = function (events, roomsMap) {
                     case 2: return [4 /*yield*/, event_service_1.EventService.getEnhancedEvents(events, roomsMap)];
                     case 3:
                         eventsEnh = _a.sent();
-                        event_service_1.EventService.checkTimes(eventsEnh, roomsMap, function (room, event) {
-                            // Before the event
-                            firebase_service_1.FirebaseService.updateRoom(__assign(__assign({}, room), { heated: true, cooled: false }));
-                            fritz_service_1.FritzService.heatUpRoom(room, sid);
-                        }, function (room, event) {
-                            // After the event
-                            firebase_service_1.FirebaseService.updateRoom(__assign(__assign({}, room), { heated: false, cooled: true }));
-                            fritz_service_1.FritzService.coolDownRoom(room, sid);
-                            if ((event === null || event === void 0 ? void 0 : event.seriesEndless) && event.seriesId) {
-                                console.log('try to create new event');
-                                firebase_service_1.FirebaseService.appendEndlessEvent(events, event.seriesId);
-                            }
-                        });
+                        event_service_1.EventService.checkTimes(eventsEnh, roomsMap, function (room, event) { return __awaiter(_this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: 
+                                    // Before the event
+                                    return [4 /*yield*/, firebase_service_1.FirebaseService.updateRoom(__assign(__assign({}, room), { heated: true, cooled: false }))];
+                                    case 1:
+                                        // Before the event
+                                        _a.sent();
+                                        return [4 /*yield*/, fritz_service_1.FritzService.heatUpRoom(room, sid)];
+                                    case 2:
+                                        _a.sent();
+                                        return [2 /*return*/];
+                                }
+                            });
+                        }); }, function (room, event) { return __awaiter(_this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: 
+                                    // After the event
+                                    return [4 /*yield*/, firebase_service_1.FirebaseService.updateRoom(__assign(__assign({}, room), { heated: false, cooled: true }))];
+                                    case 1:
+                                        // After the event
+                                        _a.sent();
+                                        return [4 /*yield*/, fritz_service_1.FritzService.coolDownRoom(room, sid)];
+                                    case 2:
+                                        _a.sent();
+                                        if (!((event === null || event === void 0 ? void 0 : event.seriesEndless) && event.seriesId)) return [3 /*break*/, 4];
+                                        console.log('try to create new event');
+                                        return [4 /*yield*/, firebase_service_1.FirebaseService.appendEndlessEvent(events, event.seriesId)];
+                                    case 3:
+                                        _a.sent();
+                                        _a.label = 4;
+                                    case 4: return [2 /*return*/];
+                                }
+                            });
+                        }); });
                         _a.label = 4;
                     case 4:
                         console.log(new Date().toISOString(), ' - Check ended');

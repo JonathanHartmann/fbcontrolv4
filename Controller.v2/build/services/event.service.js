@@ -67,10 +67,9 @@ var EventService = /** @class */ (function () {
         });
     };
     EventService.updateTimes = function (events) {
-        var _this = this;
         return events.map(function (e) {
-            var startsIn = Math.round(((_this.getUTCDateFromTimestamp(e.event.start).getTime() - (new Date()).getTime()) / 60000) * 100) / 100;
-            var endedIn = Math.round(((_this.getUTCDateFromTimestamp(e.event.end).getTime() - (new Date()).getTime()) / 60000) * 100) / 100;
+            var startsIn = Math.round(((e.event.start.toDate().getTime() - (new Date()).getTime()) / 60000) * 100) / 100;
+            var endedIn = Math.round(((e.event.end.toDate().getTime() - (new Date()).getTime()) / 60000) * 100) / 100;
             return __assign(__assign({}, e), { startsIn: startsIn, endedIn: endedIn });
         }).sort(function (a, b) {
             if (a.startsIn > b.startsIn) {
@@ -84,61 +83,74 @@ var EventService = /** @class */ (function () {
             }
         });
     };
-    EventService.checkTimes = function (events, roomsMap, beginCb, endCb) {
+    EventService.checkTimes = function (rawEvents, roomsMap, beginCb, endCb) {
         var _a, _b, _c;
-        var fritzRoomId = process.env.ROOM_FRITZ_ID;
-        var floorRoom = Array.from(roomsMap.values()).find(function (r) { return r.fritzId === fritzRoomId; });
-        var actions = [];
-        events.sort(function (a, b) {
-            if (a.event.start > b.event.start) {
+        return __awaiter(this, void 0, void 0, function () {
+            var fritzRoomId, floorRoom, actions, events, actionPerRoom, heatedRooms, shouldFloorBeHeated, shouldFloorBeCooled;
+            return __generator(this, function (_d) {
+                fritzRoomId = process.env.ROOM_FRITZ_ID;
+                floorRoom = Array.from(roomsMap.values()).find(function (r) { return r.fritzId === fritzRoomId; });
+                actions = [];
+                events = EventService.sortEvents(EventService.removeEventsInPast(rawEvents));
+                events.forEach(function (e) {
+                    var roomTempTime = e.room && e.room.tempTime ? e.room.tempTime : Number(process.env.FALLBACK_TEMP_THRESHOLD);
+                    if (e.room && e.startsIn < roomTempTime && e.endedIn > 0 && e.room.tempTime !== 0) {
+                        actions.push({ type: 'heat', event: e });
+                    }
+                    else if (e.room && e.endedIn < 0 && e.endedIn > -5 && e.room.tempTime !== 0) {
+                        actions.push({ type: 'cool', event: e });
+                    }
+                });
+                console.log(actions);
+                actionPerRoom = [];
+                actions.reverse().forEach(function (action) {
+                    var _a, _b;
+                    if (action.event.room && !actionPerRoom.includes(action.event.room.id)) {
+                        actionPerRoom.push(action.event.room.id);
+                        if (action.type === 'heat' && !((_a = roomsMap.get(action.event.room.id)) === null || _a === void 0 ? void 0 : _a.heated)) {
+                            roomsMap.set(action.event.room.id, __assign(__assign({}, action.event.room), { heated: true, cooled: false }));
+                            beginCb(action.event.room, action.event.event);
+                        }
+                        else if (action.type === 'cool' && !((_b = roomsMap.get(action.event.room.id)) === null || _b === void 0 ? void 0 : _b.cooled)) {
+                            roomsMap.set(action.event.room.id, __assign(__assign({}, action.event.room), { heated: false, cooled: true }));
+                            endCb(action.event.room, action.event.event);
+                        }
+                    }
+                });
+                console.log(roomsMap);
+                if (floorRoom) {
+                    heatedRooms = Array.from(roomsMap.values()).filter(function (r) { return r.heated; });
+                    shouldFloorBeHeated = !((_a = roomsMap.get(floorRoom.id)) === null || _a === void 0 ? void 0 : _a.heated) && heatedRooms.length > 0;
+                    shouldFloorBeCooled = ((_b = roomsMap.get(floorRoom.id)) === null || _b === void 0 ? void 0 : _b.heated) && !((_c = roomsMap.get(floorRoom.id)) === null || _c === void 0 ? void 0 : _c.cooled) && heatedRooms.length === 1;
+                    if (shouldFloorBeHeated && floorRoom.fritzId !== '') {
+                        roomsMap.set(floorRoom.id, __assign(__assign({}, floorRoom), { heated: true, cooled: false }));
+                        beginCb(floorRoom, undefined);
+                    }
+                    else if (shouldFloorBeCooled) {
+                        roomsMap.set(floorRoom.id, __assign(__assign({}, floorRoom), { heated: false, cooled: true }));
+                        endCb(floorRoom, undefined);
+                        roomsMap.forEach(function (room) { return endCb(room); });
+                    }
+                }
+                return [2 /*return*/];
+            });
+        });
+    };
+    EventService.removeEventsInPast = function (events) {
+        return events.filter(function (event) { return event.startsIn > 0 || event.endedIn > -5; });
+    };
+    EventService.sortEvents = function (events) {
+        return events.sort(function (a, b) {
+            if (a.startsIn > b.startsIn) {
                 return 1;
             }
-            else if (a.event.start < b.event.start) {
+            else if (a.endedIn < b.endedIn) {
                 return -1;
             }
             else {
                 return 0;
             }
-        })
-            .forEach(function (e) {
-            var roomTempTime = e.room && e.room.tempTime ? e.room.tempTime : Number(process.env.FALLBACK_TEMP_THRESHOLD);
-            if (e.room && e.startsIn < roomTempTime && e.endedIn > 0 && e.room.tempTime !== 0) {
-                actions.push({ type: 'heat', event: e });
-            }
-            else if (e.room && e.endedIn < 0 && e.endedIn > -5 && e.room.tempTime !== 0) {
-                actions.push({ type: 'cool', event: e });
-            }
         });
-        console.log(actions);
-        var actionPerRoom = [];
-        actions.reverse().forEach(function (action) {
-            var _a, _b;
-            if (action.event.room && !actionPerRoom.includes(action.event.room.id)) {
-                actionPerRoom.push(action.event.room.id);
-                if (action.type === 'heat' && !((_a = roomsMap.get(action.event.room.id)) === null || _a === void 0 ? void 0 : _a.heated)) {
-                    roomsMap.set(action.event.room.id, __assign(__assign({}, action.event.room), { heated: true, cooled: false }));
-                    beginCb(action.event.room, action.event.event);
-                }
-                else if (action.type === 'cool' && !((_b = roomsMap.get(action.event.room.id)) === null || _b === void 0 ? void 0 : _b.cooled)) {
-                    roomsMap.set(action.event.room.id, __assign(__assign({}, action.event.room), { heated: false, cooled: true }));
-                    endCb(action.event.room, action.event.event);
-                }
-            }
-        });
-        if (floorRoom) {
-            var heatedRooms = Array.from(roomsMap.values()).filter(function (r) { return r.heated; });
-            var shouldFloorBeHeated = !((_a = roomsMap.get(floorRoom.id)) === null || _a === void 0 ? void 0 : _a.heated) && heatedRooms.length > 0;
-            var shouldFloorBeCooled = ((_b = roomsMap.get(floorRoom.id)) === null || _b === void 0 ? void 0 : _b.heated) && !((_c = roomsMap.get(floorRoom.id)) === null || _c === void 0 ? void 0 : _c.cooled) && heatedRooms.length === 1;
-            if (shouldFloorBeHeated && floorRoom.fritzId !== '') {
-                roomsMap.set(floorRoom.id, __assign(__assign({}, floorRoom), { heated: true, cooled: false }));
-                beginCb(floorRoom, undefined);
-            }
-            else if (shouldFloorBeCooled) {
-                roomsMap.set(floorRoom.id, __assign(__assign({}, floorRoom), { heated: false, cooled: true }));
-                endCb(floorRoom, undefined);
-                roomsMap.forEach(function (room) { return endCb(room); });
-            }
-        }
     };
     EventService.getUTCDateFromTimestamp = function (timestamp) {
         var _a = this.getDate(timestamp.toDate()).split('-').map(function (s) { return Number(s); }), year = _a[0], month = _a[1], day = _a[2];

@@ -258,24 +258,33 @@ export default class EditEvent extends PageMixin(LitElement) {
       const createdFromInput = document.getElementById('edit-created-from') as HTMLInputElement;
       
       const room = this.rooms.find((r) => r.id === roomInput.value)
-      
+
       const startDate = this.getDateFromInput(startDateInput.value);
-      const startTime = !this.allDay? this.getTimeFromInput(startTimeInput.value) : undefined;
       const endDate = this.getDateFromInput(endDateInput.value);
-      const endTime = !this.allDay? this.getTimeFromInput(endTimeInput.value) : undefined;
-      
-      const start = !this.allDay? new Date(Date.UTC(startDate[0], startDate[1]-1, startDate[2], startTime?.[0], startTime?.[1])) : new Date(Date.UTC(startDate[0], startDate[1]));
-      const end = !this.allDay? new Date(Date.UTC(endDate[0], endDate[1]-1, endDate[2], endTime?.[0], endTime?.[1])) : new Date(Date.UTC(endDate[0], endDate[1]));
-      const startTimeStamp = Timestamp.fromDate(start);
-      const endTimeStamp = Timestamp.fromDate(end);
+      let startMillis = 0;
+      let endMillis = 0;
+
+      if (this.allDay) {
+        startMillis = new Date(startDate[0], startDate[1]-1, startDate[2]).getTime();
+        endMillis = new Date(endDate[0], endDate[1]-1, endDate[2]).getTime();
+
+      } else {
+        const startTime = this.getTimeFromInput(startTimeInput.value);
+        const endTime = this.getTimeFromInput(endTimeInput.value);
+
+        startMillis = new Date(startDate[0], startDate[1]-1, startDate[2], startTime[0], startTime[1]).getTime();
+        endMillis = new Date(endDate[0], endDate[1]-1, endDate[2], endTime[0], endTime[1]).getTime();
+        
+      }
+      const startTimeStamp = Timestamp.fromMillis(startMillis);
+      const endTimeStamp = Timestamp.fromMillis(endMillis);
 
       let newUser = this.users.find(u => u.id == createdFromInput.value)
       newUser = newUser ? newUser : this.user;
       const newUserId = this.user.role == ROLE.ADMIN? newUser.id : this.user.id; 
       const newUserName = this.user.role == ROLE.ADMIN? newUser.name : this.user.name; 
-      console.log(createdFromInput.value);
-      console.log(newUserName);
-      if (start <= end && room) {
+
+      if (startTimeStamp <= endTimeStamp && room) {
         
         let newEvent: IEvent = {
           id: this.event.id,
@@ -390,6 +399,7 @@ export default class EditEvent extends PageMixin(LitElement) {
       this.startDateInput.value = this.getDate(new Date(this.event.start.seconds * 1000));
       this.endDateInput.value = this.getDate(new Date(this.event.end.seconds * 1000));
       this.descriptionInput.value = this.event.description;
+      this.createdFromInput.value = this.event.createdFromId;
       if (!this.allDay) {
         this.startTimeInput.value = this.getTime(this.event.start.toDate());
         this.endTimeInput.value = this.getTime(this.event.end.toDate());
@@ -434,8 +444,8 @@ export default class EditEvent extends PageMixin(LitElement) {
 
   getTime(date: Date): string {
     if (date) {
-      let hours = date.getUTCHours().toString();
-      let min = date.getUTCMinutes().toString();
+      let hours = date.getHours().toString();
+      let min = date.getMinutes().toString();
       if (hours.length === 1) {
         hours = '0' + hours;
       }
@@ -450,9 +460,9 @@ export default class EditEvent extends PageMixin(LitElement) {
 
   getDate(date: Date): string {
     if (date) {
-      const year = date.getUTCFullYear();
-      let month = (date.getUTCMonth() + 1).toString();
-      let day = date.getUTCDate().toString();
+      const year = date.getFullYear();
+      let month = (date.getMonth() + 1).toString();
+      let day = date.getDate().toString();
   
       if (month.length === 1) {
         month = '0' + month;
@@ -465,6 +475,11 @@ export default class EditEvent extends PageMixin(LitElement) {
     } else {
       return '';
     }
+  }
+
+  toDateTime(secs: number): Date {
+    const t = new Date(secs * 1000); // Epoch
+    return t;
   }
 
   getTimeFromInput(time: string): number[] {
