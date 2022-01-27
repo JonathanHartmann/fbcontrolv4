@@ -42,6 +42,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FritzService = void 0;
 var https_1 = __importDefault(require("https"));
 var file_service_1 = require("./file.service");
+var TIME_AFTER_REQUEST = 1000; // in ms
 var FritzService = /** @class */ (function () {
     function FritzService() {
     }
@@ -57,20 +58,22 @@ var FritzService = /** @class */ (function () {
                 console.log('call: ', url);
                 prodMode = process.env.MODE;
                 if (prodMode === 'prod') {
-                    https_1.default.get(url, function (res) {
-                        var data = '';
-                        // A chunk of data has been received.
-                        res.on('data', function (chunk) {
-                            data += chunk;
+                    setTimeout(function () {
+                        https_1.default.get(url, function (res) {
+                            var data = '';
+                            // A chunk of data has been received.
+                            res.on('data', function (chunk) {
+                                data += chunk;
+                            });
+                            // The whole response has been received. Print out the result.
+                            res.on('end', function () {
+                                var state = 'Heat up  ';
+                                var jsonData = JSON.parse(data);
+                                console.log('Recieved data from FritzBox for heating up room', room.title, ': ', jsonData);
+                                file_service_1.SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData, state);
+                            });
                         });
-                        // The whole response has been received. Print out the result.
-                        res.on('end', function () {
-                            var state = 'Heat up';
-                            var jsonData = JSON.parse(data);
-                            console.log('Recieved data from FritzBox for heating up room', room.title, ': ', jsonData);
-                            file_service_1.SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData, state);
-                        });
-                    });
+                    }, TIME_AFTER_REQUEST);
                 }
                 return [2 /*return*/];
             });
@@ -88,20 +91,22 @@ var FritzService = /** @class */ (function () {
                 console.log('call: ', url);
                 prodMode = process.env.MODE;
                 if (prodMode === 'prod') {
-                    https_1.default.get(url, function (res) {
-                        var data = '';
-                        // A chunk of data has been received.
-                        res.on('data', function (chunk) {
-                            data += chunk;
+                    setTimeout(function () {
+                        https_1.default.get(url, function (res) {
+                            var data = '';
+                            // A chunk of data has been received.
+                            res.on('data', function (chunk) {
+                                data += chunk;
+                            });
+                            // The whole response has been received. Print out the result.
+                            res.on('end', function () {
+                                var state = 'Cool down';
+                                var jsonData = JSON.parse(data);
+                                console.log('Recieved data from FritzBox for cooling down room', room.title, ': ', jsonData);
+                                file_service_1.SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData, state);
+                            });
                         });
-                        // The whole response has been received. Print out the result.
-                        res.on('end', function () {
-                            var state = 'Cool down';
-                            var jsonData = JSON.parse(data);
-                            console.log('Recieved data from FritzBox for cooling down room', room.title, ': ', jsonData);
-                            file_service_1.SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData, state);
-                        });
-                    });
+                    }, TIME_AFTER_REQUEST);
                 }
                 return [2 /*return*/];
             });

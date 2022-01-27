@@ -64,7 +64,7 @@ var FirebaseService = /** @class */ (function () {
                         startDate.setMinutes(0);
                         endDate = new Date();
                         endDate.setHours(24);
-                        startDate.setMinutes(60);
+                        endDate.setMinutes(60);
                         startTimestamp = firebase_admin_1.firestore.Timestamp.fromDate(startDate);
                         endTimestamp = firebase_admin_1.firestore.Timestamp.fromDate(endDate);
                         return [4 /*yield*/, firebase_1.firestore.collection('events')

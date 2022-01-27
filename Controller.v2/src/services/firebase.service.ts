@@ -10,7 +10,7 @@ export class FirebaseService {
     startDate.setMinutes(0);
     const endDate = new Date();
     endDate.setHours(24);
-    startDate.setMinutes(60);
+    endDate.setMinutes(60);
     const startTimestamp = firebaseAdmin.Timestamp.fromDate(startDate);
     const endTimestamp = firebaseAdmin.Timestamp.fromDate(endDate);
 
