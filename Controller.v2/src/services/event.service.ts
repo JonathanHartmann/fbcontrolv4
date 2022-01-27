@@ -18,8 +18,8 @@ export class EventService {
   
   static updateTimes(events: IEnhancedEvent[]): IEnhancedEvent[] {
     return events.map(e => {
-      const startsIn = Math.round(((e.event.start.toDate().getTime() - (new Date()).getTime()) / 60000) * 100) / 100;
-      const endedIn = Math.round(((e.event.end.toDate().getTime() - (new Date()).getTime()) / 60000) * 100) / 100;
+      const startsIn = Math.round(((this.getUTCDateFromTimestamp(e.event.start).getTime() - (new Date()).getTime()) / 60000) * 100) / 100;
+      const endedIn = Math.round(((this.getUTCDateFromTimestamp(e.event.end).getTime() - (new Date()).getTime()) / 60000) * 100) / 100;
       return {...e, startsIn, endedIn};
     }).sort((a, b) => {
       if (a.startsIn > b.startsIn) {
@@ -32,15 +32,22 @@ export class EventService {
     });
   }
   
-  static async checkTimes(rawEvents: IEnhancedEvent[], roomsMap: Map<string, IRoom>, beginCb: (room: IRoom, event: IEvent | undefined) => Promise<void>, endCb: (room: IRoom, event?: IEvent | undefined) => Promise<void>): Promise<void> {
+  static checkTimes(events: IEnhancedEvent[], roomsMap: Map<string, IRoom>, beginCb: (room: IRoom, event: IEvent | undefined) => void, endCb: (room: IRoom, event?: IEvent | undefined) => void): void {
     const fritzRoomId = process.env.ROOM_FRITZ_ID;
     const floorRoom = Array.from(roomsMap.values()).find(r => r.fritzId === fritzRoomId);
 
     const actions: {type: 'heat' | 'cool', event: IEnhancedEvent}[] = [];
 
-    const events = EventService.sortEvents(EventService.removeEventsInPast(rawEvents));
-
-    events.forEach(e => {
+    events.sort((a, b) => {
+      if (a.event.start > b.event.start) {
+        return 1;
+      } else if (a.event.start < b.event.start) {
+        return -1;
+      } else {
+        return 0;
+      }
+    })
+    .forEach(e => {
       const roomTempTime = e.room && e.room.tempTime ? e.room.tempTime : Number(process.env.FALLBACK_TEMP_THRESHOLD);
       if (e.room && e.startsIn < roomTempTime && e.endedIn > 0 && e.room.tempTime !== 0) {
         actions.push({type: 'heat', event: e});
@@ -67,8 +74,6 @@ export class EventService {
       }
     });
 
-    console.log(roomsMap);
-
     if (floorRoom) {
       const heatedRooms = Array.from(roomsMap.values()).filter(r => r.heated);
 
@@ -85,22 +90,6 @@ export class EventService {
         roomsMap.forEach((room) => endCb(room));
       }
     }
-  }
-
-  private static removeEventsInPast(events: IEnhancedEvent[]): IEnhancedEvent[] {
-    return events.filter(event => event.startsIn > 0 || event.endedIn > -5);
-  }
-
-  private static sortEvents(events: IEnhancedEvent[]): IEnhancedEvent[] {
-    return events.sort((a, b) => {
-      if (a.startsIn > b.startsIn) {
-        return 1;
-      } else if (a.endedIn < b.endedIn) {
-        return -1;
-      } else {
-        return 0;
-      }
-    });
   }
 
   private static getUTCDateFromTimestamp(timestamp: firebaseAdmin.Timestamp): Date {
