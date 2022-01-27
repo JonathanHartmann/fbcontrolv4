@@ -13,6 +13,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/bootstrap": "^5.1.2",
+    "@types/nodemailer": "^6.4.4",
     "@typescript-eslint/eslint-plugin": "^4.28.4",
     "@typescript-eslint/parser": "^4.28.4",
     "css-loader": "^6.2.0",
@@ -47,6 +48,8 @@
     "ical.js": "^1.4.0",
     "lit-element": "^2.5.1",
     "nanoid": "^3.1.23",
-    "redux": "^4.1.0"
+    "redux": "^4.1.0",
+    "nodemailer": "^6.7.2",
+    "@types/nodemailer": "^6.4.4"
   }
 }
