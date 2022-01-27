@@ -1,10 +1,12 @@
 import { Timestamp } from 'firebase/firestore';
 import { customElement, html, LitElement, property, query, TemplateResult } from 'lit-element';
+import SendmailTransport from 'nodemailer/lib/sendmail-transport';
 import { PageMixin } from '../../client-packages/page.mixin';
 import { IEvent } from '../../interfaces/event.interface';
 import { IRoom } from '../../interfaces/room.interface';
 import { IState } from '../../interfaces/state.interface';
 import { IUser } from '../../interfaces/user.interface';
+import { Sendmail } from '../../services/email.service';
 import { EventService } from '../../services/event.service';
 
 import './add-event.scss';
@@ -229,6 +231,15 @@ export default class AddEvent extends PageMixin(LitElement) {
             seriesEndless: this.endlessEvent,
             seriesDuringHoliday: this.duringHoliday
           } as IEvent, seriesDate);
+          //TODO: E-Mail versenden --> services -> email.service.ts
+          // Mailadresse mit SMTP Daten in der .env konfiguriert
+          // Inhalt der Mail: Neue Veranstaltung erstellt von [] 
+          // Name: [] 
+          // Datum: []
+          // Uhrzeit: []
+          // Beschreibung: []
+          Sendmail(title,description);
+
           this.loading = false;
           this.resetForm();
           document.getElementById('close-button')?.click();
