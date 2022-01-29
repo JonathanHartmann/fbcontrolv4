@@ -7,7 +7,7 @@ import { SimpleLog } from './file.service';
 const TIME_AFTER_REQUEST = 1000;      // in ms
 
 export class FritzService {
-  static async heatUpRoom(room: IRoom, sid: string): Promise<void> {
+  static heatUpRoom(room: IRoom, sid: string): void {
     console.log('🔼 Heat up room: ', room.title);
     const baseUrl = process.env.FRITZ_ADDRESS;
     const roomId = room.fritzId;  
@@ -35,7 +35,7 @@ export class FritzService {
     }
   }
   
-  static async coolDownRoom(room: IRoom, sid: string): Promise<void> {
+  static coolDownRoom(room: IRoom, sid: string): void {
     console.log('🔽 Cool down room: ', room.title);
     const baseUrl = process.env.FRITZ_ADDRESS;
     const roomId = room.fritzId;  
@@ -56,7 +56,7 @@ export class FritzService {
           const state = 'Cool down';
           const jsonData = JSON.parse(data);
           console.log('Recieved data from FritzBox for cooling down room', room.title, ': ', jsonData);
-          SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData, state)
+          SimpleLog.writeSimpleLog(room.title, temp * 2, jsonData, state);
         });
       })},
       TIME_AFTER_REQUEST);

@@ -32,12 +32,13 @@ export class EventService {
     });
   }
   
-  static checkTimes(events: IEnhancedEvent[], roomsMap: Map<string, IRoom>, beginCb: (room: IRoom, event: IEvent | undefined) => void, endCb: (room: IRoom, event?: IEvent | undefined) => void): void {
+  static async checkTimes(events: IEnhancedEvent[], roomsMap: Map<string, IRoom>, beginCb: (room: IRoom, event: IEvent | undefined) => Promise<void>, endCb: (room: IRoom, event?: IEvent | undefined) => Promise<void>): Promise<void> {
     const fritzRoomId = process.env.ROOM_FRITZ_ID;
     const floorRoom = Array.from(roomsMap.values()).find(r => r.fritzId === fritzRoomId);
 
     const actions: {type: 'heat' | 'cool', event: IEnhancedEvent}[] = [];
 
+    console.log(events);
     events.sort((a, b) => {
       if (a.event.start > b.event.start) {
         return 1;
@@ -59,17 +60,17 @@ export class EventService {
     console.log(actions);
     
     const actionPerRoom: string[] = [];
-    actions.reverse().forEach(action => {
+    actions.reverse().forEach(async (action) => {
       if (action.event.room && !actionPerRoom.includes(action.event.room.id)) {
         actionPerRoom.push(action.event.room.id);
         
         if (action.type === 'heat' && !roomsMap.get(action.event.room.id)?.heated) {
           roomsMap.set(action.event.room.id, {...action.event.room, heated: true, cooled: false});
-          beginCb(action.event.room, action.event.event);
+          await beginCb(action.event.room, action.event.event);
           
         } else if (action.type === 'cool' && !roomsMap.get(action.event.room.id)?.cooled) {
           roomsMap.set(action.event.room.id, {...action.event.room, heated: false, cooled: true});
-          endCb(action.event.room, action.event.event);
+          await endCb(action.event.room, action.event.event);
         }
       }
     });
@@ -82,12 +83,12 @@ export class EventService {
   
       if (shouldFloorBeHeated && floorRoom.fritzId !== '') {
         roomsMap.set(floorRoom.id, {...floorRoom, heated: true, cooled: false});
-        beginCb(floorRoom, undefined);
+        await beginCb(floorRoom, undefined);
         
       } else if (shouldFloorBeCooled) {
         roomsMap.set(floorRoom.id, {...floorRoom, heated: false, cooled: true});
-        endCb(floorRoom, undefined);
-        roomsMap.forEach((room) => endCb(room));
+        await endCb(floorRoom, undefined);
+        roomsMap.forEach(async (room) => await endCb(room));
       }
     }
   }
