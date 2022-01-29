@@ -8,6 +8,7 @@ import { IState } from '../../interfaces/state.interface';
 import { IUser, ROLE } from '../../interfaces/user.interface';
 import { store } from '../../redux/store';
 import { EventService } from '../../services/event.service';
+import { getDisplayDate, getTime } from '../../utils/utc-helper';
 
 import './edit-event.scss';
 
@@ -115,10 +116,19 @@ export default class EditEvent extends PageMixin(LitElement) {
                       </div>
                   `:undefined}
                 </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" @click=${this.quitDeleteMode}>Abbrechen</button>
-                  <button type="button" class="btn btn-danger" @click=${this.submitDelete}>Löschen</button>
+                ${this.loading? html`
+                <div class="d-flex justify-content-center">
+                  <span>Termine werden gelöscht... </span>
+                  <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
                 </div>
+                `: html`
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click=${this.quitDeleteMode}>Abbrechen</button>
+                    <button type="button" class="btn btn-danger" @click=${this.submitDelete}>Löschen</button>
+                  </div>
+                  `}
               </div>
             ` : html`
               <div class="modal-content">
@@ -396,16 +406,16 @@ export default class EditEvent extends PageMixin(LitElement) {
   setData(): void {
     if (this.event) {
       this.allDay = this.event.allDay;
-      this.startDateInput.value = this.getDate(new Date(this.event.start.seconds * 1000));
-      this.endDateInput.value = this.getDate(new Date(this.event.end.seconds * 1000));
+      this.startDateInput.value = getDisplayDate(new Date(this.event.start.seconds * 1000));
+      this.endDateInput.value = getDisplayDate(new Date(this.event.end.seconds * 1000));
       this.descriptionInput.value = this.event.description;
       this.createdFromInput.value = this.event.createdFromId;
       if (!this.allDay) {
-        this.startTimeInput.value = this.getTime(this.event.start.toDate());
-        this.endTimeInput.value = this.getTime(this.event.end.toDate());
+        this.startTimeInput.value = getTime(this.event.start.toDate());
+        this.endTimeInput.value = getTime(this.event.end.toDate());
       }
       if (this.event.createdAt) {
-        this.createdAtInput.value = this.getDate(this.event.createdAt.toDate()) + 'T' + this.getTime(this.event.createdAt.toDate());
+        this.createdAtInput.value = getDisplayDate(this.event.createdAt.toDate()) + 'T' + getTime(this.event.createdAt.toDate());
       }
     }
   }
@@ -418,7 +428,9 @@ export default class EditEvent extends PageMixin(LitElement) {
 
   async submitDelete(): Promise<void> {
     if (this.event) {
+      this.loading = true;
       await EventService.deleteEvent(this.event.id, this.event.seriesId? this.deleteAll : false);
+      this.loading = false;
       this.closeModal();
     }
   }
@@ -440,46 +452,6 @@ export default class EditEvent extends PageMixin(LitElement) {
     this.deleteAll = false;
     this.error = undefined;
     this.closeModal();
-  }
-
-  getTime(date: Date): string {
-    if (date) {
-      let hours = date.getHours().toString();
-      let min = date.getMinutes().toString();
-      if (hours.length === 1) {
-        hours = '0' + hours;
-      }
-      if (min.length === 1) {
-        min = '0' + min;
-      }
-      return `${hours}:${min}`;
-    } else {
-      return '';
-    }
-  }
-
-  getDate(date: Date): string {
-    if (date) {
-      const year = date.getFullYear();
-      let month = (date.getMonth() + 1).toString();
-      let day = date.getDate().toString();
-  
-      if (month.length === 1) {
-        month = '0' + month;
-      }
-      if (day.length === 1) {
-        day = '0' + day;
-      }
-  
-      return `${year}-${month}-${day}`;
-    } else {
-      return '';
-    }
-  }
-
-  toDateTime(secs: number): Date {
-    const t = new Date(secs * 1000); // Epoch
-    return t;
   }
 
   getTimeFromInput(time: string): number[] {

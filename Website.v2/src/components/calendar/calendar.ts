@@ -18,6 +18,7 @@ import { EventService } from '../../services/event.service';
 import { store } from '../../redux/store';
 import { IUser } from '../../interfaces/user.interface';
 import EditEvent from '../edit-event/edit-event';
+import { getDate, getTime, getTimezoneTime, toDateTime } from '../../utils/utc-helper';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (BASE_OPTION_REFINERS as any).schedulerLicenseKey = 'CC-Attribution-NonCommercial-NoDerivatives';
@@ -176,10 +177,10 @@ export default class WebCalendar extends PageMixin(LitElement) {
     if (events) {
       formatEvents = events.map(event => {
         // eslint-disable-next-line prefer-const
-        let [startYear, startMonth, startDay] = this.getDate(this.toDateTime(event.start.seconds)).split('-').map(s => Number(s));
-        const [endYear, endMonth, endDay] = this.getDate(this.toDateTime(event.end.seconds)).split('-').map(s => Number(s));
-        const [startHours, startMinutes] = this.getTime(this.toDateTime(event.start.seconds)).split(':').map(s => Number(s));
-        const [endHours, endMinutes] = this.getTime(this.toDateTime(event.end.seconds)).split(':').map(s => Number(s));
+        let [startYear, startMonth, startDay] = getDate(toDateTime(event.start.seconds)).split('-').map(s => Number(s));
+        const [endYear, endMonth, endDay] = getDate(toDateTime(event.end.seconds)).split('-').map(s => Number(s));
+        const [startHours, startMinutes] = getTime(toDateTime(event.start.seconds)).split(':').map(s => Number(s));
+        const [endHours, endMinutes] = getTime(toDateTime(event.end.seconds)).split(':').map(s => Number(s));
 
         const start = new Date(startYear, startMonth, startDay, startHours, startMinutes);
         const end = new Date(endYear, endMonth, endDay, endHours, endMinutes);
@@ -228,8 +229,8 @@ export default class WebCalendar extends PageMixin(LitElement) {
         if (info.event.allDay) {
           time = 'Ganztägiger Termin - ' + info.event.extendedProps.room
         } else if (info.event.start && info.event.end) {
-          start = this.getTime(this.toDateTime(info.event.start.getTime() / 1000));
-          end = this.getTime(this.toDateTime(info.event.end.getTime() / 1000));
+          start = getTimezoneTime(info.event.start);
+          end = getTimezoneTime(info.event.end);
           time = `${start}-${end}-${info.event.extendedProps.room}`
         }
         info.el.title = info.event.display === 'background' ? 'Aufgrund der Ferien findet hier nichts statt.' : time;
@@ -284,45 +285,5 @@ export default class WebCalendar extends PageMixin(LitElement) {
 
   closeModal(): void {
     this.detailsModal?.toggle();
-  }
-
-  getTime(date: Date): string {
-    if (date) {
-      let hours = date.getHours().toString();
-      let min = date.getMinutes().toString();
-      if (hours.length === 1) {
-        hours = '0' + hours;
-      }
-      if (min.length === 1) {
-        min = '0' + min;
-      }
-      return `${hours}:${min}`;
-    } else {
-      return '';
-    }
-  }
-
-  getDate(date: Date): string {
-    if (date) {
-      const year = date.getFullYear();
-      let month = (date.getMonth()).toString();
-      let day = date.getDate().toString();
-  
-      if (month.length === 1) {
-        month = '0' + month;
-      }
-      if (day.length === 1) {
-        day = '0' + day;
-      }
-  
-      return `${year}-${month}-${day}`;
-    } else {
-      return '';
-    }
-  }
-
-  toDateTime(secs: number): Date {
-    const t = new Date(secs * 1000); // Epoch
-    return t;
   }
 }

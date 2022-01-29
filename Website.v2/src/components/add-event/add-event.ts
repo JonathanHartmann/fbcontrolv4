@@ -6,7 +6,6 @@ import { IEvent } from '../../interfaces/event.interface';
 import { IRoom } from '../../interfaces/room.interface';
 import { IState } from '../../interfaces/state.interface';
 import { IUser } from '../../interfaces/user.interface';
-import { Sendmail } from '../../services/email.service';
 import { EventService } from '../../services/event.service';
 
 import './add-event.scss';
@@ -200,15 +199,16 @@ export default class AddEvent extends PageMixin(LitElement) {
       let endMillis = 0;
 
       if (this.allDay) {
-        startMillis = new Date(startDate[0], startDate[1]-1, startDate[2]).getTime();
-        endMillis = new Date(endDate[0], endDate[1]-1, endDate[2]).getTime();
+        startMillis = new Date(Date.UTC(startDate[0], startDate[1]-1, startDate[2])).getTime();
+        endMillis = new Date(Date.UTC(endDate[0], endDate[1]-1, endDate[2])).getTime();
 
       } else {
         const startTime = this.getTimeFromInput(this.startTimeInput.value);
         const endTime = this.getTimeFromInput(this.endTimeInput.value);
-
-        startMillis = new Date(startDate[0], startDate[1]-1, startDate[2], startTime[0], startTime[1]).getTime();
-        endMillis = new Date(endDate[0], endDate[1]-1, endDate[2], endTime[0], endTime[1]).getTime();
+        
+        console.log(startTime);
+        startMillis = new Date(Date.UTC(startDate[0], startDate[1]-1, startDate[2], startTime[0], startTime[1])).getTime();
+        endMillis = new Date(Date.UTC(endDate[0], endDate[1]-1, endDate[2], endTime[0], endTime[1])).getTime();
         
       }
       const startTimeStamp = Timestamp.fromMillis(startMillis);
@@ -216,7 +216,7 @@ export default class AddEvent extends PageMixin(LitElement) {
 
       if (startTimeStamp <= endTimeStamp) {
         try {
-          await EventService.createEvent({
+          const newEvent = {
             title: this.titleInput.value,
             description: this.descriptionInput.value,
             start: startTimeStamp,
@@ -230,7 +230,10 @@ export default class AddEvent extends PageMixin(LitElement) {
             allDay: this.allDay,
             seriesEndless: this.endlessEvent,
             seriesDuringHoliday: this.duringHoliday
-          } as IEvent, seriesDate);
+          } as IEvent
+          await EventService.createEvent(newEvent, seriesDate);
+          console.log(startDate);
+          console.log(seriesDate);
           //TODO: E-Mail versenden --> services -> email.service.ts
           // Mailadresse mit SMTP Daten in der .env konfiguriert
           // Inhalt der Mail: Neue Veranstaltung erstellt von [] 
@@ -238,7 +241,7 @@ export default class AddEvent extends PageMixin(LitElement) {
           // Datum: []
           // Uhrzeit: []
           // Beschreibung: []
-          Sendmail(title,description);
+          // Sendmail(newEvent.title, newEvent.description);
 
           this.loading = false;
           this.resetForm();
