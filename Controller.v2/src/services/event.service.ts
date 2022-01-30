@@ -32,13 +32,15 @@ export class EventService {
     });
   }
   
-  static async checkTimes(events: IEnhancedEvent[], roomsMap: Map<string, IRoom>, beginCb: (room: IRoom, event: IEvent | undefined) => Promise<void>, endCb: (room: IRoom, event?: IEvent | undefined) => Promise<void>): Promise<void> {
+  static checkTimes(events: IEnhancedEvent[], roomsMap: Map<string, IRoom>): { heatUpRooms: {room: IRoom, event: IEvent | undefined}[], coolDownRooms: {room: IRoom, event: IEvent | undefined}[] } {
     const fritzRoomId = process.env.ROOM_FRITZ_ID;
     const floorRoom = Array.from(roomsMap.values()).find(r => r.fritzId === fritzRoomId);
 
     const actions: {type: 'heat' | 'cool', event: IEnhancedEvent}[] = [];
 
-    console.log(events);
+    const heatUpRooms: {room: IRoom, event: IEvent | undefined}[] = [];
+    const coolDownRooms: {room: IRoom, event: IEvent | undefined}[] = [];
+
     events.sort((a, b) => {
       if (a.event.start > b.event.start) {
         return 1;
@@ -57,6 +59,7 @@ export class EventService {
       }
     });
 
+    console.log('events:', events);
     console.log(actions);
     
     const actionPerRoom: string[] = [];
@@ -66,11 +69,11 @@ export class EventService {
         
         if (action.type === 'heat' && !roomsMap.get(action.event.room.id)?.heated) {
           roomsMap.set(action.event.room.id, {...action.event.room, heated: true, cooled: false});
-          await beginCb(action.event.room, action.event.event);
+          heatUpRooms.push({ room: action.event.room, event: action.event.event });
           
         } else if (action.type === 'cool' && !roomsMap.get(action.event.room.id)?.cooled) {
           roomsMap.set(action.event.room.id, {...action.event.room, heated: false, cooled: true});
-          await endCb(action.event.room, action.event.event);
+          coolDownRooms.push({ room: action.event.room, event: action.event.event });
         }
       }
     });
@@ -83,14 +86,18 @@ export class EventService {
   
       if (shouldFloorBeHeated && floorRoom.fritzId !== '') {
         roomsMap.set(floorRoom.id, {...floorRoom, heated: true, cooled: false});
-        await beginCb(floorRoom, undefined);
+        heatUpRooms.push({ room: floorRoom, event: undefined });
         
       } else if (shouldFloorBeCooled) {
         roomsMap.set(floorRoom.id, {...floorRoom, heated: false, cooled: true});
-        await endCb(floorRoom, undefined);
-        roomsMap.forEach(async (room) => await endCb(room));
+        coolDownRooms.push({ room: floorRoom, event: undefined });
+        for (const room of Array.from(roomsMap.values())) {
+          coolDownRooms.push({ room, event: undefined });
+        }
       }
     }
+
+    return { heatUpRooms, coolDownRooms };
   }
 
   private static getUTCDateFromTimestamp(timestamp: firebaseAdmin.Timestamp): Date {
@@ -104,7 +111,7 @@ export class EventService {
   private static getTime(date: Date): string {
     if (date) {
       let hours = date.getUTCHours().toString();
-      let min = date.getMinutes().toString();
+      let min = date.getUTCMinutes().toString();
       if (hours.length === 1) {
         hours = '0' + hours;
       }
@@ -119,9 +126,9 @@ export class EventService {
 
   private static getDate(date: Date, addDays = 0): string {
     if (date) {
-      const year = date.getFullYear();
-      let month = (date.getMonth()).toString();
-      date.setDate(date.getDate() + addDays);
+      const year = date.getUTCFullYear();
+      let month = (date.getUTCMonth()).toString();
+      date.setDate(date.getUTCDate() + addDays);
       let day = date.getDate().toString();
   
       if (month.length === 1) {

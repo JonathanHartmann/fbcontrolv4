@@ -56,6 +56,7 @@ var firebase_service_1 = require("./services/firebase.service");
 var fritz_service_1 = require("./services/fritz.service");
 var event_service_1 = require("./services/event.service");
 dotenv_1.default.config();
+var TIME_AFTER_REQUEST = 1000; // in ms
 var start = function () {
     firebase_service_1.FirebaseService.loadEvents().then(function (events) {
         var filteredEvents = events.filter(function (e) { return !e.background; });
@@ -68,10 +69,9 @@ var checkEvents = function (events, roomsMap) {
     console.log(new Date().toISOString(), ' - Start check...');
     file_service_1.SIDService.readSIDFile(function (err, sid) {
         return __awaiter(this, void 0, void 0, function () {
-            var eventsEnh;
-            var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var eventsEnh, _a, heatUpRooms, coolDownRooms;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         if (!err) return [3 /*break*/, 1];
                         console.error('Could not read sid.txt! ', err);
@@ -83,45 +83,30 @@ var checkEvents = function (events, roomsMap) {
                         return [3 /*break*/, 4];
                     case 2: return [4 /*yield*/, event_service_1.EventService.getEnhancedEvents(events, roomsMap)];
                     case 3:
-                        eventsEnh = _a.sent();
-                        event_service_1.EventService.checkTimes(eventsEnh, roomsMap, function (room, event) { return __awaiter(_this, void 0, void 0, function () {
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0: 
-                                    // Before the event
-                                    return [4 /*yield*/, firebase_service_1.FirebaseService.updateRoom(__assign(__assign({}, room), { heated: true, cooled: false }))];
-                                    case 1:
-                                        // Before the event
-                                        _a.sent();
-                                        return [4 /*yield*/, fritz_service_1.FritzService.heatUpRoom(room, sid)];
-                                    case 2:
-                                        _a.sent();
-                                        return [2 /*return*/];
+                        eventsEnh = _b.sent();
+                        _a = event_service_1.EventService.checkTimes(eventsEnh, roomsMap), heatUpRooms = _a.heatUpRooms, coolDownRooms = _a.coolDownRooms;
+                        // Call up the Fritzbox command for each room. The timeout is important so that the Fritzbox is not overloaded.
+                        heatUpRooms.forEach(function (_a, i) {
+                            var room = _a.room;
+                            setTimeout(function () {
+                                firebase_service_1.FirebaseService.updateRoom(__assign(__assign({}, room), { heated: true, cooled: false }));
+                                fritz_service_1.FritzService.heatUpRoom(room, sid);
+                            }, i * TIME_AFTER_REQUEST);
+                        });
+                        // Call up the Fritzbox command for each room. The timeout is important so that the Fritzbox is not overloaded.
+                        coolDownRooms.forEach(function (_a, i) {
+                            var room = _a.room, event = _a.event;
+                            setTimeout(function () {
+                                firebase_service_1.FirebaseService.updateRoom(__assign(__assign({}, room), { heated: false, cooled: true }));
+                                fritz_service_1.FritzService.coolDownRoom(room, sid);
+                                // If the event was an endless appointment, create a new one in a year.
+                                if ((event === null || event === void 0 ? void 0 : event.seriesEndless) && event.seriesId) {
+                                    console.log('try to create new event');
+                                    firebase_service_1.FirebaseService.appendEndlessEvent(events, event.seriesId);
                                 }
-                            });
-                        }); }, function (room, event) { return __awaiter(_this, void 0, void 0, function () {
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0: 
-                                    // After the event
-                                    return [4 /*yield*/, firebase_service_1.FirebaseService.updateRoom(__assign(__assign({}, room), { heated: false, cooled: true }))];
-                                    case 1:
-                                        // After the event
-                                        _a.sent();
-                                        return [4 /*yield*/, fritz_service_1.FritzService.coolDownRoom(room, sid)];
-                                    case 2:
-                                        _a.sent();
-                                        if (!((event === null || event === void 0 ? void 0 : event.seriesEndless) && event.seriesId)) return [3 /*break*/, 4];
-                                        console.log('try to create new event');
-                                        return [4 /*yield*/, firebase_service_1.FirebaseService.appendEndlessEvent(events, event.seriesId)];
-                                    case 3:
-                                        _a.sent();
-                                        _a.label = 4;
-                                    case 4: return [2 /*return*/];
-                                }
-                            });
-                        }); });
-                        _a.label = 4;
+                            }, i * TIME_AFTER_REQUEST);
+                        });
+                        _b.label = 4;
                     case 4:
                         console.log(new Date().toISOString(), ' - Check ended');
                         return [2 /*return*/];

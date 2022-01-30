@@ -5,8 +5,11 @@ import { SIDService } from './services/file.service';
 import { FirebaseService } from './services/firebase.service';
 import { FritzService } from './services/fritz.service';
 import { EventService } from './services/event.service';
-import { timeStamp } from 'console';
 dotenv.config();
+
+
+const TIME_AFTER_REQUEST = 1000;      // in ms
+
 
 
 const start = () => {
@@ -26,26 +29,35 @@ const checkEvents = (events: IEvent[], roomsMap: Map<string, IRoom>) => {
 
     } else if (sid.length !== 16) {
       console.log('lenght of SID not correct!');
-    SIDService.requestNewSID();
+      SIDService.requestNewSID();
 
     } else {
       const eventsEnh = await EventService.getEnhancedEvents(events, roomsMap);
-      EventService.checkTimes(eventsEnh, roomsMap,
-        async (room, event) => {
-          // Before the event
-          await FirebaseService.updateRoom({...room, heated: true, cooled: false});
+
+      // Get the rooms that need to be heated up or cooled down
+      const { heatUpRooms, coolDownRooms } = EventService.checkTimes(eventsEnh, roomsMap);
+
+      // Call up the Fritzbox command for each room. The timeout is important so that the Fritzbox is not overloaded.
+      heatUpRooms.forEach(({ room }, i) => {
+        setTimeout(() => {
+          FirebaseService.updateRoom({ ...room, heated: true, cooled: false });
           FritzService.heatUpRoom(room, sid);
-        },
-        async (room, event) => {
-          // After the event
-          await FirebaseService.updateRoom({...room, heated: false, cooled: true});
+        }, i * TIME_AFTER_REQUEST);
+      });
+
+      // Call up the Fritzbox command for each room. The timeout is important so that the Fritzbox is not overloaded.
+      coolDownRooms.forEach(({ room, event }, i) => {
+        setTimeout(() => {
+          FirebaseService.updateRoom({ ...room, heated: false, cooled: true });
           FritzService.coolDownRoom(room, sid);
+          // If the event was an endless appointment, create a new one in a year.
           if (event?.seriesEndless && event.seriesId) {
             console.log('try to create new event');
-            await FirebaseService.appendEndlessEvent(events, event.seriesId);
+            FirebaseService.appendEndlessEvent(events, event.seriesId);
           }
-        }
-      );
+        }, i * TIME_AFTER_REQUEST);
+      });
+
     }
     console.log(new Date().toISOString(), ' - Check ended');
   });

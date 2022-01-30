@@ -84,11 +84,14 @@ var EventService = /** @class */ (function () {
             }
         });
     };
-    EventService.checkTimes = function (events, roomsMap, beginCb, endCb) {
+    EventService.checkTimes = function (events, roomsMap) {
+        var _this = this;
         var _a, _b, _c;
         var fritzRoomId = process.env.ROOM_FRITZ_ID;
         var floorRoom = Array.from(roomsMap.values()).find(function (r) { return r.fritzId === fritzRoomId; });
         var actions = [];
+        var heatUpRooms = [];
+        var coolDownRooms = [];
         events.sort(function (a, b) {
             if (a.event.start > b.event.start) {
                 return 1;
@@ -109,36 +112,44 @@ var EventService = /** @class */ (function () {
                 actions.push({ type: 'cool', event: e });
             }
         });
+        console.log('events:', events);
         console.log(actions);
         var actionPerRoom = [];
-        actions.reverse().forEach(function (action) {
+        actions.reverse().forEach(function (action) { return __awaiter(_this, void 0, void 0, function () {
             var _a, _b;
-            if (action.event.room && !actionPerRoom.includes(action.event.room.id)) {
-                actionPerRoom.push(action.event.room.id);
-                if (action.type === 'heat' && !((_a = roomsMap.get(action.event.room.id)) === null || _a === void 0 ? void 0 : _a.heated)) {
-                    roomsMap.set(action.event.room.id, __assign(__assign({}, action.event.room), { heated: true, cooled: false }));
-                    beginCb(action.event.room, action.event.event);
+            return __generator(this, function (_c) {
+                if (action.event.room && !actionPerRoom.includes(action.event.room.id)) {
+                    actionPerRoom.push(action.event.room.id);
+                    if (action.type === 'heat' && !((_a = roomsMap.get(action.event.room.id)) === null || _a === void 0 ? void 0 : _a.heated)) {
+                        roomsMap.set(action.event.room.id, __assign(__assign({}, action.event.room), { heated: true, cooled: false }));
+                        heatUpRooms.push({ room: action.event.room, event: action.event.event });
+                    }
+                    else if (action.type === 'cool' && !((_b = roomsMap.get(action.event.room.id)) === null || _b === void 0 ? void 0 : _b.cooled)) {
+                        roomsMap.set(action.event.room.id, __assign(__assign({}, action.event.room), { heated: false, cooled: true }));
+                        coolDownRooms.push({ room: action.event.room, event: action.event.event });
+                    }
                 }
-                else if (action.type === 'cool' && !((_b = roomsMap.get(action.event.room.id)) === null || _b === void 0 ? void 0 : _b.cooled)) {
-                    roomsMap.set(action.event.room.id, __assign(__assign({}, action.event.room), { heated: false, cooled: true }));
-                    endCb(action.event.room, action.event.event);
-                }
-            }
-        });
+                return [2 /*return*/];
+            });
+        }); });
         if (floorRoom) {
             var heatedRooms = Array.from(roomsMap.values()).filter(function (r) { return r.heated; });
             var shouldFloorBeHeated = !((_a = roomsMap.get(floorRoom.id)) === null || _a === void 0 ? void 0 : _a.heated) && heatedRooms.length > 0;
             var shouldFloorBeCooled = ((_b = roomsMap.get(floorRoom.id)) === null || _b === void 0 ? void 0 : _b.heated) && !((_c = roomsMap.get(floorRoom.id)) === null || _c === void 0 ? void 0 : _c.cooled) && heatedRooms.length === 1;
             if (shouldFloorBeHeated && floorRoom.fritzId !== '') {
                 roomsMap.set(floorRoom.id, __assign(__assign({}, floorRoom), { heated: true, cooled: false }));
-                beginCb(floorRoom, undefined);
+                heatUpRooms.push({ room: floorRoom, event: undefined });
             }
             else if (shouldFloorBeCooled) {
                 roomsMap.set(floorRoom.id, __assign(__assign({}, floorRoom), { heated: false, cooled: true }));
-                endCb(floorRoom, undefined);
-                roomsMap.forEach(function (room) { return endCb(room); });
+                coolDownRooms.push({ room: floorRoom, event: undefined });
+                for (var _i = 0, _d = Array.from(roomsMap.values()); _i < _d.length; _i++) {
+                    var room = _d[_i];
+                    coolDownRooms.push({ room: room, event: undefined });
+                }
             }
         }
+        return { heatUpRooms: heatUpRooms, coolDownRooms: coolDownRooms };
     };
     EventService.getUTCDateFromTimestamp = function (timestamp) {
         var _a = this.getDate(timestamp.toDate()).split('-').map(function (s) { return Number(s); }), year = _a[0], month = _a[1], day = _a[2];
@@ -149,7 +160,7 @@ var EventService = /** @class */ (function () {
     EventService.getTime = function (date) {
         if (date) {
             var hours = date.getUTCHours().toString();
-            var min = date.getMinutes().toString();
+            var min = date.getUTCMinutes().toString();
             if (hours.length === 1) {
                 hours = '0' + hours;
             }
@@ -165,9 +176,9 @@ var EventService = /** @class */ (function () {
     EventService.getDate = function (date, addDays) {
         if (addDays === void 0) { addDays = 0; }
         if (date) {
-            var year = date.getFullYear();
-            var month = (date.getMonth()).toString();
-            date.setDate(date.getDate() + addDays);
+            var year = date.getUTCFullYear();
+            var month = (date.getUTCMonth()).toString();
+            date.setDate(date.getUTCDate() + addDays);
             var day = date.getDate().toString();
             if (month.length === 1) {
                 month = '0' + month;
