@@ -156,38 +156,43 @@ export default class EditEvent extends PageMixin(LitElement) {
                     <textarea ?readonly=${!this.editMode} class="form-control" aria-label="description" id="edit-description" placeholder="Nähere Beschreibung ihrer Veranstaltung..."></textarea>
                   </div>
                     <div class="mb-3">
-                      <label for="edit-room">Raum für ihre Veranstaltung</label>
-                      <select class="form-control" id="edit-room" ?readonly=${!this.editMode}>
-                        ${this.rooms.map(room => html`<option value=${room.id} ?selected=${this.event?.roomId == room.id}>${room.title === 'Ferien' ? '-': room.title}</option>`)}
-                      </select>
+                      ${this.user?.role == ROLE.ADMIN && this.editMode? html`
+                        <label for="edit-room">Raum für ihre Veranstaltung</label>
+                        <select class="form-control" id="edit-room" ?readonly=${!this.editMode}>
+                          ${this.rooms.map(room => html`<option value=${room.id} ?selected=${this.event?.roomId == room.id}>${room.title === 'Ferien' ? '-': room.title}</option>`)}
+                        </select>
+                      `:html`
+                        <label for="edit-room-ro">Raum für ihre Veranstaltung</label>
+                        <input readonly type="text" class="form-control" value=${this.event? this.event.room : ''} id="edit-created-from-ro">
+                      `}
                     </div>
 
                     <div class="mb-3">
                       <label for="edit-start-date" class="form-label">Start-Datum*</label>
                       <input ?readonly=${!this.editMode} id="edit-start-date" required class="form-control" type="date">  
                     </div>
-                    ${!this.allDay? html`
+                    ${!this.allDay && html`
                     <div class="mb-3">
                       <label for="edit-start-time-" class="form-label">Start-Uhrzeit*</label>
                       <input ?readonly=${!this.editMode} id="edit-start-time" required class="form-control" type="time">  
                     </div>
-                    `:undefined}
+                    `}
                     <div class="mb-3">
                       <label for="edit-end-date" class="form-label">End-Datum*</label>
                       <input ?readonly=${!this.editMode} id="edit-end-date" required class="form-control" type="date">  
                     </div>
-                    ${!this.allDay? html`
+                    ${!this.allDay && html`
                     <div class="mb-3">
                       <label for="edit-end-time-" class="form-label">End-Uhrzeit*</label>
                       <input ?readonly=${!this.editMode} id="edit-end-time" required class="form-control" type="time">  
                     </div>
-                    `:undefined}
+                    `}
 
 
                     <div class="mb-3">
-                      ${this.user?.role == ROLE.ADMIN? html`
+                      ${this.user?.role == ROLE.ADMIN && this.editMode? html`
                         <label for="edit-created-from">Erstellt von</label>
-                        <select class="form-control" id="edit-created-from" ?readonly=${!this.editMode && this.user?.role == ROLE.ADMIN}>
+                        <select class="form-control" id="edit-created-from">
                           ${this.users.map(u => html`<option value=${u.id} ?selected=${this.event?.createdFromId == u.id}>${u.name}</option>`)}
                         </select>
                       `:html`
@@ -275,15 +280,15 @@ export default class EditEvent extends PageMixin(LitElement) {
       let endMillis = 0;
 
       if (this.allDay) {
-        startMillis = new Date(startDate[0], startDate[1]-1, startDate[2]).getTime();
-        endMillis = new Date(endDate[0], endDate[1]-1, endDate[2]).getTime();
+        startMillis = new Date(Date.UTC(startDate[0], startDate[1]-1, startDate[2])).getTime();
+        endMillis = new Date(Date.UTC(endDate[0], endDate[1]-1, endDate[2])).getTime();
 
       } else {
         const startTime = this.getTimeFromInput(startTimeInput.value);
         const endTime = this.getTimeFromInput(endTimeInput.value);
 
-        startMillis = new Date(startDate[0], startDate[1]-1, startDate[2], startTime[0], startTime[1]).getTime();
-        endMillis = new Date(endDate[0], endDate[1]-1, endDate[2], endTime[0], endTime[1]).getTime();
+        startMillis = new Date(Date.UTC(startDate[0], startDate[1]-1, startDate[2], startTime[0], startTime[1])).getTime();
+        endMillis = new Date(Date.UTC(endDate[0], endDate[1]-1, endDate[2], endTime[0], endTime[1])).getTime();
         
       }
       const startTimeStamp = Timestamp.fromMillis(startMillis);
@@ -388,8 +393,10 @@ export default class EditEvent extends PageMixin(LitElement) {
         this.editModal = new Modal(element);
       }
     }
-    this.editModal?.show();
-    this.setData();
+    if (this.editModal) {
+      this.editModal.show();
+      this.setData();
+    }
   }
 
   closeModal(): void {
@@ -409,7 +416,6 @@ export default class EditEvent extends PageMixin(LitElement) {
       this.startDateInput.value = getDisplayDate(new Date(this.event.start.seconds * 1000));
       this.endDateInput.value = getDisplayDate(new Date(this.event.end.seconds * 1000));
       this.descriptionInput.value = this.event.description;
-      this.createdFromInput.value = this.event.createdFromId;
       if (!this.allDay) {
         this.startTimeInput.value = getTime(this.event.start.toDate());
         this.endTimeInput.value = getTime(this.event.end.toDate());
