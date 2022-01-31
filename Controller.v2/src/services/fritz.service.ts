@@ -11,7 +11,7 @@ export class FritzService {
     const url = `${baseUrl}/webservices/homeautoswitch.lua?sid=${sid}&ain=${roomId}&switchcmd=sethkrtsoll&param=${temp * 2}`;
     console.log('call: ', url);
     const prodMode = process.env.MODE;
-    if (prodMode === 'prod') {
+    if (prodMode === 'prod' && temp != 0) {
       https.get(url, (res) => {
         let data = '';
         // A chunk of data has been received.
@@ -37,7 +37,7 @@ export class FritzService {
     const url = `${baseUrl}/webservices/homeautoswitch.lua?sid=${sid}&ain=${roomId}&switchcmd=sethkrtsoll&param=${temp * 2}`;
     console.log('call: ', url);
     const prodMode = process.env.MODE;
-    if (prodMode === 'prod') {
+    if (prodMode === 'prod' && temp != 0) {
       https.get(url, (res) => {
         let data = '';
         // A chunk of data has been received.

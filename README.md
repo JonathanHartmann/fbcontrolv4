@@ -19,10 +19,10 @@ Diese Software vereint die SmartHome Features der AVM Heizthermostate "Dect 301"
 
 
 ## Module
-Die Software besteht aus 3 Haupt-Modulen:
-· Frontend -> Website zur Visualisierung sowie Verwaltung der Termine in einem Kalender.
-· Datenbank -> Firebase
-· Controller -> Aktives Bindeglied zwischen Datenbank und FritzBox 
+Die Software besteht aus 3 Haupt-Modulen: \n
+· Frontend -> Website zur Visualisierung sowie Verwaltung der Termine in einem Kalender. \n
+· Datenbank -> Firebase \n
+· Controller -> Aktives Bindeglied zwischen Datenbank und FritzBox \n
 
 ## Funktionsweise
 Die Termine können über den Kalender auf der Website eingetragen und verwaltet werden.

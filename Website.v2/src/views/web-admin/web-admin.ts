@@ -39,6 +39,9 @@ export default class WebAdmin extends PageMixin(LitElement) {
         <li class="nav-item" role="presentation">
           <button class="nav-link" id="background-events-tab" data-bs-toggle="tab" data-bs-target="#backgroundEvents" type="button" role="tab" aria-controls="backgroundEvents" aria-selected="false">Ferien</button>
         </li>
+        <li class="nav-item" role="presentation">
+        <button class="nav-link" id="eventlogs-tab" data-bs-toggle="tab" data-bs-target="#eventlogs" type="button" role="tab" aria-controls="eventlogs" aria-selected="false">Logs</button>
+      </li>
 
       </ul>
       <div class="tab-content" id="myTabContent">
@@ -99,6 +102,12 @@ export default class WebAdmin extends PageMixin(LitElement) {
         </div>
 
 
+        <!-- Eventslogs Tab -->
+        <div class="tab-pane fade" id="eventlogs" role="tabpanel" aria-labelledby="eventlogs-tab">
+        Spaceholder
+
+        </div>
+                
       </div>
       <p class="mt-5 mb-3 text-muted">&copy;${copy} Jonathan Hartmann & Till Hoffmann v${version}</p>
     </div>
