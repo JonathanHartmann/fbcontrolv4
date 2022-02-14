@@ -174,12 +174,17 @@ export class EventService {
 
   private static deleteBackroungEventsForTimespan(start: Date, end: Date) {
     const backgroundEvents = store.getState().events.filter(e => e.background);
+    const inStart = start.getTime();
+    const inEnd = end.getTime();
     backgroundEvents.forEach(async backEvent => {
-      if ((start <= backEvent.start.toDate() && start <= backEvent.end.toDate() &&
-        end >= backEvent.start.toDate() && end >= backEvent.end.toDate())
+      const backStart = backEvent.start.toMillis();
+      const backEnd = backEvent.end.toMillis();
+      if ((inStart <= backStart && inStart <= backEnd &&
+        inEnd >= backStart && inEnd >= backEnd)
         ||
-        (start >= backEvent.start.toDate() && start <= backEvent.end.toDate() &&
-        end >= backEvent.start.toDate() && end <= backEvent.end.toDate())) {
+        (inStart >= backStart && inStart <= backEnd &&
+        inEnd >= backStart && inEnd <= backEnd)) {
+        console.log('Delete Event: ', backEvent.title);
         await EventService.deleteEvent(backEvent.id);
       }
     });

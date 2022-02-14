@@ -156,7 +156,7 @@ export default class EditEvent extends PageMixin(LitElement) {
                     <textarea ?readonly=${!this.editMode} class="form-control" aria-label="description" id="edit-description" placeholder="Nähere Beschreibung ihrer Veranstaltung..."></textarea>
                   </div>
                     <div class="mb-3">
-                      ${this.user?.role == ROLE.ADMIN && this.editMode? html`
+                      ${this.editMode? html`
                         <label for="edit-room">Raum für ihre Veranstaltung</label>
                         <select class="form-control" id="edit-room" ?readonly=${!this.editMode}>
                           ${this.rooms.map(room => html`<option value=${room.id} ?selected=${this.event?.roomId == room.id}>${room.title === 'Ferien' ? '-': room.title}</option>`)}
@@ -205,14 +205,14 @@ export default class EditEvent extends PageMixin(LitElement) {
                       <input id="edit-created-at" readonly class="form-control" type="datetime-local">  
                     </div>
 
-                    ${this.event && this.event.seriesId && this.editMode? html`
+                    ${this.event && this.event.seriesId && this.editMode && html`
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" ?checked=${this.allFuture} id="edit-allFuture" @input=${() => this.allFuture = !this.allFuture}>
                       <label class="form-check-label" for="edit-allFuture">
                         Update auch alle zukünftigen Termine
                       </label>
                     </div>
-                    `:undefined}
+                    `}
 
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" ?checked=${this.allDay} id="edit-allDay" @input=${() => this.allDay = !this.allDay} ?disabled=${!this.editMode}>
@@ -270,10 +270,11 @@ export default class EditEvent extends PageMixin(LitElement) {
       const startTimeInput = document.getElementById('edit-start-time') as HTMLInputElement;
       const endTimeInput = document.getElementById('edit-end-time') as HTMLInputElement;
       const backgroundInput = document.getElementById('edit-background') as HTMLInputElement;
-      const createdFromInput = document.getElementById('edit-created-from') as HTMLInputElement;
       
+      // Update Room
       const room = this.rooms.find((r) => r.id === roomInput.value)
 
+      // New start and end timestamps
       const startDate = this.getDateFromInput(startDateInput.value);
       const endDate = this.getDateFromInput(endDateInput.value);
       let startMillis = 0;
@@ -294,11 +295,19 @@ export default class EditEvent extends PageMixin(LitElement) {
       const startTimeStamp = Timestamp.fromMillis(startMillis);
       const endTimeStamp = Timestamp.fromMillis(endMillis);
 
-      let newUser = this.users.find(u => u.id == createdFromInput.value)
+      // CreatedFrom logic
+      let createdFromId = this.user.id;
+      if (this.user.role == ROLE.ADMIN) {
+        const createdFromInput = document.getElementById('edit-created-from') as HTMLInputElement;
+        createdFromId = createdFromInput.value;
+      }
+      let newUser = this.users.find(u => u.id == createdFromId);
       newUser = newUser ? newUser : this.user;
       const newUserId = this.user.role == ROLE.ADMIN? newUser.id : this.user.id; 
       const newUserName = this.user.role == ROLE.ADMIN? newUser.name : this.user.name; 
 
+
+      // Update Event
       if (startTimeStamp <= endTimeStamp && room) {
         
         let newEvent: IEvent = {
@@ -444,6 +453,7 @@ export default class EditEvent extends PageMixin(LitElement) {
   quitEditMode(): void {
     try {
       this.setData();
+      this.loading = false;
     } catch {
       // wenn ein event gelöscht wurde, können die Daten nicht nue gesetzt werden
     }
