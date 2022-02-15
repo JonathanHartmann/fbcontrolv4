@@ -17,7 +17,7 @@ var FritzService = /** @class */ (function () {
         var url = baseUrl + "/webservices/homeautoswitch.lua?sid=" + sid + "&ain=" + roomId + "&switchcmd=sethkrtsoll&param=" + temp * 2;
         console.log('call: ', url);
         var prodMode = process.env.MODE;
-        if (prodMode === 'prod') {
+        if (prodMode === 'prod' && temp != 0) {
             https_1.default.get(url, function (res) {
                 var data = '';
                 // A chunk of data has been received.
@@ -42,7 +42,7 @@ var FritzService = /** @class */ (function () {
         var url = baseUrl + "/webservices/homeautoswitch.lua?sid=" + sid + "&ain=" + roomId + "&switchcmd=sethkrtsoll&param=" + temp * 2;
         console.log('call: ', url);
         var prodMode = process.env.MODE;
-        if (prodMode === 'prod') {
+        if (prodMode === 'prod' && temp != 0) {
             https_1.default.get(url, function (res) {
                 var data = '';
                 // A chunk of data has been received.

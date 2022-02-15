@@ -74,7 +74,22 @@ var FirebaseService = /** @class */ (function () {
                     case 1:
                         eventSnap = _a.sent();
                         events = FirebaseService.getDataFromSnapshot(eventSnap);
-                        console.log('Nr events:', events.length);
+                        return [2 /*return*/, events];
+                }
+            });
+        });
+    };
+    FirebaseService.loadSeriesEvents = function (seriesId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var eventSnap, events;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, firebase_1.firestore.collection('events')
+                            .where('seriesId', '==', seriesId)
+                            .get()];
+                    case 1:
+                        eventSnap = _a.sent();
+                        events = FirebaseService.getDataFromSnapshot(eventSnap);
                         return [2 /*return*/, events];
                 }
             });
@@ -95,32 +110,37 @@ var FirebaseService = /** @class */ (function () {
             });
         });
     };
-    FirebaseService.appendEndlessEvent = function (allEvents, seriesId) {
+    FirebaseService.appendEndlessEvent = function (seriesId) {
         return __awaiter(this, void 0, void 0, function () {
-            var eventSeries, lastEvent, nextEvent, validRoom, valid;
+            var allEvents, eventSeries, lastEvent, nextEvent, validRoom, valid;
             return __generator(this, function (_a) {
-                eventSeries = allEvents.filter(function (e) { return e.seriesId = seriesId; }).sort(function (a, b) {
-                    if (a.start > b.start) {
-                        return -1;
-                    }
-                    else if (a.start < b.start) {
-                        return 1;
-                    }
-                    else {
-                        return 0;
-                    }
-                });
-                lastEvent = eventSeries[0];
-                if (lastEvent.seriesId && lastEvent.seriesNr) {
-                    nextEvent = FirebaseService.eventNextWeek(lastEvent, lastEvent.seriesNr + 1, lastEvent.seriesId);
-                    validRoom = FirebaseService.checkRoomValidity(nextEvent, allEvents);
-                    valid = nextEvent.seriesDuringHoliday ? true : FirebaseService.checkValidity(nextEvent, allEvents);
-                    if (valid && validRoom) {
-                        console.log('--- Create new endless Event!');
-                        FirebaseService.saveEvent(nextEvent);
-                    }
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.loadSeriesEvents(seriesId)];
+                    case 1:
+                        allEvents = _a.sent();
+                        eventSeries = allEvents.sort(function (a, b) {
+                            if (a.start > b.start) {
+                                return -1;
+                            }
+                            else if (a.start < b.start) {
+                                return 1;
+                            }
+                            else {
+                                return 0;
+                            }
+                        });
+                        lastEvent = eventSeries[0];
+                        if (lastEvent.seriesId && lastEvent.seriesNr) {
+                            nextEvent = FirebaseService.eventNextWeek(lastEvent, lastEvent.seriesNr + 1, lastEvent.seriesId);
+                            validRoom = FirebaseService.checkRoomValidity(nextEvent, allEvents);
+                            valid = nextEvent.seriesDuringHoliday ? true : FirebaseService.checkValidity(nextEvent, allEvents);
+                            if (valid && validRoom) {
+                                console.log('--- Create new endless Event!');
+                                FirebaseService.saveEvent(nextEvent);
+                            }
+                        }
+                        return [2 /*return*/];
                 }
-                return [2 /*return*/];
             });
         });
     };
@@ -130,7 +150,7 @@ var FirebaseService = /** @class */ (function () {
         });
     };
     FirebaseService.eventNextWeek = function (event, seriesNr, seriesId) {
-        var newEvent = __assign(__assign({}, event), { start: firebase_admin_1.firestore.Timestamp.fromDate(new Date(event.start.toDate().getTime() + 7 * 24 * 60 * 60 * 1000)), end: firebase_admin_1.firestore.Timestamp.fromDate(new Date(event.end.toDate().getTime() + 7 * 24 * 60 * 60 * 1000)), seriesId: seriesId, seriesNr: seriesNr });
+        var newEvent = __assign(__assign({}, event), { start: firebase_admin_1.firestore.Timestamp.fromMillis(event.start.toDate().getTime() + 7 * 24 * 60 * 60 * 1000), end: firebase_admin_1.firestore.Timestamp.fromMillis(event.end.toDate().getTime() + 7 * 24 * 60 * 60 * 1000), seriesId: seriesId, seriesNr: seriesNr });
         return newEvent;
     };
     FirebaseService.checkValidity = function (event, events) {
