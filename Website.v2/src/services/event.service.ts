@@ -68,7 +68,7 @@ const eventConverter = {
 
 export class EventService {
 
-  static async createEvent(event: IEvent, seriesDate: Date | undefined = undefined): Promise<void> {
+  static async createEvent(event: IEvent, seriesDate: Date| undefined = undefined, seriesEventDouble: boolean | undefined = undefined): Promise<void> {
     if (!seriesDate && !event.seriesEndless) {
       const validRoom = EventService.checkRoomValidity(event);
       if (validRoom) {
@@ -76,11 +76,12 @@ export class EventService {
       } else {
         throw new Error('Event is during a background event or an event has already been created in the same room and time');
       }
-    } else if ((seriesDate && seriesDate > new Date()) || event.seriesEndless) {
+    } else if ((seriesEventDouble != true && seriesDate && seriesDate > new Date()) || event.seriesEndless ) {
       const seriesId = nanoid();
       const oneYearFromNow = new Date(event.start.toDate());
       oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
       const seriesNr = event.seriesEndless ? EventService.getNrWeeksUntil(event.start.toDate(), oneYearFromNow) : EventService.getNrWeeksUntil(event.start.toDate(), seriesDate!);
+      
       let nextEvent: IEvent = {...event, seriesNr, seriesId};
       for (let i=seriesNr-1; i >= 0; i--) {
         const validRoom = EventService.checkRoomValidity(event);
@@ -88,9 +89,25 @@ export class EventService {
         if (valid && validRoom) {
           EventService.saveEvent(nextEvent);
         }
-        nextEvent = EventService.eventNextWeek(nextEvent, i, seriesId);
+        nextEvent = EventService.eventNextWeek(nextEvent, i, seriesId, seriesEventDouble);
       }
     }
+    else if ((seriesEventDouble == true && seriesDate && seriesDate > new Date()) || event.seriesEndless ) {
+      const seriesId = nanoid();
+      const oneYearFromNow = new Date(event.start.toDate());
+      oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+      const seriesNr = event.seriesEndless ? EventService.getNrBiWeeksUntil(event.start.toDate(), oneYearFromNow) : EventService.getNrBiWeeksUntil(event.start.toDate(), seriesDate!);
+      let nextEvent: IEvent = {...event, seriesNr, seriesId};
+      for (let i=seriesNr-1; i >= 0; i--) {
+        const validRoom = EventService.checkRoomValidity(event);
+        const valid = event.seriesDuringHoliday? true : EventService.checkValidity(nextEvent);
+        if (valid && validRoom) {
+          EventService.saveEvent(nextEvent);
+        }
+        nextEvent = EventService.eventNextWeek(nextEvent, i, seriesId, seriesEventDouble);
+      }
+    }
+    
   }
 
   static async updateEvent(event: IEvent): Promise<void> {
@@ -199,16 +216,31 @@ export class EventService {
     });
   }
 
-  private static eventNextWeek(event: IEvent, seriesNr: number, seriesId: string): IEvent {
-    const newEvent: IEvent = {
-      ...event,
-      start: Timestamp.fromMillis(event.start.seconds * 1000 + 7 * 24 * 60 * 60 * 1000),
-      end: Timestamp.fromMillis(event.end.seconds * 1000 + 7 * 24 * 60 * 60 * 1000),
-      seriesId,
+  private static eventNextWeek(event: IEvent, seriesNr: number, seriesId: string, seriesEventDouble: boolean | undefined = undefined): IEvent {
+    if(seriesEventDouble == true)  
+    {
       seriesNr
+      const newEvent: IEvent = {
+        ...event,
+        start: Timestamp.fromMillis(event.start.seconds * 1000 + 7 * 24 * 60 * 60 * 1000 * 2),
+        end: Timestamp.fromMillis(event.end.seconds * 1000 + 7 * 24 * 60 * 60 * 1000 * 2),
+        seriesId,
+        seriesNr
+      } 
+      return newEvent;
+    } else {
+      const newEvent: IEvent = {
+        ...event,
+        start: Timestamp.fromMillis(event.start.seconds * 1000 + 7 * 24 * 60 * 60 * 1000),
+        end: Timestamp.fromMillis(event.end.seconds * 1000 + 7 * 24 * 60 * 60 * 1000),
+        seriesId,
+        seriesNr
+      }
+      return newEvent;
     }
-    return newEvent;
   }
+  
+ 
 
   private static async updateSingleEvent(event: IEvent): Promise<void> {
     const eventRef = doc(firestore, 'events/', event.id).withConverter(eventConverter);
@@ -230,6 +262,9 @@ export class EventService {
 
   private static getNrWeeksUntil(startDate: Date, endDate: Date) {
     return Math.round((endDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+  }
+  private static getNrBiWeeksUntil(startDate: Date, endDate: Date) {
+    return Math.round((endDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000 * 2)) + 1;
   }
 
 }
