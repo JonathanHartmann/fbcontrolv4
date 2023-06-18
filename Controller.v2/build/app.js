@@ -102,7 +102,7 @@ var checkEvents = function (events, roomsMap) {
                                 // If the event was an endless appointment, create a new one in a year.
                                 if ((event === null || event === void 0 ? void 0 : event.seriesEndless) && event.seriesId) {
                                     console.log('try to create new event');
-                                    firebase_service_1.FirebaseService.appendEndlessEvent(events, event.seriesId);
+                                    firebase_service_1.FirebaseService.appendEndlessEvent(event.seriesId);
                                 }
                             }, i * TIME_AFTER_REQUEST);
                         });

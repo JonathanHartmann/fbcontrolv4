@@ -19,7 +19,14 @@ export class FirebaseService {
       .where('start', '<', endTimestamp)
       .get();
     const events = FirebaseService.getDataFromSnapshot(eventSnap);
-    console.log('Nr events:', events.length);
+    return events as IEvent[];
+  }
+  
+  static async loadSeriesEvents(seriesId: string): Promise<IEvent[]> {
+    const eventSnap = await firestore.collection('events')
+      .where('seriesId', '==', seriesId)
+      .get();
+    const events = FirebaseService.getDataFromSnapshot(eventSnap);
     return events as IEvent[];
   }
   
@@ -30,8 +37,9 @@ export class FirebaseService {
     return rooms as IRoom[];
   }
 
-  static async appendEndlessEvent(allEvents: IEvent[], seriesId: string): Promise<void> {
-    const eventSeries = allEvents.filter(e => e.seriesId = seriesId).sort((a, b) => {
+  static async appendEndlessEvent(seriesId: string): Promise<void> {
+    const allEvents = await this.loadSeriesEvents(seriesId);
+    const eventSeries = allEvents.sort((a, b) => {
       if (a.start > b.start) {
         return -1;
       } else if (a.start < b.start) {
@@ -64,8 +72,8 @@ export class FirebaseService {
   private static eventNextWeek(event: IEvent, seriesNr: number, seriesId: string): IEvent {
     const newEvent: IEvent = {
       ...event,
-      start: firebaseAdmin.Timestamp.fromDate(new Date(event.start.toDate().getTime() + 7 * 24 * 60 * 60 * 1000)),
-      end: firebaseAdmin.Timestamp.fromDate(new Date(event.end.toDate().getTime() + 7 * 24 * 60 * 60 * 1000)),
+      start: firebaseAdmin.Timestamp.fromMillis(event.start.toDate().getTime() + 7 * 24 * 60 * 60 * 1000),
+      end: firebaseAdmin.Timestamp.fromMillis(event.end.toDate().getTime() + 7 * 24 * 60 * 60 * 1000),
       seriesId,
       seriesNr
     }

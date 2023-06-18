@@ -112,8 +112,6 @@ var EventService = /** @class */ (function () {
                 actions.push({ type: 'cool', event: e });
             }
         });
-        console.log('events:', events);
-        console.log(actions);
         var actionPerRoom = [];
         actions.reverse().forEach(function (action) { return __awaiter(_this, void 0, void 0, function () {
             var _a, _b;

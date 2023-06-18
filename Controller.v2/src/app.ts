@@ -53,7 +53,7 @@ const checkEvents = (events: IEvent[], roomsMap: Map<string, IRoom>) => {
           // If the event was an endless appointment, create a new one in a year.
           if (event?.seriesEndless && event.seriesId) {
             console.log('try to create new event');
-            FirebaseService.appendEndlessEvent(events, event.seriesId);
+            FirebaseService.appendEndlessEvent(event.seriesId);
           }
         }, i * TIME_AFTER_REQUEST);
       });
