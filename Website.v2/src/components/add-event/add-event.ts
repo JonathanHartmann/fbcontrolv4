@@ -29,6 +29,9 @@ export default class AddEvent extends PageMixin(LitElement) {
   duringHoliday = false;
 
   @property({ attribute: false })
+  seriesEventDouble = false;
+
+  @property({ attribute: false })
   allDay = false;
 
   @property({ attribute: false })
@@ -145,16 +148,25 @@ export default class AddEvent extends PageMixin(LitElement) {
                   </label>
                 </div>
                 ${this.seriesEvent? html`
-                  <div class="form-check">
+                <!-- Endless Event doesnt work. -->
+                <!--   
+                <div class="form-check">
                     <input class="form-check-input" type="checkbox" value=${this.endlessEvent} id="endlessEvent" @input=${() => this.endlessEvent = !this.endlessEvent}>
                     <label class="form-check-label" for="endlessEvent">
                       Endloser Termin
                     </label>
                   </div>
+                  --> 
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" value=${this.duringHoliday} id="duringHoliday" @input=${() => this.duringHoliday = !this.duringHoliday}>
                     <label class="form-check-label" for="duringHoliday">
                       Termin findet auch in den Ferien statt
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value=${this.seriesEventDouble} id="seriesEventDouble" @input=${() => this.seriesEventDouble = !this.seriesEventDouble}>
+                    <label class="form-check-label" for="seriesEventDouble">
+                      Termin findet 14-Tägig statt
                     </label>
                   </div>
                   ${!this.endlessEvent? html`
@@ -190,6 +202,7 @@ export default class AddEvent extends PageMixin(LitElement) {
     if (this.form.reportValidity()) {
       this.loading = true;
       const seriesDate = this.seriesDateInput ? new Date(this.seriesDateInput.value) : undefined;
+      const seriesEventDouble = this.seriesEventDouble;
 
       const room = this.rooms.find((r) => r.id === this.roomInput.value)
 
@@ -230,7 +243,7 @@ export default class AddEvent extends PageMixin(LitElement) {
             seriesEndless: this.endlessEvent,
             seriesDuringHoliday: this.duringHoliday
           } as IEvent
-          await EventService.createEvent(newEvent, seriesDate);
+          await EventService.createEvent(newEvent, seriesDate , seriesEventDouble);
           console.log(startDate);
           console.log(seriesDate);
           //TODO: E-Mail versenden --> services -> email.service.ts
@@ -247,7 +260,7 @@ export default class AddEvent extends PageMixin(LitElement) {
           document.getElementById('close-button')?.click();
         } catch(e) {
           console.error(e);
-          this.error = 'Der Termin ist entweder in den Ferien oder zur selben Zeit ist bereits der ausgewählte Raum ausgebucht.';
+          this.error = 'Zur selben Zeit ist bereits der ausgewählte Raum ausgebucht.';
           this.loading = false;
         }
       } else {
@@ -264,6 +277,7 @@ export default class AddEvent extends PageMixin(LitElement) {
     this.seriesEvent = false;
     this.duringHoliday = false;
     this.allDay = false;
+    this.seriesEventDouble = false;
     // this.form.reset();
   }
 

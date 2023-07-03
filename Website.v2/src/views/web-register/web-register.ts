@@ -54,7 +54,7 @@ export default class WebRegister extends PageMixin(LitElement) {
           <div class="message-box">
             ${ this.error ? html`
             <div  class="text-danger"> 
-              Login fehlgeschlagen! Haben Sie Email und Passwort richtig eingegeben?
+              Irgendetwas ist schiefgelaufen. Bitte versuchen sie es später nocheinmal
             </div>
             ` : undefined}
           </div>
@@ -76,7 +76,7 @@ export default class WebRegister extends PageMixin(LitElement) {
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-              Bitte benachrichtigen Sie einen Admin, um ihren Account zu aktivieren. (z.B. Jonathan Hartmann)
+              Bitte benachrichtigen Sie ihren zuständigen Admin, um ihren Account zu aktivieren.
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
