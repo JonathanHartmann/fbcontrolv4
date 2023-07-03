@@ -2,10 +2,11 @@ import { customElement, html, LitElement, property, query, TemplateResult } from
 import { PageMixin } from '../../client-packages/page.mixin';
 import { router } from '../../client-packages/router';
 import { AuthService } from '../../services/auth.service';
+import * as configFile from '../../config.json';
 
 import './web-login.scss';
-const version = process.env.version;
-const copy = process.env.copy;
+const version = configFile.version;
+const copy = configFile.copy;
 @customElement('web-login')
 export default class WebLogin extends PageMixin(LitElement) {
   @query('form')

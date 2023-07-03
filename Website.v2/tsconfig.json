@@ -6,7 +6,7 @@
     "outDir": "./public",
     "rootDir": "src",
     "removeComments": true,
-
+    "resolveJsonModule": true,
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
