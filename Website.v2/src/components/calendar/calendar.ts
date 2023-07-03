@@ -8,7 +8,8 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import resourceTimeGridPlugin from '@fullcalendar/resource-timegrid';
 import deLocale from '@fullcalendar/core/locales/de';
-import adaptivePlugin from '@fullcalendar/adaptive'
+import adaptivePlugin from '@fullcalendar/adaptive';
+import listPlugin from '@fullcalendar/list';
 import { IEvent } from '../../interfaces/event.interface';
 import { IState } from '../../interfaces/state.interface';
 import { IRoom } from '../../interfaces/room.interface';
@@ -212,12 +213,6 @@ export default class WebCalendar extends PageMixin(LitElement) {
     }
 
     let calendarConfig: CalendarOptions = {
-      plugins: [ dayGridPlugin, timeGridPlugin, resourceTimeGridPlugin, adaptivePlugin ],
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,resourceTimeGridDay'
-      },
       locales: [deLocale],
       locale: deLocale,
       eventDidMount: (info) => {
@@ -238,18 +233,39 @@ export default class WebCalendar extends PageMixin(LitElement) {
           info.el.title += ' - ' + info.event.extendedProps.description;
         }
       },
-      initialView: 'dayGridMonth',
       initialDate: this.selectedDate,
       weekNumbers: true,
       navLinks: true, // can click day/week names to navigate views
       editable: true,
       dayMaxEvents: true, // allow "more" link when too many events
+      dayMaxEventRows: 1,
       themeSystem: 'bootstrap',
       height: window.innerHeight - (navEle? navEle[0].offsetHeight : 0) - 2 * oneRem,
       eventClick: (info) => {
         this.openModal(info.event);
       }
     };
+
+
+    if (window.innerWidth < 780) {
+      calendarConfig.plugins = [ listPlugin ];
+      calendarConfig.headerToolbar = 
+        {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'listWeek'
+        };
+      calendarConfig.initialView = 'listWeek';
+    } else {
+      calendarConfig.plugins = [ dayGridPlugin, timeGridPlugin, resourceTimeGridPlugin, adaptivePlugin ];
+      calendarConfig.headerToolbar = 
+        {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,resourceTimeGridDay'
+        };
+      calendarConfig.initialView = 'dayGridMonth';
+    }
 
     if (formatEvents.length > 0) {
       calendarConfig = {
