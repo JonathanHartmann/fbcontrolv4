@@ -25,7 +25,11 @@ web-calendar {
     }
   }
 
-
+//Never show a scrollbar, always expand main browser scrollbar
+  #calendar .fc-scroller {
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+  }
 
   .tooltip-inner {
     white-space: pre !important;
