@@ -56,6 +56,9 @@ export default class WebCalendar extends PageMixin(LitElement) {
   @property({ attribute: false })
   selectedDate: Date = new Date();
 
+  @property({ type: Boolean })
+  showFilterTop = true;
+
   constructor() {
     super();
     window.addEventListener('resize', () => {
@@ -68,6 +71,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
   render(): TemplateResult {
     return html`
         <div class="row">
+          ${this.showFilterTop? html`
             <div class="room-filter d-flex flex-column bd-highlight">
               <div class="action-section mb-3">
                 <add-event></add-event>
@@ -79,6 +83,13 @@ export default class WebCalendar extends PageMixin(LitElement) {
                 <label class="form-check-label" for=${'room-' + room.id}>${room.title}</label>
               </div>`;})}
             </div>
+          `:html `
+            <div class="room-filter d-flex flex-column bd-highlight">
+              <div class="action-section mb-3">
+                <add-event></add-event>
+              </div>
+            </div>
+          `}
 
           <div class="calendar-section">
             ${this.loading? html`
@@ -91,6 +102,17 @@ export default class WebCalendar extends PageMixin(LitElement) {
               <div id="calendar"></div>
             `}
           </div>
+
+          ${!this.showFilterTop? html`
+            <div class="room-filter d-flex flex-column bd-highlight">
+              <h4>Angezeigte Räume</h4>
+              ${[...this.rooms.values()].map(roomObj => {const room = roomObj.room; return html`
+              <div class="form-check form-check-inline user-select-none">
+                <input class="form-check-input" type="checkbox" id=${'room-' + room.id} value=${room.id} ?checked=${roomObj.checked} @input=${() => this.roomFilter(room.id)} style=${styleMap({ borderColor: room.eventColor, backgroundColor: room.eventColor})}>
+                <label class="form-check-label" for=${'room-' + room.id}>${room.title}</label>
+              </div>`;})}
+            </div>
+          `:html ``}
 
         </div>
 
@@ -256,6 +278,7 @@ export default class WebCalendar extends PageMixin(LitElement) {
           right: 'listWeek'
         };
       calendarConfig.initialView = 'listWeek';
+      this.showFilterTop = false;
     } else {
       calendarConfig.plugins = [ dayGridPlugin, timeGridPlugin, resourceTimeGridPlugin, adaptivePlugin ];
       calendarConfig.headerToolbar = 
